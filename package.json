@@ -1,0 +1,33 @@
+{
+  "name": "monitor-map",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vuepic/vue-datepicker": "^3.4.8",
+    "axios": "^0.27.2",
+    "bulma": "^0.9.4",
+    "color2k": "^2.0.0",
+    "d3": "^7.6.1",
+    "dayjs": "^1.11.5",
+    "leaflet": "^1.8.0",
+    "leaflet-svg-shape-markers": "^1.4.0",
+    "vue": "^3.2.39",
+    "vue-router": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.0",
+    "@types/leaflet": "^1.7.11",
+    "@types/node": "^18.7.16",
+    "@vitejs/plugin-vue": "^3.1.0",
+    "sass": "^1.54.9",
+    "typescript": "^4.8.3",
+    "vite": "^3.1.0",
+    "vue-tsc": "^0.40.13"
+  }
+}
