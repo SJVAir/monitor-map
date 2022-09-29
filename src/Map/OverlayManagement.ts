@@ -1,3 +1,4 @@
+import {toRaw} from "vue";
 import L from "../modules/Leaflet";
 import type { IOverlayTileset, ITileLayerOptions } from "../types";
 
@@ -23,7 +24,7 @@ export class OverlayTileSet implements IOverlayTileset {
   }
 
   enable() {
-    const layer = L.tileLayer(this.urlTemplate, this.options).addTo(this.map);
+    const layer = L.tileLayer(this.urlTemplate, this.options).addTo(toRaw(this.map));
     activeOverlays.set(this.label, layer);
   }
 

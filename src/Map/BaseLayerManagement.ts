@@ -1,6 +1,7 @@
 import L from "../modules/Leaflet";
 import { activeOverlays } from "./OverlayManagement";
 import type { ILeafletTileLayer, ITileLayerOptions } from "../types";
+import {toRaw} from "vue";
 
 export let baseTileset: L.TileLayer;
 
@@ -25,7 +26,7 @@ export class BaseTileset implements ILeafletTileLayer {
         baseTileset.remove();
       }
 
-      baseTileset = L.tileLayer(this.urlTemplate, this.options).addTo(this.map);
+      baseTileset = L.tileLayer(this.urlTemplate, this.options).addTo(toRaw(this.map));
 
       if (activeOverlays.size) {
         for (let layer of activeOverlays.values()) {
