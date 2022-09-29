@@ -1,9 +1,9 @@
 import L from "../modules/Leaflet";
 import { getReactiveTilesets } from "./Tilesets";
 
-export const mapSettings = {
-  // Initial location: Fresno, CA
-  center: new L.LatLng( 36.746841, -119.772591 ),
+export const mapSettings: L.MapOptions = {
+  // Initial location: Sidewalk in front of Root Access Hackerspace, Fresno, CA
+  center: L.latLng(36.76272911677402, -119.7989545249089),
   zoom: 8,
 };
 
@@ -14,8 +14,7 @@ export const resizeObserver = new ResizeObserver(() => map.invalidateSize());
 export const markersGroup = new L.FeatureGroup();
 export const { $mapTileSets, $overlayTilesets } = getReactiveTilesets(map);
 
-mapContainer.style.width = "100vw";
-mapContainer.style.height = "100vh";
+mapContainer.style.flex = "1";
 
 markersGroup.addTo(map);
 

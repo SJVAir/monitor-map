@@ -16,12 +16,12 @@ const zoomPanOptions: L.ZoomPanOptions = {
 export const markers: Map<string, L.ShapeMarker> = new Map();
 
 export function cacheMapStateOnLeave() {
-  function removeListener() {
+  const removeListener = () => {
     document.removeEventListener("visibilitychange", handler);
   }
 
   if (document.body.getAttribute("cacheOnLeave")) {
-    return removeEventListener;
+    return removeListener;
   }
 
   const cachedMapState = {
@@ -46,6 +46,16 @@ export function cacheMapStateOnLeave() {
   document.body.setAttribute("cacheOnLeave", "true")
 
   return removeListener;
+}
+
+export function focusAssertion(monitor: Monitor) {
+  const [mlng, mlat] = monitor.data.position.coordinates;
+  const {lng, lat} = map.getCenter();
+
+  if (mlng !== lng || mlat !== lat) {
+    const coords = L.latLng(mlat, mlng)
+    recenter(coords);
+  }
 }
 
 export function getMarkerPaneName(monitor: Monitor): string {
@@ -116,7 +126,7 @@ export function recenter(coordinates?: L.LatLng) {
     map.flyTo(coordinates, zoom, zoomPanOptions);
 
   } else {
-    map.setView(mapSettings.center, mapSettings.zoom, zoomPanOptions);
+    map.setView(mapSettings.center!, mapSettings.zoom, zoomPanOptions);
   }
 }
 
@@ -141,13 +151,11 @@ export function updateMapMarkers() {
 
     const marker = genMapMarker(monitor);
 
-    const [ lng, lat ] = monitor.data.position.coordinates;
     marker.addEventListener('click', () => {
-      recenter(L.latLng(lat, lng));
       RouterModule.push({
         name: "details",
         params: {
-          id: monitor.data.id
+          monitorID: monitor.data.id
         }
       });
 

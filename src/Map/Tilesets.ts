@@ -37,7 +37,7 @@ export const mapTilesets: MapTilesetCollection = [
 
 export const overlayTilesets: Array<IOverlayTileset> = [
   {
-    icon: "fa-wind",
+    icon: "air",
     isChecked: false,
     label: "Wind",
     urlTemplate: "https://{s}.tile.openweathermap.org/map/wind/{z}/{x}/{y}.png?appid={apiKey}",
@@ -50,7 +50,7 @@ export const overlayTilesets: Array<IOverlayTileset> = [
     }
   },
   {
-    icon: "fa-cloud",
+    icon: "cloud",
     isChecked: false,
     label: "Clouds",
     urlTemplate: "https://{s}.tile.openweathermap.org/map/clouds/{z}/{x}/{y}.png?appid={apiKey}",

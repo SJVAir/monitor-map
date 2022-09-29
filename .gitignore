@@ -11,7 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# Files
 .env
+.find_ignore
 
 # Editor directories and files
 .vim

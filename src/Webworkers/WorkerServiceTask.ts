@@ -1,6 +1,6 @@
-import type { IBackgroundService } from "../types";
+import type { IWorkerServiceModule } from "../types";
 
-export class BackgroundTask<T extends IBackgroundService> {
+export class WorkerServiceTask<T extends IWorkerServiceModule> {
   id: number;
   parameters: Parameters<T[keyof T]>;
   taskName: keyof T;

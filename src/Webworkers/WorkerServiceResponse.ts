@@ -1,6 +1,4 @@
-import { IBackgroundService } from "../types";
-
-export class BackgroundTaskResponse<T> {
+export class WorkerServiceResponse<T> {
   id: number;
   error: unknown;
   success!: boolean;
@@ -13,12 +11,10 @@ export class BackgroundTaskResponse<T> {
   pass(payload: T) {
     this.success = true;
     this.payload =  payload;
-    Object.freeze(this);
   }
 
   fail(error: unknown) {
     this.success = false;
     this.error = error;
-    Object.freeze(this);
   }
 }

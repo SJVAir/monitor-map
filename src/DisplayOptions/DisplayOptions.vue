@@ -43,9 +43,13 @@
                 <input type="checkbox" v-model="deviceType.isChecked"
                   @change.preventDefault="updateMapMarkerVisibility" />
                 <span class="icon">
-                  <span class="fas fa-fw has-text-success" :class="deviceType.icon"></span>
+                  <span class="material-symbols-outlined">
+                    {{ deviceType.icon }}
+                  </span>
                 </span>
-                {{ deviceType.label }}
+                <span class="option-label">
+                  {{ deviceType.label }}
+                </span>
               </label>
             </div>
           </div>
@@ -59,9 +63,13 @@
                   <input type="checkbox" v-model="overlay.isChecked"
                     @change.preventDefault="updateTileset($event, overlay)"/>
                   <span class="icon">
-                    <span class="fas fa-fw has-text-success" :class="overlay.icon"></span>
+                    <span class="material-symbols-outlined">
+                      {{ overlay.icon }}
+                    </span>
                   </span>
-                  {{ overlay.label }}
+                  <span class="option-label">
+                    {{ overlay.label }}
+                  </span>
                 </label>
               </div>
             </div>
@@ -72,7 +80,9 @@
                 <label class="checkbox">
                   <input type="radio" :checked="tileset.isDefault" name="tiles"
                     @change="updateTileset($event, tileset)" />
-                  {{ tileset.label }}
+                  <span class="option-label">
+                    {{ tileset.label }}
+                  </span>
                 </label>
               </div>
             </div>
@@ -86,38 +96,51 @@
   </div>
 </template>
 
-<style scoped>
-.dropdown-menu {
-  white-space: nowrap;
-}
-.display-options {
-  float: left;
-  position: relative;
-  margin: .5rem 0 -100% 2.5rem;
-  padding: .5rem 1rem;
-  z-index: 9999;
-}
+<style scoped lang="scss">
+  .dropdown-menu {
+    white-space: nowrap;
 
-.dropdown-content {
-  overflow-y: auto;
-  overflow-x: hidden;
-  max-height: 300px;
-}
+    .dropdown-content {
+      overflow-y: auto;
+      overflow-x: hidden;
+      max-height: 300px;
 
-.dropdown-content .columns {
-  margin: 0 0 0 .5em;
-}
+      .columns {
+        margin: 0 0 0 .5em;
+      }
+      
+      .dropdown-item {
+        &.is-indented {
+          padding-left: bulma.$gap;
+        }
 
-.dropdown-item.is-indented {
-  padding-left: var(--gap);
-}
+        & * {
+          vertical-align: middle;
+        }
 
-.display-group-label {
-  text-decoration: underline;
-  font-weight: bold;
-}
+        .icon {
 
-.map-overlays, .map-tiles {
-  height: 50%;
-}
+          .material-symbols-outlined {
+            font-size: 20px;
+            max-width: 20px;
+
+            font-variation-settings:
+            'FILL' 1,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 20
+          }
+        }
+      }
+
+      .display-group-label {
+        text-decoration: underline;
+        font-weight: bold;
+      }
+
+      .map-overlays, .map-tiles {
+        height: 50%;
+      }
+    }
+  }
 </style>

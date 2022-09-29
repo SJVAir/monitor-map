@@ -13,7 +13,7 @@ export const RouterModule = createRouter({
       component: MonitorMapVue,
       children: [
         {
-          path: '/monitor/:id',
+          path: '/monitor/:monitorID',
           name: 'details',
           component: MonitorDetailsVue,
           props: true,

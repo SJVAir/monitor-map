@@ -1,9 +1,7 @@
 <script setup lang="ts">
+  import { RouterView } from "vue-router";
   import { DisplayOptionsVue } from "../DisplayOptions";
   import { MapVue } from "../Map";
-// TODO:
-//   IMPORTS: DisplayOptions, MonitorMap
-
 </script>
 
 <template>
@@ -11,6 +9,7 @@
   <div class="display-options">
     <DisplayOptionsVue></DisplayOptionsVue>
   </div>
+  <router-view></router-view>
 </template>
 
 <style scoped lang="scss">

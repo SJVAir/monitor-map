@@ -1,18 +1,26 @@
 <script setup lang="ts">
   import { onBeforeUnmount, onMounted, Ref, ref } from "vue";
+  import { useRoute } from "vue-router";
   import { mapContainer } from "./InteractiveMap";
   import { cacheMapStateOnLeave, unmount, updateBounds, updateMapMarkers } from "./mod";
-  import { tempFetchMonitors } from "../Monitors";
-  import type { Monitor } from "../Monitors";
+  import { fetchMonitors } from "../Monitors";
+  import { SingleEventListener } from "../models/SingleEventListener";
 
+  const event = new Event("MapLoaded");
   const mapTarget: Ref<HTMLDivElement | null> = ref(null)
   const stopCaching = cacheMapStateOnLeave();
+  const route = useRoute();
 
-  let activeMonitor: Monitor;
   let monitorUpdateInterval: number;
 
+  new SingleEventListener("MapLoaded", () => {
+    if (!("monitorID" in route.params)) {
+      setTimeout(() => updateBounds(), 5);
+    }
+  });
+
   async function loadMonitors() {
-    await tempFetchMonitors();
+    await fetchMonitors();
     updateMapMarkers();
   }
 
@@ -23,9 +31,7 @@
 
     monitorUpdateInterval = window.setInterval(async () => await loadMonitors(), 1000 * 60 * 2);
 
-    if (!activeMonitor) {
-      setTimeout(() => updateBounds(), 5);
-    }
+    window.dispatchEvent(event);
   });
 
   onBeforeUnmount(() => {
@@ -34,17 +40,20 @@
       clearInterval(monitorUpdateInterval);
       monitorUpdateInterval = 0;
     }
+    stopCaching();
     unmount();
   });
 </script>
 
 <template>
-  <div ref="mapTarget" class="map"></div>
+  <div ref="mapTarget" class="map section is-paddingless"></div>
 </template>
 
 <style scoped lang="scss">
   .map {
-    width: 100vw;
-    height:100vh;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
   }
 </style>

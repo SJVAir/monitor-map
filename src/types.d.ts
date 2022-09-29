@@ -3,7 +3,6 @@ import type { Dayjs } from "dayjs";
 import type L from "./modules/Leaflet";
 import type { Monitor } from "./Monitors";
 import type { ChartDataPoint, MonitorField } from "./models";
-import type { MonitorsBackgroundService, D3BackgroundService } from "./services";
 import type { MonitorFieldColors } from "./modules";
 import type { MonitorDataField } from "./MonitorDataFields";
 
@@ -45,7 +44,6 @@ export type ValueOf<T> = T[keyof T];
 export type ChartDataArray = Array<Array<ChartDataPoint>>;
 export type ChartDataField = keyof typeof MonitorFieldColors;
 //export type ChartDataRecord = Record<ChartDataField, Array<ChartDataPoint>>;
-export type ID3BackgroundService = typeof D3BackgroundService;
 export type MonitorDevice = "AirNow" | "BAM1022" | "PurpleAir";
 export type EntriesPageResponse = AxiosResponse<IEntriesPageResponse, any>;
 // Declare first element should always be default
@@ -53,7 +51,6 @@ export type MapTilesetCollection = [Override<ILeafletTileLayer, { isDefault: tru
 export type MonitorDataFieldName = "pm10" | "pm25" | "pm25_avg_15" | "pm25_avg_60" | "pm100";
 export type MonitorFieldColor = ValueOf<typeof MonitorFieldColors>;
 export type MonitorId = Monitor["data"]["id"];
-export type IMonitorsBackgroundService = typeof MonitorsBackgroundService;
 export type MonitorsRecord = Record<MonitorId, Monitor>;
 export type MonitorSerachParams = { id: string} | { name: string } | { county: string } | ((m: Monitor) => Monitor);
 
@@ -63,7 +60,7 @@ export interface IActiveMonitor {
   monitor: Monitor;
 }
 
-export interface IBackgroundService {
+export interface IWorkerServiceModule {
   [key: string]: (...input: Array<any>) => any;
 }
 
