@@ -47,7 +47,7 @@
                     {{ deviceType.icon }}
                   </span>
                 </span>
-                <span class="option-label">
+                <span class="option-label has-text-black">
                   {{ deviceType.label }}
                 </span>
               </label>
@@ -67,7 +67,7 @@
                       {{ overlay.icon }}
                     </span>
                   </span>
-                  <span class="option-label">
+                  <span class="option-label has-text-black">
                     {{ overlay.label }}
                   </span>
                 </label>
@@ -77,7 +77,7 @@
             <div class="map-tiles">
               <p class="display-group-label">Map Tiles</p>
               <div v-for="tileset in $mapTileSets" class="dropdown-item">
-                <label class="checkbox">
+                <label class="radio">
                   <input type="radio" :checked="tileset.isDefault" name="tiles"
                     @change="updateTileset($event, tileset)" />
                   <span class="option-label">
@@ -110,8 +110,23 @@
       }
       
       .dropdown-item {
+        user-select: none;
+
+        label.radio,
+        label.checkbox {
+          &:hover {
+
+            color: inherit !important;
+          }
+        }
+
         &.is-indented {
           padding-left: bulma.$gap;
+          
+          .material-symbols-outlined {
+            background-color: #000;
+            font-size: 16px !important;
+          }
         }
 
         & * {

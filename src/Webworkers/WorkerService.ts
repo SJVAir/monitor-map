@@ -38,7 +38,7 @@ export class WorkerService<T extends IWorkerServiceModule> {
       if (taskName in this.serviceModule) {
         await this.serviceModule[taskName](...parameters)
           .then((payload: ReturnType<typeof serviceCall>) => response.pass(payload))
-          .catch((err: any) => response.fail(err));
+          .catch((err: any) => response.fail(err.message));
 
       } else {
         response.fail(`Background task "${ String(taskName) }" not found in "${ this.serviceModuleName }" controller`);

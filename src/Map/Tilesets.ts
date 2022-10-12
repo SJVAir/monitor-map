@@ -37,6 +37,7 @@ export const mapTilesets: MapTilesetCollection = [
 
 export const overlayTilesets: Array<IOverlayTileset> = [
   {
+    containerClass: "has-text-info",
     icon: "air",
     isChecked: false,
     label: "Wind",
@@ -50,6 +51,7 @@ export const overlayTilesets: Array<IOverlayTileset> = [
     }
   },
   {
+    containerClass: "has-text-grey-light",
     icon: "cloud",
     isChecked: false,
     label: "Clouds",

@@ -1,13 +1,19 @@
 import { createApp } from "vue";
-import { AppVue, initialize } from "./App";
+import AppVue from "./App.vue";
 import { RouterModule } from "./modules/Router";
 import "./styles.scss";
 
-initialize()
-  .then(mountPoint => {
-    const app = createApp(AppVue);
+const defaultMountpointId: string = "SJVAirMonitorMap" as const;
 
-    app.use(RouterModule);
-    app.mount(mountPoint);
-  })
-  .catch(console.error);
+export function initialize(mountpointId?: string): void {
+  const targetID = mountpointId || defaultMountpointId;
+  const mountPoint = document.getElementById(targetID);
+
+  if (!mountPoint) {
+    throw new Error(`Unable to find mount point with id "${ mountPoint }"`);
+  }
+
+  const app = createApp(AppVue);
+  app.use(RouterModule);
+  app.mount(mountPoint);
+};

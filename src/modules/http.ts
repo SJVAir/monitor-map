@@ -1,6 +1,7 @@
 import Axios from 'axios';
 
-export const http = Axios.create({
-  //baseURL: (import.meta.env.DEV) ? "http://localhost:8000/api/1.0/" : "/api/1.0/"
-  baseURL: "http://localhost:8000/api/1.0/"
-});
+const baseURL = (import.meta.env.VITE_BUILD_MODE === "lib" || import.meta.env.DEV)
+  ? "/api/1.0/"
+  : "https://www.sjvair.com/api/1.0/";
+
+export const http = Axios.create({ baseURL });

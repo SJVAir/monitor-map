@@ -4,32 +4,37 @@ import type { Monitor } from "../Monitors";
 
 export const $visibility: IMonitorVisibility = reactive({
   SJVAirPurple: {
+    containerClass: "has-text-success",
     icon: "circle",
     isChecked: true,
     label: "SJVAir (PurpleAir)"
   },
   SJVAirBAM: {
+    containerClass: "has-text-success",
     icon: "change_history",
     isChecked: true,
     label: "SJVAir (BAM1022)"
   },
   AirNow: {
+    containerClass: "has-text-success",
     icon: "change_history",
     isChecked: true,
     label: "AirNow network"
   },
   PurpleAir: {
+    containerClass: "has-text-success",
     icon: "square",
     isChecked: true,
     label: "PurpleAir network"
   },
   PurpleAirInside: {
-    containerClass: "is-indented",
+    containerClass: "is-indented has-text-success",
     icon: "square",
     isChecked: false,
     label: "Inside monitors"
   },
   displayInactive: {
+    containerClass: "has-text-grey-light",
     icon: "square",
     isChecked: false,
     label: "Inactive monitors"

@@ -2,8 +2,7 @@ import type { AxiosResponse } from "axios";
 import type { Dayjs } from "dayjs";
 import type L from "./modules/Leaflet";
 import type { Monitor } from "./Monitors";
-import type { ChartDataPoint, MonitorField } from "./models";
-import type { MonitorFieldColors } from "./modules";
+import type { MonitorFieldColors } from "./Monitors";
 import type { MonitorDataField } from "./MonitorDataFields";
 
 declare module "leaflet" {
@@ -26,6 +25,15 @@ declare module "leaflet" {
   }
 }
 
+declare module "dayjs" {
+  export function $prettyPrint(date: string | Date | dayjs.Dayjs): string;
+  export function $defaultFormat(date: string | Date | dayjs.Dayjs): string;
+
+  interface Dayjs {
+    skewedDiff(toDiff: string, skewValue: number): number;
+  }
+}
+
 // Function Types
 export type PromiseResolver = (value: unknown) => void;
 export type PromiseRejector = (reason?: any) => void;
@@ -40,9 +48,10 @@ export type NonFunctionProperties<T> = Pick<T, NonFunctionPropertyNames<T>>;
 export type ReplaceReturnType<T extends (...a: any) => any, R> = (...a: Parameters<T>) => R;
 export type ValueOf<T> = T[keyof T];
 
-// Value types
+// Data types
 export type ChartDataArray = Array<Array<ChartDataPoint>>;
 export type ChartDataField = keyof typeof MonitorFieldColors;
+export type DatePickerSelection = [Date, Date] | [string, string];
 //export type ChartDataRecord = Record<ChartDataField, Array<ChartDataPoint>>;
 export type MonitorDevice = "AirNow" | "BAM1022" | "PurpleAir";
 export type EntriesPageResponse = AxiosResponse<IEntriesPageResponse, any>;

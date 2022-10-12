@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { onBeforeUnmount, onMounted, Ref, ref } from "vue";
   import { useRoute } from "vue-router";
+  import MarkerLegendVue from "./MarkerLegend.vue";
   import { mapContainer } from "./InteractiveMap";
   import { cacheMapStateOnLeave, unmount, updateBounds, updateMapMarkers } from "./mod";
   import { fetchMonitors } from "../Monitors";
@@ -46,14 +47,24 @@
 </script>
 
 <template>
-  <div ref="mapTarget" class="map section is-paddingless"></div>
+  <div ref="mapTarget" class="map section is-paddingless">
+    <MarkerLegendVue class="marker-legend"></MarkerLegendVue>
+  </div>
 </template>
 
 <style scoped lang="scss">
   .map {
+    position: relative;
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: stretch;
+
+    .marker-legend {
+      position: absolute;
+      left: 2.5rem;
+      bottom: 2rem;
+      z-index: 1000;
+    }
   }
 </style>

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build:standalone": "vue-tsc --noEmit && vite build",
+    "build:lib": "VITE_BUILD_MODE=lib npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "dayjs": "^1.11.5",
     "leaflet": "^1.8.0",
     "leaflet-svg-shape-markers": "^1.4.0",
+    "uplot": "^1.6.22",
     "vue": "^3.2.39",
     "vue-router": "^4.1.5"
   },

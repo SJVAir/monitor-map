@@ -1,8 +1,7 @@
 import { Monitor } from "./Monitor";
-import { ChartDataPoint } from "../models";
-import { http, dateUtil, MonitorFieldColors } from "../modules";
+import { http, dateUtil } from "../modules";
 import type { DateRange } from "../models";
-import type { ChartDataArray, ChartDataField, MonitorsRecord, IMonitorData,IMonitorEntry, IMonitorSubscription, IEntriesPageResponse, MonitorDataFieldName } from "../types";
+import type { MonitorsRecord, IMonitorData,IMonitorEntry, IMonitorSubscription, IEntriesPageResponse } from "../types";
 
 export async function fetchMonitors(): Promise<MonitorsRecord> {
   return http.get<{ data: Array<IMonitorData> }>("/monitors")
@@ -50,34 +49,21 @@ export async function fetchEntries(m: Monitor, d: DateRange, pageNumber: number 
     });
 }
 
-export async function fetchChartData(m: Monitor, d: DateRange): Promise<ChartDataArray> {
-  return fetchEntries(m, d)
-    .then(entries => {
-      const dataKeys: Array<[MonitorDataFieldName, Array<ChartDataPoint>]> = Object.keys(entries[0])
-        .filter((dataKey): dataKey is MonitorDataFieldName  => dataKey.slice(0, 2) === "pm")
-        .map(dataKey => [dataKey, []]);
-
-      const chartDataRecord: Map<MonitorDataFieldName, Array<ChartDataPoint>> = new Map(dataKeys);
-
-      for (let i = entries.length - 1; i >= 0; i--) {
-        const entry = entries[i];
-
-        for (let dataKey of chartDataRecord.keys()) {
-          if (dataKey in MonitorFieldColors) {
-            const collection = chartDataRecord.get(dataKey)!;
-            const dataField = m.monitorFields[dataKey];
-            const dataPoint = new ChartDataPoint(MonitorFieldColors[dataKey as ChartDataField]!, dataField.name as ChartDataField, entry);
-
-            collection.unshift(dataPoint);
-          }
-        }
-      }
-
-      return Array.from(chartDataRecord, ([_, chartData]) => chartData);
-    });
+export async function fetchSubscriptions(): Promise<Array<IMonitorSubscription>> {
+  return http.get("alerts/subscriptions")
+    .then(res => res.data.data);
 }
 
-export async function loadSubscriptions(): Promise<Array<IMonitorSubscription>> {
-  return http.get("alerts/subscriptions")
-    .then(res => res.data);
+export async function fetchTempByCoords(coords: [number, number]): Promise<number> {
+  const url = `https://api.weather.gov/points/${ coords.join(",")}`;
+  return await http(url)
+    .then(async res => {
+        try {
+          const forecast = await http(res.data.properties.forecastHourly)
+          return forecast.data.properties.periods[0].temperature;
+        } catch (err) {
+          throw err
+        }
+    });
+
 }

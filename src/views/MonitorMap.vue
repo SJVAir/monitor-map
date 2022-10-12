@@ -6,9 +6,7 @@
 
 <template>
   <MapVue></MapVue>
-  <div class="display-options">
-    <DisplayOptionsVue></DisplayOptionsVue>
-  </div>
+  <DisplayOptionsVue class="display-options"></DisplayOptionsVue>
   <router-view></router-view>
 </template>
 

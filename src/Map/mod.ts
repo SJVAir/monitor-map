@@ -2,7 +2,7 @@ import L from "../modules/Leaflet";
 import { RouterModule } from "../modules/Router";
 import { darken, dateUtil, readableColor, toHex } from "../modules";
 import { MonitorDisplayField, monitors } from "../Monitors";
-import { MonitorDataField } from "../MonitorDataFields";
+import { MonitorDataField } from "../Monitors";
 import { isVisible } from "../DisplayOptions";
 import { map, mapSettings, markersGroup, resizeObserver } from "./InteractiveMap";
 import type { Monitor } from "../Monitors";
@@ -73,7 +73,6 @@ export function getMarkerPaneName(monitor: Monitor): string {
 
 export function genMapMarker(monitor: Monitor): ShapeMarker {
   const displayField = monitor.displayField || new MonitorDataField(MonitorDisplayField, "PM 2.5", "60", monitor.data);
-  //const coordinates = [...monitor.data.position.coordinates].reverse() as [number, number];
   const [ lng, lat ] = monitor.data.position.coordinates;
   const markerOptions = {
     offset: new L.Point(10, 0),
@@ -93,7 +92,7 @@ export function genMapMarker(monitor: Monitor): ShapeMarker {
   marker.bindTooltip(`
     <div class="monitor-tooltip-container is-flex is-flex-direction-row is-flex-wrap-nowrap">
 
-      <div class="monitor-tooltip-data-box monitor-tooltip-pmvalue"
+      <div class="monitor-tooltip-data-box monitor-tooltip-pmvalue mr-2"
         style="background-color: ${ monitor.markerParams.value_color }; color: ${ readableColor(monitor.markerParams.value_color) }; border: solid ${ toHex(darken(monitor.markerParams.value_color, .1)) }">
         <p class="is-size-6 has-text-centered">PM 2.5</p>
         <p class="is-size-2 has-text-centered has-text-weight-semibold is-flex-grow-1">
@@ -137,8 +136,8 @@ export function updateBounds() {
 }
 
 export function updateMapMarkers() {
-  for (let id in monitors) {
-    const monitor = monitors[id];
+  for (let id in monitors.value) {
+    const monitor = monitors.value[id];
 
     if (!monitor.data.latest) {
       continue;
@@ -155,7 +154,7 @@ export function updateMapMarkers() {
       RouterModule.push({
         name: "details",
         params: {
-          monitorID: monitor.data.id
+          monitorId: monitor.data.id
         }
       });
 
@@ -175,7 +174,7 @@ export function updateMapMarkers() {
 
 export function updateMapMarkerVisibility() {
   markers.forEach((marker, id) => {
-    if (isVisible(monitors[id])) {
+    if (isVisible(monitors.value[id])) {
       markersGroup.addLayer(marker);
 
     } else {

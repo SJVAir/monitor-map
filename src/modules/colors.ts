@@ -15,12 +15,6 @@ export const Colors = {
   maroon: '7e0023'
 } as const;
 
-export const MonitorFieldColors = {
-  pm25: "#00ccff",
-  pm25_avg_15: "#006699",
-  pm25_avg_60: "#000033"
-} as const;
-
 export function valueToColor(value: number, colors: Array<IColorLevel>) {
   const lastLvl = colors[colors.length - 1];
 

@@ -1,4 +1,4 @@
-import { MonitorDataField, getDataFields } from "../MonitorDataFields";
+import { MonitorDataField, getDataFields } from "./MonitorDataField";
 import { Colors, dateUtil, darken, toHex, valueToColor } from "../modules";
 import type { ChartDataField, IMarkerParams, IMonitor, IMonitorData, MonitorDataFieldName } from "../types";
 
@@ -20,7 +20,7 @@ export class Monitor implements IMonitor {
     this.dataFields = Object.keys(this.monitorFields) as Array<ChartDataField>;
     this.displayField = this.monitorFields[MonitorDisplayField];
     this.lastUpdated = (monitorData.latest && Object.keys(monitorData.latest).length > 1)
-      ? dateUtil.dayjs(monitorData.latest.timestamp).fromNow()
+      ? dateUtil(monitorData.latest.timestamp).fromNow()
       : "never";
   }
 }
@@ -70,11 +70,11 @@ function getMarkerParams(monitorData: IMonitorData): IMarkerParams {
           }
           break;
       }
+    }
 
-      if (monitorData.location === "inside"){
-        params.border_color = `#${ Colors.black }`;
-        params.border_size = 2;
-      }
+    if (monitorData.location === "inside"){
+      params.border_color = `#${ Colors.black }`;
+      params.border_size = 2;
     }
   }
 
