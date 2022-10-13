@@ -62,7 +62,7 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
     scales: {
       x: {
         range: (_: uPlot, min: number, max: number) => {
-          return [min - 10, max + 10];
+          return [min - 10, max + 60];
         }
       },
       y: {
@@ -227,7 +227,8 @@ export function fillChartDataRecords(
       if (timestamp) {
         dataPoint = null
       } else {
-        dataPoint = parseFloat(entry[dataKey])
+        const value = parseFloat(entry[dataKey])
+        dataPoint = (value >= 0) ? value : 0;
       }
 
       collection.push(dataPoint);

@@ -151,13 +151,28 @@ export function tooltipsPlugin() {
         let xVal = u.data[0][idx as number];
         let yVal = u.data[i][idx as number]!;
 
-        let label = u.series[i].label;
-        label = label?.substring(label.indexOf("(") + 1, label.indexOf(")")) || label;
+        if (yVal === null) {
+          tt!.style.display = "none";
 
-        ttHeader.textContent = dateUtil.$prettyPrint(dateUtil.unix(xVal));
-        tt!.textContent = `${ label }: ${ yVal }`;
+        } else {
+          tt!.style.display = "block";
+
+          let label = u.series[i].label;
+          label = label?.substring(label.indexOf("(") + 1, label.indexOf(")")) || label;
+
+          ttHeader.textContent = dateUtil.$prettyPrint(dateUtil.unix(xVal));
+          tt!.textContent = `${ label }: ${ yVal }`;
+        }
+
       }
     });
+
+    const hasContent = !!seriesList.slice(1, seriesList.length).find(tt => tt!.style.display === "block");
+    if (hasContent) {
+      ttContainer.style.display = "block";
+    } else {
+      ttContainer.style.display = "none";
+    }
   }
 
   return {

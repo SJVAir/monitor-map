@@ -74,12 +74,13 @@ export function getMarkerPaneName(monitor: Monitor): string {
 export function genMapMarker(monitor: Monitor): ShapeMarker {
   const displayField = monitor.displayField || new MonitorDataField(MonitorDisplayField, "PM 2.5", "60", monitor.data);
   const [ lng, lat ] = monitor.data.position.coordinates;
-  const markerOptions = {
+  const tooltipOptions = {
     offset: new L.Point(10, 0),
-    opacity: 1
+    opacity: 1,
   };
 
   const marker = L.shapeMarker(L.latLng(lat, lng), {
+    className: "sjvair-map-marker",
     color: monitor.markerParams.border_color,
     weight: monitor.markerParams.border_size,
     fillColor: monitor.markerParams.fill_color,
@@ -109,7 +110,7 @@ export function genMapMarker(monitor: Monitor): ShapeMarker {
       </div>
 
     </div>
-  `, markerOptions);
+  `, tooltipOptions);
 
   return marker;
 }

@@ -11,7 +11,7 @@ export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.Al
   return fetchEntries(m, d)
     .then(entries => {
       const xAxisData: Array<Dayjs> = [];
-      const updateDuration = (m.data.device === "AirNow") ? 60 : 2;
+      const updateDuration = (m.data.device === "PurpleAir") ? 2 : 60;
 
       const yAxisRecord: Map<ChartDataField, Array<number>> = new Map(
         (Object.keys(MonitorFieldColors) as Array<ChartDataField>)

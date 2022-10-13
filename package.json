@@ -1,12 +1,14 @@
 {
-  "name": "monitor-map",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@sjvair/monitor-map",
+  "description": "SJVAir's interactive monitor map",
+  "files": [ "dist" ],
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build": "npm run build:standalone && npm run build:module",
     "build:standalone": "vue-tsc --noEmit && vite build",
-    "build:lib": "VITE_BUILD_MODE=lib npm run build",
+    "build:module": "VITE_BUILD_MODE=lib npm run build:standalone",
     "preview": "vite preview"
   },
   "dependencies": {

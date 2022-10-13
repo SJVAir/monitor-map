@@ -9,6 +9,8 @@ import type { UserConfig } from 'vite';
 import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
 
+const libMode = (process.env.VITE_BUILD_MODE === "lib");
+
 const htmlPurgeOptions = {
   safelist: [
     /-(leave|enter|appear)(|-(to|from|active))$/,
@@ -22,23 +24,29 @@ const htmlPurgeOptions = {
   ]
 }
 
-const standAloneBuildOptions: UserConfig["build"] = {};
+const standAloneBuildOptions: UserConfig["build"] = {
+  outDir: resolve(__dirname, "./dist/standalone")
+};
 
 const libBuildOptions: UserConfig["build"] = {
-  outDir: resolve(__dirname, "./lib"),
-  lib: {
-    entry: resolve(__dirname, "./src/main.ts"),
-    name: "sjvairMonitorMap",
-    fileName: "sjvairMonitorMap"
+  outDir: resolve(__dirname, "./dist/module"),
+  rollupOptions: {
+    input: {
+      sjvairMonitorMap: resolve(__dirname, "./src/sjvairMonitorMap.ts")
+    },
+    output: {
+      entryFileNames: "[name].js",
+      assetFileNames: "[name].[ext]"
+    }
   }
 };
 
-const buildOptions: UserConfig["build"] = (process.env.VITE_BUILD_MODE === "lib")
-  ? libBuildOptions
-  : standAloneBuildOptions;
+const buildOptions: UserConfig["build"] = libMode ? libBuildOptions : standAloneBuildOptions;
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // Base directory compiled files will be served from
+  base: libMode ? "/static/monitor-map/" : "/",
   build: {
     minify: "terser",
     ...buildOptions
