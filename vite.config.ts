@@ -10,6 +10,7 @@ import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
 
 const libMode = (process.env.VITE_BUILD_MODE === "lib");
+const ghpages = (process.env.VITE_BUILD_MODE === "ghp");
 
 const htmlPurgeOptions = {
   safelist: [
@@ -28,6 +29,10 @@ const standAloneBuildOptions: UserConfig["build"] = {
   outDir: resolve(__dirname, "./dist/standalone")
 };
 
+const pagesBuildOptions: UserConfig["build"] = {
+  outDir: resolve(__dirname, "./dist/pages")
+};
+
 const libBuildOptions: UserConfig["build"] = {
   outDir: resolve(__dirname, "./dist/module"),
   rollupOptions: {
@@ -41,12 +46,18 @@ const libBuildOptions: UserConfig["build"] = {
   }
 };
 
-const buildOptions: UserConfig["build"] = libMode ? libBuildOptions : standAloneBuildOptions;
+const buildOptions: UserConfig["build"] = libMode
+  ? libBuildOptions
+  : ghpages ? pagesBuildOptions : standAloneBuildOptions;
+
+const base = libMode
+  ? "/static/monitor-map/"
+  : ghpages ? "/monitor-map/" : "/";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   // Base directory compiled files will be served from
-  base: libMode ? "/static/monitor-map/" : "/",
+  base,
   build: {
     minify: "terser",
     ...buildOptions
