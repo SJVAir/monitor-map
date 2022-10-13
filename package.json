@@ -9,6 +9,7 @@
     "build": "npm run build:standalone && npm run build:module",
     "build:standalone": "vue-tsc --noEmit && vite build",
     "build:module": "VITE_BUILD_MODE=lib npm run build:standalone",
+    "build:pages": "VITE_BUILD_MODE=ghp npm run build:standalone",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -27,7 +28,7 @@
   "devDependencies": {
     "@types/d3": "^7.4.0",
     "@types/leaflet": "^1.7.11",
-    "@types/node": "^18.7.16",
+    "@types/node": "18.0.0",
     "@vitejs/plugin-vue": "^3.1.0",
     "i": "^0.3.7",
     "npm": "^8.19.2",
