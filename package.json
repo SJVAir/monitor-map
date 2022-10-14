@@ -2,7 +2,7 @@
   "name": "@sjvair/monitor-map",
   "description": "SJVAir's interactive monitor map",
   "files": [ "dist" ],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",

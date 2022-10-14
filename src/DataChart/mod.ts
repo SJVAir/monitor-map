@@ -17,20 +17,14 @@ const baseYSeriesConfig = {
 
 const pm25SeriesConfig = {
   ...baseYSeriesConfig,
-  label: "PM 2.5",
+  label: "Real Time",
   width: 2,
   stroke: (u: uPlot, _: number) => scaleGradient(u, 'y', 1, colors, true),
 }
 
-const pm25Avg15SeriesConfig = {
-  ...baseYSeriesConfig,
-  label: "PM 2.5 (15 Minute Average)",
-  stroke: (u: uPlot, _: number) => autograd(u, MonitorFieldColors.pm25_avg_15)
-}
-
 const pm25Avg60SeriesConfig = {
   ...baseYSeriesConfig,
-  label: "PM 2.5 (60 Minute Average)",
+  label: "60 Minute Average",
   stroke: (u: uPlot, _: number) => autograd(u, MonitorFieldColors.pm25_avg_60)
 }
 
@@ -43,11 +37,11 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
   }
 
   return {
-    //title: "Real Time PM Readings",
+    title: "Real Time PM Readings",
     width,
     height,
     cursor: uPlotCursorConfig.get(),
-    //@ts-ignore
+    //@ts-ignore: select missing psudo "required" options
     select: {
       show: false
     },
@@ -57,7 +51,7 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
       live: false,
       markers: {
         fill: (u, sIdx) => getStroke(u, sIdx),
-      }
+      },
     },
     scales: {
       x: {
@@ -90,9 +84,13 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
         side: 3,
         values: (_: any, ticks: any) => ticks.map((v:any) => v.toFixed((maxDiff < 5) ? 1 : 0)),
       }
-    ]
+    ],
+    hooks: {
+      ready: [
+        () => document.querySelector(".u-series")!.remove()
+      ]
+    }
   };
-
 }
 
 export function getSeriesConfigs(deviceType: MonitorDevice) {
@@ -116,14 +114,13 @@ export function getSeriesConfigs(deviceType: MonitorDevice) {
       return [
         baseXSeriesConfig,
         pm25SeriesConfig,
-        pm25Avg15SeriesConfig,
         pm25Avg60SeriesConfig
       ];
   }
 }
 
 function autograd(u: uPlot, fallback: string) {
-  if (u.series.length > 3) {
+  if (u.series.length > 2) {
     return fallback;
   }
   return scaleGradient(u, 'y', 1, colors, true);
