@@ -2,7 +2,7 @@
 
 <template>
   <div class="map-legend-container card columns column is-half-mobile is-half-tablet is-one-fifth-desktop is-flex is-flex-direction-column">
-    <p class="has-text-centered has-font-weight-semibold">PM 2.5 Concentration</p>
+    <p class="has-text-centered has-text-wrap-nowrap has-font-weight-semibold">PM 2.5 Concentration</p>
     <div class="map-legend">&nbsp;</div>
     <div class="map-legend-lines is-flex">
       <div>
@@ -32,8 +32,11 @@
 .map-legend-container {
   min-width: 200px;
   position: absolute;
-  margin: -7rem 0 -100% 0.65rem;
   padding: .5em 1.5em !important;
+
+  p {
+    white-space: nowrap;
+  }
 
   .map-legend {
     background: linear-gradient(90deg, #00e400 0%, #ffff00 20%, #ff7e00 40%, #ff0000 60%, #8f3f97 80%, #7e0023 100%);

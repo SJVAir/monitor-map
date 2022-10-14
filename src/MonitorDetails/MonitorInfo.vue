@@ -54,25 +54,32 @@
 <style scoped lang="scss">
   .monitor-header {
     padding: bulma.$column-gap;
+    width: 100%;
 
     .monitor-name {
       font-weight: bold;
     }
 
     ul {
-      width: 100%;
-      margin-bottom: .5em;
+      width: 80%;
+      margin: .2rem 0 .5rem 0;
 
-      .icon {
+      li {
+        height: 20px;
 
-        &.lungs-svg {
-          background-color: bulma.$info;
-          -webkit-mask: url(../assets/lungs.svg) center/1rem 1rem no-repeat;
-          mask: url(../assets/lungs.svg) center/1rem 1rem no-repeat;
-        }
+        .icon {
 
-        span {
-          font-size: 1rem;
+          &.lungs-svg {
+            background-color: bulma.$info;
+            -webkit-mask: url(../assets/lungs.svg) center/1rem 1rem no-repeat;
+            mask: url(../assets/lungs.svg) center/1rem 1rem no-repeat;
+            width: 18px;
+            height: 18px;
+          }
+
+          span {
+            font-size: 1rem;
+          }
         }
       }
     }

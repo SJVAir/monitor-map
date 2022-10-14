@@ -63,7 +63,7 @@
     .marker-legend {
       position: absolute;
       left: 2.5rem;
-      bottom: 2rem;
+      bottom: 3rem;
       z-index: 1000;
     }
   }
