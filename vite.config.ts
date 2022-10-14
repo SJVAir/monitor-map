@@ -30,7 +30,7 @@ const standAloneBuildOptions: UserConfig["build"] = {
 };
 
 const pagesBuildOptions: UserConfig["build"] = {
-  outDir: resolve(__dirname, "./dist/pages")
+  outDir: resolve(__dirname, "./pages")
 };
 
 const libBuildOptions: UserConfig["build"] = {
