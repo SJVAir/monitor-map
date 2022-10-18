@@ -120,8 +120,7 @@
           }
         }
 
-        &.is-indented {
-          padding-left: bulma.$gap;
+        &.icon-border {
           
           .material-symbols-outlined {
             background-color: #000;
