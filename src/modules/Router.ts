@@ -4,12 +4,16 @@ import MonitorMapVue from "../views/MonitorMap.vue";
 
 const MonitorDetailsVue = lazyLoad();
 
+const rootAlias = import.meta.env.VITE_BUILD_MODE === "ghp"
+  ? "/monitor-map"
+  : "/widget";
+
 export const RouterModule = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: "/",
-      alias: "/widget",
+      alias: rootAlias,
       name: "map",
       component: MonitorMapVue,
       children: [
