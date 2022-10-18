@@ -126,7 +126,8 @@ export function recenter(coordinates?: L.LatLng) {
     map.flyTo(coordinates, zoom, zoomPanOptions);
 
   } else {
-    map.setView(mapSettings.center!, mapSettings.zoom, zoomPanOptions);
+    const boundsCenter = map.getBounds().getCenter()
+    map.setView(boundsCenter, mapSettings.zoom, zoomPanOptions);
   }
 }
 
