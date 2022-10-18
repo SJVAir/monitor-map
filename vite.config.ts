@@ -58,7 +58,7 @@ const moduleConfig: UserConfig = {
 };
 
 const pagesConfig: UserConfig = {
-  base: "/monitor-map",
+  base: "/monitor-map/",
   build: {
     outDir: resolve(__dirname, "./pages")
   }
