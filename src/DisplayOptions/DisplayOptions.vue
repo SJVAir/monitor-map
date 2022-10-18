@@ -76,11 +76,17 @@
 
             <div class="map-tiles">
               <p class="display-group-label">Map Tiles</p>
-              <div v-for="tileset in $mapTileSets" class="dropdown-item">
+              <div v-for="tileset in $mapTileSets" class="dropdown-item" :class="tileset.containerClass">
                 <label class="radio">
                   <input type="radio" :checked="tileset.isDefault" name="tiles"
                     @change="updateTileset($event, tileset)" />
-                  <span class="option-label">
+                  <span v-if="tileset.icon" class="icon">
+                    <span class="material-symbols-outlined">
+                      {{ tileset.icon }}
+                    </span>
+                  </span>
+                  <span v-else="tileset.svg" class="icon" :class="tileset.svg"></span>
+                  <span class="option-label has-text-black">
                     {{ tileset.label }}
                   </span>
                 </label>
@@ -111,6 +117,7 @@
       
       .dropdown-item {
         user-select: none;
+        padding: .375rem .3rem;
 
         label.radio,
         label.checkbox {

@@ -98,7 +98,10 @@ export interface IEntriesPageResponse {
 }
 
 export interface ILeafletTileLayer {
+  containerClass?: string;
   isDefault?: boolean;
+  svg?: string;
+  icon?: string;
   label: string;
   options: ITileLayerOptions;
   urlTemplate: string;

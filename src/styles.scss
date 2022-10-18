@@ -26,6 +26,18 @@
   animation: spinner 1s linear infinite;
 }
 
+.has-text-silver {
+  color: darken(#aaa9ad, 15%) !important;
+}
+
+.road-svg {
+  background-color: bulma.$black;
+  -webkit-mask: url(./assets/road.svg) center/1rem 1rem no-repeat;
+  mask: url(./assets/road.svg) center/1rem 1rem no-repeat;
+  width: 20px;
+  height: 20px;
+}
+
 @keyframes spinner {
   from {
     transform: rotate(0deg);
