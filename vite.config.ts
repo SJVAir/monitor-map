@@ -74,7 +74,7 @@ export default defineConfig({
   // Base directory compiled files will be served from
   base: config.base,
   build: {
-    sourcemap: true,
+    sourcemap: devMode,
     minify: "terser",
     ...config.build
   },
