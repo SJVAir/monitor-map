@@ -91,10 +91,9 @@ export function genMapMarker(monitor: Monitor): ShapeMarker {
   });
 
   marker.bindTooltip(`
-    <div class="monitor-tooltip-container is-flex is-flex-direction-row is-flex-wrap-nowrap">
-
-      <div class="monitor-tooltip-data-box monitor-tooltip-pmvalue mr-2"
-        style="background-color: ${ monitor.markerParams.value_color }; color: ${ readableColor(monitor.markerParams.value_color) }; border: solid ${ toHex(darken(monitor.markerParams.value_color, .1)) }">
+    <div class="is-flex is-flex-direction-row is-flex-wrap-nowrap">
+      <div class="mr-2 px-1"
+        style="background-color: ${ monitor.markerParams.value_color }; color: ${ readableColor(monitor.markerParams.value_color) }; border: solid ${ toHex(darken(monitor.markerParams.value_color, .1)) }; border-radius: 5px">
         <p class="is-size-6 has-text-centered">PM 2.5</p>
         <p class="is-size-2 has-text-centered has-text-weight-semibold is-flex-grow-1">
           ${ Math.round(+monitor.data.latest[MonitorDisplayField]) }
@@ -102,8 +101,8 @@ export function genMapMarker(monitor: Monitor): ShapeMarker {
         <p>(${ parseInt(displayField.updateDuration, 10) } min avg)</p>
       </div>
 
-      <div class="monitor-tooltip-info is-flex is-flex-direction-column">
-        <p class="monitor-tooltip-date">${ dateUtil.$prettyPrint(monitor.data.latest.timestamp) }</p>
+      <div class="is-flex is-flex-direction-column">
+        <p>${ dateUtil.$prettyPrint(monitor.data.latest.timestamp) }</p>
         <p class="is-size-5 has-text-weight-bold is-underlined">${ monitor.data.name }</p>
         <p class="is-size-6">Last updated:</p>
         <p class="is-size-6">About ${ monitor.lastUpdated }</p>
