@@ -31,7 +31,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build GH Pages
+        env:
+          ENV: ${{ secrets.ENV }}
         run: |
+          echo $ENV | base64 --decode > .env
           npm i
           npm run build:pages
       - name: Setup Pages
