@@ -6,7 +6,7 @@
   import { MonitorSubscriptionVue } from '../MonitorSubscription';
   import { HumidityDataBoxVue, PM2DataBoxVue, TempDataBoxVue } from "../MonitorDataBox";
   import { focusAssertion, recenter } from "../Map";
-  import { getMonitor, downloadCSV } from "../Monitors";
+  import { getMonitor, downloadCSV, widgetSubList } from "../Monitors";
   import { DataChartVue, fetchChartData } from '../DataChart';
   import { SingleEventListener } from "../models/SingleEventListener";
   import { DateRange } from '../models';
@@ -67,7 +67,7 @@
     }
   });
 
-  onUnmounted(() => recenter());
+  onUnmounted(() => widgetSubList.value.length || recenter());
 </script>
 
 <template>

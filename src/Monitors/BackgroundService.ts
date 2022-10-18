@@ -4,7 +4,7 @@ import MonitorsWorkerService from "./worker?worker";
 
 import { Monitor } from "./Monitor";
 import type { DateRange } from "../models";
-import type { IMonitorEntry, IMonitorSubscription } from "../types";
+import type { IMonitorEntry, IMonitorSubscription, MonitorId } from "../types";
 
 type MonitorsServiceModule = typeof import("./service");
 
@@ -12,12 +12,15 @@ const monitorsLoadedEvent = new Event("MonitorsLoaded");
 const worker = new MonitorsWorkerService();
 const monitorsWorkerService = new WorkerServiceClient<MonitorsServiceModule>(worker);
 
-export let monitors = ref<Record<string, Monitor>>({});
+export const monitors = ref<Record<string, Monitor>>({});
+export const widgetSubList = ref<Array<MonitorId>>([]);
 
 export async function fetchMonitors(): Promise<void> {
   return await monitorsWorkerService.run("fetchMonitors")
     .then(monitorsRecord => {
-      monitors.value = monitorsRecord;
+      monitors.value = widgetSubList.value.length
+        ? widgetSubList.value.reduce((subRecord, id) => ({ [id]: monitorsRecord[id], ...subRecord }), {})
+        : monitorsRecord;
       window.dispatchEvent(monitorsLoadedEvent);
     });
 }

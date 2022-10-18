@@ -9,7 +9,8 @@ import type { UserConfig } from 'vite';
 import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
 
-const libMode = (process.env.VITE_BUILD_MODE === "lib");
+const devMode = (process.env.NODE_ENV === "development");
+const modMode = (process.env.VITE_BUILD_MODE === "mod");
 const ghpages = (process.env.VITE_BUILD_MODE === "ghp");
 
 const htmlPurgeOptions = {
@@ -25,42 +26,57 @@ const htmlPurgeOptions = {
   ]
 }
 
-const standAloneBuildOptions: UserConfig["build"] = {
-  outDir: resolve(__dirname, "./dist/standalone")
+const devConfig: UserConfig = {
+  base: "/",
+  build: {}
 };
 
-const pagesBuildOptions: UserConfig["build"] = {
-  outDir: resolve(__dirname, "./pages")
-};
-
-const libBuildOptions: UserConfig["build"] = {
-  outDir: resolve(__dirname, "./dist/module"),
-  rollupOptions: {
-    input: {
-      sjvairMonitorMap: resolve(__dirname, "./src/sjvairMonitorMap.ts")
-    },
-    output: {
-      entryFileNames: "[name].js",
-      assetFileNames: "[name].[ext]"
-    }
+const rollupOptions: UserConfig["build"]["rollupOptions"] = {
+  input: {
+    sjvairMonitorMap: resolve(__dirname, "./src/main.ts")
+  },
+  output: {
+    entryFileNames: "[name].js",
+    assetFileNames: "[name].[ext]"
   }
 };
 
-const buildOptions: UserConfig["build"] = libMode
-  ? libBuildOptions
-  : ghpages ? pagesBuildOptions : standAloneBuildOptions;
+const widgetConfig: UserConfig = {
+  base: "/static/widget/",
+  build: {
+    outDir: resolve(__dirname, "./dist/widget"),
+    rollupOptions
+  }
+};
 
-const base = libMode
-  ? "/static/monitor-map/"
-  : ghpages ? "/monitor-map/" : "/";
+const moduleConfig: UserConfig = {
+  base: "/static/monitor-map/",
+  build: {
+    outDir: resolve(__dirname, "./dist/monitor-map"),
+    rollupOptions
+  }
+};
+
+const pagesConfig: UserConfig = {
+  base: "/monitor-map",
+  build: {
+    outDir: resolve(__dirname, "./pages")
+  }
+};
+
+const config: UserConfig = devMode ? devConfig
+  : modMode ? moduleConfig
+    : ghpages ? pagesConfig
+      : widgetConfig;
 
 // https://vitejs.dev/config/
 export default defineConfig({
   // Base directory compiled files will be served from
-  base,
+  base: config.base,
   build: {
+    sourcemap: true,
     minify: "terser",
-    ...buildOptions
+    ...config.build
   },
   plugins: [
     htmlPurge(htmlPurgeOptions) as PluginOption,
