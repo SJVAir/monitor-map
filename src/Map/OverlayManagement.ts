@@ -6,7 +6,7 @@ export const activeOverlays: Map<string, L.TileLayer> = new Map();
 
 export class OverlayTileSet implements IOverlayTileset {
   containerClass?: string;
-  icon: string;
+  icon?: string;
   isChecked: boolean;
   label: string;
   urlTemplate: string;

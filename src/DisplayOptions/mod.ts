@@ -28,7 +28,7 @@ export const $visibility: IMonitorVisibility = reactive({
     label: "PurpleAir network"
   },
   PurpleAirInside: {
-    containerClass: "is-indented has-text-success",
+    containerClass: "icon-border has-text-success",
     icon: "square",
     isChecked: false,
     label: "Inside monitors"

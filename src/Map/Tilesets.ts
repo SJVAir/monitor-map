@@ -8,6 +8,7 @@ export const mapTilesets: MapTilesetCollection = [
   {
     label: "Streets",
     isDefault: true,
+    svg: "road-svg",
     urlTemplate: "https://api.maptiler.com/maps/streets/256/{z}/{x}/{y}.png?key={apiKey}",
     options: {
       maxZoom: 19,
@@ -18,6 +19,8 @@ export const mapTilesets: MapTilesetCollection = [
   {
     label: "Satellite Hybrid",
     urlTemplate: "https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key={apiKey}",
+    icon: "satellite_alt",
+    containerClass: "has-text-silver",
     options: {
       maxZoom: 19,
       apiKey: import.meta.env.VITE_MAPTILER_KEY,
@@ -26,6 +29,8 @@ export const mapTilesets: MapTilesetCollection = [
   },
   {
     label: "Topographique",
+    icon: "landscape",
+    containerClass: "has-text-success",
     urlTemplate: "https://api.maptiler.com/maps/topographique/{z}/{x}/{y}.png?key={apiKey}",
     options: {
       maxZoom: 19,
