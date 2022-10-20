@@ -6,6 +6,8 @@ import type { ChartDataField, IMonitorEntry, MonitorDevice } from "../types";
 import type uPlot from "uplot";
 
 const colors = MonitorDataField.levels.map(level => [level.min, level.color]) as Array<[number, string]>;
+// Append stop color value
+colors.push([Infinity, "000000"]);
 
 const baseXSeriesConfig = {};
 
