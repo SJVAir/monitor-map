@@ -1,5 +1,5 @@
 import { MonitorDataField, MonitorFieldColors } from "../Monitors";
-import { dateUtil, valueToColor } from "../modules";
+import { dateUtil } from "../modules";
 import { tooltipsPlugin, uPlotCursorConfig } from "./tooltip";
 import type { Dayjs } from "dayjs";
 import type { ChartDataField, IMonitorEntry, MonitorDevice } from "../types";
@@ -99,7 +99,36 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
   };
 }
 
-export function getSeriesConfigs(deviceType: MonitorDevice) {
+export function fillChartDataRecords(
+  xAxisData: Array<Dayjs>,
+  yAxisRecord: Map<ChartDataField, Array<number | null>>,
+  entry: IMonitorEntry,
+  timestamp?: string | Dayjs,
+) {
+  if (timestamp) {
+    xAxisData.push(dateUtil(timestamp).utc().tz('America/Los_Angeles'));
+  } else {
+    xAxisData.push(dateUtil(entry.timestamp).utc().tz('America/Los_Angeles'));
+  }
+
+  for (let dataKey of yAxisRecord.keys()) {
+    if (dataKey in entry) {
+      const collection = yAxisRecord.get(dataKey)!;
+      let dataPoint: number | null;
+
+      if (timestamp) {
+        dataPoint = null
+      } else {
+        const value = parseFloat(entry[dataKey])
+        dataPoint = (value >= 0) ? value : 0;
+      }
+
+      collection.push(dataPoint);
+    }
+  }
+}
+
+function getSeriesConfigs(deviceType: MonitorDevice) {
   let singleSeriesConfig = Object.assign({}, pm25Avg60SeriesConfig);
   singleSeriesConfig.width = 2;
 
@@ -208,33 +237,4 @@ function scaleGradient(u: uPlot, scaleKey: string, ori: number, scaleStops: Arra
   }
 
   return grd;
-}
-
-export function fillChartDataRecords(
-  xAxisData: Array<Dayjs>,
-  yAxisRecord: Map<ChartDataField, Array<number | null>>,
-  entry: IMonitorEntry,
-  timestamp?: string | Dayjs,
-) {
-  if (timestamp) {
-    xAxisData.push(dateUtil(timestamp).utc().tz('America/Los_Angeles'));
-  } else {
-    xAxisData.push(dateUtil(entry.timestamp).utc().tz('America/Los_Angeles'));
-  }
-
-  for (let dataKey of yAxisRecord.keys()) {
-    if (dataKey in entry) {
-      const collection = yAxisRecord.get(dataKey)!;
-      let dataPoint: number | null;
-
-      if (timestamp) {
-        dataPoint = null
-      } else {
-        const value = parseFloat(entry[dataKey])
-        dataPoint = (value >= 0) ? value : 0;
-      }
-
-      collection.push(dataPoint);
-    }
-  }
 }
