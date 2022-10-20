@@ -56,7 +56,13 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
     scales: {
       x: {
         range: (_: uPlot, min: number, max: number) => {
-          return [min - 10, max + 60];
+          // if "today": force chart to display up to current moment for "today"
+          const maxDate = dateUtil.unix(max);
+          const now = dateUtil().tz("America/Los_Angeles");
+          max = (now.isSame(maxDate, "day") && now.isAfter(maxDate))
+            ? now.unix()
+            : max;
+          return [min - 10, max];
         }
       },
       y: {
