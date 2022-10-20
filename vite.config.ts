@@ -9,10 +9,6 @@ import type { UserConfig } from 'vite';
 import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
 
-const devMode = (process.env.NODE_ENV === "development");
-const modMode = (process.env.VITE_BUILD_MODE === "mod");
-const ghpages = (process.env.VITE_BUILD_MODE === "ghp");
-
 const htmlPurgeOptions = {
   safelist: [
     /-(leave|enter|appear)(|-(to|from|active))$/,
@@ -63,6 +59,10 @@ const pagesConfig: UserConfig = {
     outDir: resolve(__dirname, "./pages")
   }
 };
+
+const devMode = (process.env.VITE_BUILD_MODE === "development");
+const modMode = (process.env.VITE_BUILD_MODE === "mod");
+const ghpages = (process.env.VITE_BUILD_MODE === "ghp");
 
 const config: UserConfig = devMode ? devConfig
   : modMode ? moduleConfig

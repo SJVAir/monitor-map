@@ -5,7 +5,7 @@
   "version": "1.2.5",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "VITE_BUILD_MODE='development' vite",
     "build": "npm run build:widget && npm run build:module",
     "build:widget": "vue-tsc --noEmit && vite build",
     "build:module": "VITE_BUILD_MODE=mod npm run build:widget",
