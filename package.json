@@ -2,7 +2,7 @@
   "name": "@sjvair/monitor-map",
   "description": "SJVAir's interactive monitor map",
   "files": [ "dist" ],
-  "version": "1.2.62",
+  "version": "1.2.63",
   "type": "module",
   "scripts": {
     "dev": "VITE_BUILD_MODE='development' vite",
@@ -10,7 +10,8 @@
     "build:widget": "vue-tsc --noEmit && vite build",
     "build:module": "VITE_BUILD_MODE=mod npm run build:widget",
     "build:pages": "VITE_BUILD_MODE=ghp VITE_REQUEST_MODE=leach npm run build:widget",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {},
   "devDependencies": {
