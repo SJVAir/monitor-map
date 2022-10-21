@@ -30,7 +30,7 @@
 
     window.requestAnimationFrame(() => mapTarget.value!.appendChild(mapContainer));
 
-    monitorUpdateInterval = window.setInterval(async () => await loadMonitors(), 1000 * 60 * 60);
+    monitorUpdateInterval = window.setInterval(async () => await loadMonitors(), 1000 * 60 * 2);
 
     window.dispatchEvent(event);
   });
