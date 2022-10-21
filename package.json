@@ -2,7 +2,7 @@
   "name": "@sjvair/monitor-map",
   "description": "SJVAir's interactive monitor map",
   "files": [ "dist" ],
-  "version": "1.2.63",
+  "version": "1.2.64",
   "type": "module",
   "scripts": {
     "dev": "VITE_BUILD_MODE='development' vite",
