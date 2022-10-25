@@ -1,11 +1,10 @@
-import { ref, toRaw } from "vue";
+import { ref } from "vue";
 import { WorkerServiceClient } from "../Webworkers/WorkerServiceClient";
 import MonitorsWorkerService from "./worker?worker";
-
 import { Monitor } from "./Monitor";
+import { http } from "../modules";
 import type { DateRange } from "../models";
 import type { IMonitorEntry, IMonitorSubscription, MonitorId } from "../types";
-import {http} from "../modules";
 
 type MonitorsServiceModule = typeof import("./service");
 
