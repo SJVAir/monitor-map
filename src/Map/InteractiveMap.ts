@@ -11,17 +11,20 @@ export const mapContainer = document.createElement("div")
 export const map: L.Map = L.map(mapContainer, mapSettings);
 export const resizeObserver = new ResizeObserver(() => map.invalidateSize());
 
-export const markersGroup = new L.FeatureGroup();
+export const monitorMarkersGroup = new L.FeatureGroup();
+export const evStationMarkersGroup = new L.FeatureGroup();
 export const { $mapTileSets, $overlayTilesets } = getReactiveTilesets(map);
 
 mapContainer.style.flex = "1";
 
-markersGroup.addTo(map);
+monitorMarkersGroup.addTo(map);
+evStationMarkersGroup.addTo(map);
 
 map.createPane("purpleAir").style.zIndex = "601";
 map.createPane("airNow").style.zIndex = "602";
 map.createPane("sjvAirPurpleAir").style.zIndex = "603";
 map.createPane("sjvAirBam").style.zIndex = "604";
+map.createPane("evStations").style.zIndex = "605";
 
 resizeObserver.observe(mapContainer);
 
