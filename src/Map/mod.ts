@@ -4,9 +4,11 @@ import { darken, dateUtil, readableColor, toHex } from "../modules";
 import { MonitorDisplayField, monitors } from "../Monitors";
 import { MonitorDataField } from "../Monitors";
 import { isVisible } from "../DisplayOptions";
-import { map, mapSettings, markersGroup, resizeObserver } from "./InteractiveMap";
+import { fetchEvStations } from "../EVCharging";
+import { evStationMarkersGroup, map, mapSettings, monitorMarkersGroup, resizeObserver } from "./InteractiveMap";
 import type { Monitor } from "../Monitors";
-import type { ShapeMarker } from "leaflet";
+import type { Marker, ShapeMarker } from "leaflet";
+import { IEvStation } from "../types";
 
 const zoomPanOptions: L.ZoomPanOptions = {
   animate: true,
@@ -71,7 +73,36 @@ export function getMarkerPaneName(monitor: Monitor): string {
   }
 }
 
-export function genMapMarker(monitor: Monitor): ShapeMarker {
+export function genEvStationMapMarker(evStation: IEvStation): Marker {
+  const { longitude, latitude } = evStation;
+  const tooltipOptions = {
+    offset: new L.Point(10, 0),
+    opacity: 1,
+  };
+
+  const icon = L.divIcon({
+    html: '<span class="material-symbols-outlined">ev_station</span>',
+    className: "leaflet-div-icon"
+  });
+  const marker = L.marker([latitude, longitude], {
+    icon: icon,
+    pane: "evStations"
+  })
+
+  marker.bindTooltip(`
+    <div class="is-flex is-flex-direction-row is-flex-wrap-nowrap">
+      <div class="is-flex is-flex-direction-column">
+        <p>Last Updated: ${ dateUtil.$prettyPrint(evStation.updated_at) }</p>
+        <p class="is-size-5 has-text-weight-bold is-underlined">${ evStation.station_name }</p>
+      </div>
+
+    </div>
+  `, tooltipOptions);
+
+  return marker;
+}
+
+export function genMonitorMapMarker(monitor: Monitor): ShapeMarker {
   const displayField = monitor.displayField || new MonitorDataField(MonitorDisplayField, "PM 2.5", "60", monitor.data);
   const [ lng, lat ] = monitor.data.position.coordinates;
   const tooltipOptions = {
@@ -132,7 +163,20 @@ export function recenter(coordinates?: L.LatLng) {
 
 export function updateBounds() {
   if (markers.size > 0) {
-    map.fitBounds(markersGroup.getBounds());
+    map.fitBounds(monitorMarkersGroup.getBounds());
+  }
+}
+
+export async function updateEvStations(ev: Event) {
+  if ((ev.target as HTMLInputElement).checked) {
+    const evStations = await fetchEvStations()
+    console.log("enabling: ", evStations)
+
+    evStations.value.forEach(station => evStationMarkersGroup.addLayer(genEvStationMapMarker(station)))
+
+  } else {
+    console.log("disabling")
+    evStationMarkersGroup.clearLayers();
   }
 }
 
@@ -145,11 +189,11 @@ export function updateMapMarkers() {
     }
 
     if (markers.has(id)) {
-      markersGroup.removeLayer(markers.get(id)!.remove());
+      monitorMarkersGroup.removeLayer(markers.get(id)!.remove());
       markers.delete(id);
     }
 
-    const marker = genMapMarker(monitor);
+    const marker = genMonitorMapMarker(monitor);
 
     marker.addEventListener('click', () => {
       RouterModule.push({
@@ -167,7 +211,7 @@ export function updateMapMarkers() {
 
       
       if (isVisible(monitor)) {
-        markersGroup.addLayer(marker);
+        monitorMarkersGroup.addLayer(marker);
       }
     }
   }
@@ -176,10 +220,10 @@ export function updateMapMarkers() {
 export function updateMapMarkerVisibility() {
   markers.forEach((marker, id) => {
     if (isVisible(monitors.value[id])) {
-      markersGroup.addLayer(marker);
+      monitorMarkersGroup.addLayer(marker);
 
     } else {
-      markersGroup.removeLayer(marker);
+      monitorMarkersGroup.removeLayer(marker);
     }
   });
 }
