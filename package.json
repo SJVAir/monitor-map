@@ -1,7 +1,9 @@
 {
   "name": "@sjvair/monitor-map",
   "description": "SJVAir's interactive monitor map",
-  "files": [ "dist" ],
+  "files": [
+    "dist"
+  ],
   "version": "1.2.64",
   "type": "module",
   "scripts": {
@@ -13,7 +15,6 @@
     "preview": "vite preview",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/d3": "^7.4.0",
     "@types/leaflet": "^1.9.0",
@@ -28,6 +29,7 @@
     "i": "^0.3.7",
     "leaflet": "^1.9.2",
     "leaflet-svg-shape-markers": "^1.4.0",
+    "leaflet.markercluster": "^1.5.3",
     "npm": "^8.19.2",
     "sass": "^1.55.0",
     "terser": "^5.15.1",
