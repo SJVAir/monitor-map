@@ -172,7 +172,9 @@ export async function updateEvStations(ev: Event) {
     const evStations = await fetchEvStations()
     console.log("enabling: ", evStations)
 
-    evStations.value.forEach(station => evStationMarkersGroup.addLayer(genEvStationMapMarker(station)))
+    for (let station of evStations.value) {
+      evStationMarkersGroup.addLayer(genEvStationMapMarker(station));
+    }
 
   } else {
     console.log("disabling")
