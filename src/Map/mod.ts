@@ -75,30 +75,76 @@ export function getMarkerPaneName(monitor: Monitor): string {
 
 export function genEvStationMapMarker(evStation: IEvStation): Marker {
   const { longitude, latitude } = evStation;
+  const fullAddress = `${ evStation.street_address }+${ evStation.city },+${ evStation.state }+${ evStation.zip }`;
   const tooltipOptions = {
     offset: new L.Point(10, 0),
     opacity: 1,
+    interactive: true
   };
 
   const icon = L.divIcon({
     html: '<span class="material-symbols-outlined">ev_station</span>',
-    className: "leaflet-div-icon"
+    className: "leaflet-div-icon is-flex is-justify-content-center is-align-items-center",
+    iconSize: [30, 30]
   });
+
   const marker = L.marker([latitude, longitude], {
-    icon: icon,
+    icon,
     pane: "evStations"
   })
 
   marker.bindTooltip(`
     <div class="is-flex is-flex-direction-row is-flex-wrap-nowrap">
       <div class="is-flex is-flex-direction-column">
-        <p>Last Updated: ${ dateUtil.$prettyPrint(evStation.updated_at) }</p>
         <p class="is-size-5 has-text-weight-bold is-underlined">${ evStation.station_name }</p>
+
+
+        <div class="is-flex is-align-items-center is-justify-content-space-between">
+          <div>
+            <p>
+              <a href="tel:+1${ evStation.station_phone }">${ evStation.station_phone }</a>
+              <br/>
+              <a href="https://maps.google.com/?q=${ fullAddress }">
+                <a href="https://maps.apple.com/maps?q=${ fullAddress }">
+                  ${ evStation.street_address }
+                  <br/>
+                  ${ evStation.city }, ${ evStation.state } ${ evStation.zip }
+                </a>
+              </a>
+            </p>
+            <p>${(evStation.access_days_time)
+              ? evStation.access_days_time.split(";").map(line => `<p>${ line.trim() }</p>`).join("")
+              : ""
+            }</p>
+          </div>
+          <div>
+          </div>
+        </div>
+        <div class=" mt-2">
+          <p>Other Stuff:</p>
+          <div>
+            <p>access_code: ${ evStation.access_code }</p>
+            <p>access_detail_code: ${ evStation.access_detail_code }</p>
+            <p>cards_accepted: ${ evStation.cards_accepted }</p>
+            <p>date_last_confirmed: ${ evStation.date_last_confirmed }</p>
+            <p>country: ${ evStation.country }</p>
+            <p>ev_connector_types: ${ evStation.ev_connector_types }</p>
+            <p>ev_dc_fast_num: ${ evStation.ev_dc_fast_num }</p>
+            <p>ev_network: ${ evStation.ev_network }</p>
+            <p>ev_pricing: ${ evStation.ev_pricing }</p>
+            <p>facility_type: ${ evStation.facility_type }</p>
+            <p>groups_with_access_code: ${ evStation.groups_with_access_code }</p>
+            <p>id: ${ evStation.id }</p>
+            <p>updated_at: ${ evStation.updated_at }</p>
+          </div>
+        </div>
+
       </div>
 
     </div>
   `, tooltipOptions);
 
+  marker.on("click", () => marker.once("mouseout", () => marker.openTooltip()));
   return marker;
 }
 

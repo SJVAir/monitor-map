@@ -1,3 +1,4 @@
+@use "sass:color";
 @import "leaflet/dist/leaflet.css";
 @import "leaflet.markercluster/dist/MarkerCluster.css";
 @import "leaflet.markercluster/dist/MarkerCluster.Default.css";
@@ -16,9 +17,29 @@
   align-items: stretch;
 }
 
+.marker-cluster-small, 
+.marker-cluster-medium,
+.marker-cluster-large,
+.leaflet-oldie .marker-cluster-small,
+.leaflet-oldie .marker-cluster-medium,
+.leaflet-oldie .marker-cluster-large {
+  background-color: rgba(62, 142, 208, 0.6);
+
+  div {
+    @extend .has-text-white;
+    background-color: rgb(62, 142, 208);
+  }
+}
+
 .leaflet-div-icon {
-  background-color: transparent;
-  border: none;
+  @extend .has-text-white;
+  background-color: rgb(62, 142, 208);
+  border: 2px solid color.scale(rgb(62, 142, 208), $lightness: -20%);
+  border-radius: 50%;
+
+  span {
+    font-size: 23px;
+  }
 }
 
 .u-series {
