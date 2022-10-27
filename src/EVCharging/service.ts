@@ -22,6 +22,8 @@ export async function fetchEvStations(): Promise<Array<IEvStation>> {
           station.facility_type = facilityTypes.get(station.facility_type)
 
           return station;
-        });
+        })
+        // remove stations with invalid coordinates
+        .filter(station => station.id !== 226154);
     });
 }
