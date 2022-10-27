@@ -1,5 +1,6 @@
 import { http } from "../modules";
 import { IEvStation } from "../types";
+import {facilityTypes} from "./FacilityTypes";
 import * as ZipCodes from "./ZipCodes";
 
 const zipCodes = Object.values(ZipCodes).reduce((prev, curr) => prev.concat(curr)).join(",");
@@ -16,6 +17,11 @@ export async function fetchEvStations(): Promise<Array<IEvStation>> {
         api_key: import.meta.env.VITE_NREL_KEY
       }
     }).then(res => {
-        return res.data.fuel_stations;
+        const fuelStations: Array<IEvStation> = res.data.fuel_stations!;
+        return fuelStations.map(station => {
+          station.facility_type = facilityTypes.get(station.facility_type)
+
+          return station;
+        });
     });
 }

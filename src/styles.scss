@@ -4,6 +4,8 @@
 @import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 @import "uplot/dist/uPlot.min.css";
 
+$sjvair-main: rgb(62, 142, 208);
+
 @include bulma.from(bulma.$desktop) {
   html {
     overflow-y: hidden;
@@ -38,7 +40,23 @@
   border-radius: 50%;
 
   span {
-    font-size: 23px;
+    font-size: 22px;
+  }
+}
+
+.leaflet-ev-tooltip {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: none;
+
+  &:before {
+    outline: black;
+  }
+
+  .tooltip-header {
+    background-color: $sjvair-main;
+    padding: 4px 0;
   }
 }
 
