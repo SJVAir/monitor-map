@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { Ref, ref } from "vue";
-  import { BaseTileset, $mapTileSets, $overlayTilesets, OverlayTileSet, updateEvStations, updateMapMarkerVisibility } from "../Map";
+  import { BaseTileset, $mapTileSets, $overlayTilesets, OverlayTileSet, updateMapMarkerVisibility } from "../Map";
+  import { updateEvStations } from "../EVCharging";
   import { $visibility } from "./mod";
 
   const displayOptionsActive: Ref<boolean> = ref(false);
