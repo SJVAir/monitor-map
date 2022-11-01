@@ -14,7 +14,7 @@ export function genEvStationMapMarker(evStation: IEvStation): Marker {
 
   const icon = L.divIcon({
     html: '<span class="material-symbols-outlined">ev_station</span>',
-    className: "leaflet-div-icon",
+    className: "leaflet-ev-icon",
     iconSize: [30, 30]
   });
 
