@@ -1,6 +1,6 @@
 import { http } from "../modules";
 import { IEvStation } from "../types";
-import {facilityTypes} from "./FacilityTypes";
+import { accessDetailCodeTypes, creditCardTypes, evConnectorTypes, evNetworkTypes, facilityTypes } from "./DataMaps";
 import * as ZipCodes from "./ZipCodes";
 
 const zipCodes = Object.values(ZipCodes).reduce((prev, curr) => prev.concat(curr)).join(",");
@@ -19,7 +19,29 @@ export async function fetchEvStations(): Promise<Array<IEvStation>> {
     }).then(res => {
         const fuelStations: Array<IEvStation> = res.data.fuel_stations!;
         return fuelStations.map(station => {
-          station.facility_type = facilityTypes.get(station.facility_type)
+
+          if (station.access_detail_code) {
+            station.access_detail_code = accessDetailCodeTypes.get(station.access_detail_code);
+          }
+
+          if (station.cards_accepted) {
+            station.cards_accepted = station.cards_accepted.split(" ")
+              .map(c => creditCardTypes.get(c))
+              .join(", ")
+          }
+
+          if (station.ev_connector_types && station.ev_connector_types.length) {
+            station.ev_connector_types = station.ev_connector_types.map(t => evConnectorTypes.get(t))
+          }
+
+          if (station.ev_network) {
+            station.ev_network = evNetworkTypes.get(station.ev_network);
+          }
+
+
+          if (station.facility_type) {
+            station.facility_type = facilityTypes.get(station.facility_type)
+          }
 
           return station;
         })

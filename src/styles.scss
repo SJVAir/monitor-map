@@ -35,6 +35,9 @@ $sjvair-main: rgb(62, 142, 208);
 
 .leaflet-div-icon {
   @extend .has-text-white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background-color: rgb(62, 142, 208);
   border: 2px solid color.scale(rgb(62, 142, 208), $lightness: -20%);
   border-radius: 50%;
@@ -45,18 +48,33 @@ $sjvair-main: rgb(62, 142, 208);
 }
 
 .leaflet-ev-tooltip {
-  display: flex;
-  flex-direction: column;
   padding: 0;
   border: none;
 
-  &:before {
-    outline: black;
+  .leaflet-popup-content-wrapper {
+    padding: 0;
+
+    .leaflet-popup-content {
+      margin: 0;
+
+      & p {
+        margin: 0;
+      }
+
+      .tooltip-header {
+        background-color: $sjvair-main;
+        padding: 1em 4px .5em 4px;
+        border-radius: 12px 12px 0 0;
+      }
+
+      .ev-details {
+        gap: 1em;
+      }
+    }
   }
 
-  .tooltip-header {
-    background-color: $sjvair-main;
-    padding: 4px 0;
+  a.leaflet-popup-close-button {
+    color: bulma.$white;
   }
 }
 
