@@ -8,6 +8,7 @@
   "type": "module",
   "scripts": {
     "dev": "VITE_BUILD_MODE='development' vite",
+    "dev:host": "VITE_BUILD_MODE='development' vite --host",
     "build": "npm run build:widget && npm run build:module",
     "build:widget": "vue-tsc --noEmit && vite build",
     "build:module": "VITE_BUILD_MODE=mod npm run build:widget",
