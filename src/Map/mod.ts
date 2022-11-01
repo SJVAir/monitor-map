@@ -4,11 +4,9 @@ import { darken, dateUtil, readableColor, toHex } from "../modules";
 import { MonitorDisplayField, monitors } from "../Monitors";
 import { MonitorDataField } from "../Monitors";
 import { isVisible } from "../DisplayOptions";
-import { fetchEvStations } from "../EVCharging";
-import { evStationMarkersGroup, map, mapSettings, monitorMarkersGroup, resizeObserver } from "./InteractiveMap";
+import { map, mapSettings, monitorMarkersGroup, resizeObserver } from "./InteractiveMap";
 import type { Monitor } from "../Monitors";
-import type { Marker, ShapeMarker } from "leaflet";
-import { IEvStation } from "../types";
+import type { ShapeMarker } from "leaflet";
 
 const zoomPanOptions: L.ZoomPanOptions = {
   animate: true,
@@ -73,105 +71,6 @@ export function getMarkerPaneName(monitor: Monitor): string {
   }
 }
 
-export function genEvStationMapMarker(evStation: IEvStation): Marker {
-  const { longitude, latitude } = evStation;
-  const tooltipOptions: L.TooltipOptions = {
-    offset: new L.Point(10, 0),
-    opacity: 1,
-    className: "leaflet-ev-tooltip"
-  };
-
-  const icon = L.divIcon({
-    html: '<span class="material-symbols-outlined">ev_station</span>',
-    className: "leaflet-div-icon is-flex is-justify-content-center is-align-items-center",
-    iconSize: [30, 30]
-  });
-
-  const marker = L.marker([latitude, longitude], {
-    icon,
-    pane: "evStations"
-  })
-
-  const fullAddress = (evStation.street_address && evStation.city && evStation.state && evStation.zip)
-    ? `${ evStation.street_address }+${ evStation.city },+${ evStation.state }+${ evStation.zip }`
-    : "";
-
-  const addressTemplate = (!!fullAddress.length)
-    ? `
-      <a href="https://maps.google.com/?q=${ fullAddress }">
-        <a href="https://maps.apple.com/maps?q=${ fullAddress }">
-          ${ evStation.street_address }
-          <br/>
-          ${ evStation.city }, ${ evStation.state } ${ evStation.zip }
-        </a>
-      </a>
-    `
-    : "";
-
-  const stationPhoneTemplate = (!!evStation.station_phone)
-    ? `<a href="tel:+1${ evStation.station_phone }">${ evStation.station_phone }</a>`
-    : "";
-
-  const hoursTemplate = (evStation.access_days_time)
-    ? evStation.access_days_time.split(";")
-      .map(line => {
-        line = line.trim();
-        return `<p>${ line.charAt(0).toUpperCase() + line.slice(1) }</p>`;
-      }).join("")
-
-    : "";
-
-  const evPricingTemplate = (!!evStation.ev_pricing)
-    ? `
-      <div class="ev-pricing">
-      ${
-        evStation.ev_pricing?.split(";")
-          .map(line => {
-            line = line.trim();
-            return line.split("and").map(part => `<p>${ part.trim() }</p>`).join("");
-          }).join("")
-      }
-      </div>
-    `
-    : "";
-
-  marker.bindTooltip(`
-      <p class="is-size-5 has-text-weight-bold has-text-centered has-text-white tooltip-header">${ evStation.station_name }</p>
-
-      <div class="is-flex is-align-items-center is-justify-content-space-between p-1">
-        <div class="ev-contact mr-5">
-          <p>
-            ${ stationPhoneTemplate }
-            <br/>
-            ${ addressTemplate }
-          </p>
-          <p>${ hoursTemplate }</p>
-        </div>
-        ${ evPricingTemplate }
-      </div>
-      <div class=" mt-2">
-        <p>Other Stuff:</p>
-        <p>access_detail_code: ${ evStation.access_detail_code }</p>
-        <p>cards_accepted: ${ evStation.cards_accepted }</p>
-        <p>date_last_confirmed: ${ evStation.date_last_confirmed }</p>
-        <p>country: ${ evStation.country }</p>
-        <p>ev_connector_types: ${ evStation.ev_connector_types }</p>
-        <p>ev_dc_fast_num: ${ evStation.ev_dc_fast_num }</p>
-        <p>ev_network: ${ evStation.ev_network }</p>
-        <p>facility_type: ${ evStation.facility_type }</p>
-        <p>groups_with_access_code: ${ evStation.groups_with_access_code }</p>
-        <p>id: ${ evStation.id }</p>
-        <p>updated_at: ${ evStation.updated_at }</p>
-      </div>
-
-
-  `, tooltipOptions);
-
-  //marker.on("click", () => marker.once("mouseout", () => marker.openTooltip()));
-  marker.on("mouseout", () => marker.openTooltip())
-  return marker;
-}
-
 export function genMonitorMapMarker(monitor: Monitor): ShapeMarker {
   const displayField = monitor.displayField || new MonitorDataField(MonitorDisplayField, "PM 2.5", "60", monitor.data);
   const [ lng, lat ] = monitor.data.position.coordinates;
@@ -234,21 +133,6 @@ export function recenter(coordinates?: L.LatLng) {
 export function updateBounds() {
   if (markers.size > 0) {
     map.fitBounds(monitorMarkersGroup.getBounds());
-  }
-}
-
-export async function updateEvStations(ev: Event) {
-  if ((ev.target as HTMLInputElement).checked) {
-    const evStations = await fetchEvStations()
-    console.log("enabling: ", evStations)
-
-    for (let station of evStations.value) {
-      evStationMarkersGroup.addLayer(genEvStationMapMarker(station));
-    }
-
-  } else {
-    console.log("disabling")
-    evStationMarkersGroup.clearLayers();
   }
 }
 
