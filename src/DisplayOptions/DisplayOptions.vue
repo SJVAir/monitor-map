@@ -1,6 +1,7 @@
 <script setup lang="ts">
-  import { reactive, Ref, ref } from "vue";
+  import { Ref, ref } from "vue";
   import { BaseTileset, $mapTileSets, $overlayTilesets, OverlayTileSet, updateMapMarkerVisibility } from "../Map";
+  import { updateEvStations } from "../EVCharging";
   import { $visibility } from "./mod";
 
   const displayOptionsActive: Ref<boolean> = ref(false);
@@ -17,6 +18,7 @@
       tileset.disable();
     }
   }
+
 </script>
 
 <template>
@@ -49,6 +51,19 @@
                 </span>
                 <span class="option-label has-text-black">
                   {{ deviceType.label }}
+                </span>
+              </label>
+            </div>
+            <div class="dropdown-item">
+              <label class="checkbox">
+                <input type="checkbox" @change.preventDefault="updateEvStations" />
+                <span class="icon">
+                  <span class="material-symbols-outlined">
+                    ev_station
+                  </span>
+                </span>
+                <span class="option-label has-text-black">
+                  EV Stations
                 </span>
               </label>
             </div>

@@ -1,5 +1,10 @@
+@use "sass:color";
 @import "leaflet/dist/leaflet.css";
+@import "leaflet.markercluster/dist/MarkerCluster.css";
+@import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 @import "uplot/dist/uPlot.min.css";
+
+$sjvair-main: rgb(62, 142, 208);
 
 @include bulma.from(bulma.$desktop) {
   html {
@@ -12,6 +17,65 @@
   display: flex;
   justify-content: center;
   align-items: stretch;
+}
+
+.marker-cluster-small, 
+.marker-cluster-medium,
+.marker-cluster-large,
+.leaflet-oldie .marker-cluster-small,
+.leaflet-oldie .marker-cluster-medium,
+.leaflet-oldie .marker-cluster-large {
+  background-color: rgba(62, 142, 208, 0.6);
+
+  div {
+    @extend .has-text-white;
+    background-color: rgb(62, 142, 208);
+  }
+}
+
+.leaflet-div-icon {
+  @extend .has-text-white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(62, 142, 208);
+  border: 2px solid color.scale(rgb(62, 142, 208), $lightness: -20%);
+  border-radius: 50%;
+
+  span {
+    font-size: 22px;
+  }
+}
+
+.leaflet-ev-tooltip {
+  padding: 0;
+  border: none;
+
+  .leaflet-popup-content-wrapper {
+    padding: 0;
+
+    .leaflet-popup-content {
+      margin: 0;
+
+      & p {
+        margin: 0;
+      }
+
+      .tooltip-header {
+        background-color: $sjvair-main;
+        padding: 1em 4px .5em 4px;
+        border-radius: 12px 12px 0 0;
+      }
+
+      .ev-details {
+        gap: 1em;
+      }
+    }
+  }
+
+  a.leaflet-popup-close-button {
+    color: bulma.$white;
+  }
 }
 
 .u-series {

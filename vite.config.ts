@@ -16,6 +16,7 @@ const htmlPurgeOptions = {
     /^router-link(|-exact)-active$/,
     /data-v-.*/,
     /leaflet-*/,
+    /marker-cluster*/,
     /uplot*/,
     /^u-*/,
     /^dp__*/
