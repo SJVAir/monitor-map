@@ -20,7 +20,7 @@
       return (props.chartDataLoading)
         ? "Loading Data"
         : (noChartData.value)
-          ? "No Data Available For Selected Dates"
+          ? "No Data Available For Selected Date Range"
           : ""
     });
   const messageSymbol = computed(() => {
