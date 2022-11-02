@@ -74,7 +74,8 @@
   <div class="monitor-details columns">
     <span class="close-btn material-symbols-outlined" v-on:click="close">close</span>
 
-    <DataChartVue class="column is-three-fifths" :activeMonitor="activeMonitor" :chartData="chartData" :dateRange="dateRange"></DataChartVue>
+    <DataChartVue class="column is-three-fifths" :activeMonitor="activeMonitor"
+      :chartData="chartData" :dateRange="dateRange" :chartDataLoading="chartDataLoading"></DataChartVue>
 
     <div class="column data-control">
       <MonitorInfoVue :monitor="activeMonitor"></MonitorInfoVue>
