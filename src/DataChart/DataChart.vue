@@ -10,11 +10,26 @@
   const props = defineProps<{
     activeMonitor: Monitor,
     chartData: uPlot.AlignedData,
+    chartDataLoading: boolean,
     dateRange: DateRange
   }>();
 
   const sjvairDataChart = ref<HTMLInputElement | null>(null)
-  const loadingData = computed(() => !props.chartData.length);
+  const noChartData = computed(() => !props.chartData.length);
+  const message = computed(() => {
+      return (props.chartDataLoading)
+        ? "Loading Data"
+        : (noChartData.value)
+          ? "No Data Available For Selected Dates"
+          : ""
+    });
+  const messageSymbol = computed(() => {
+      return (props.chartDataLoading)
+        ? "refresh"
+        : (noChartData.value)
+          ? "error"
+          : ""
+    });
   let uplot: uPlot;
 
   function buildChart(chartData: uPlot.AlignedData, deviceType: MonitorDevice) {
@@ -61,14 +76,14 @@
 
 <template>
   <div class="data-chart-container">
-    <h1 :class="{ 'show': loadingData }">
-      <span class="material-symbols-outlined spin">
-        refresh
+    <h1 :class="{ 'show': props.chartDataLoading || noChartData }">
+      <span :class="{ 'spin': props.chartDataLoading }" class="material-symbols-outlined">
+        {{ messageSymbol }}
       </span>
       <br/>
-      Loading Data
+      {{ message }}
     </h1>
-    <div ref="sjvairDataChart" @click.shift="downloadChart" :class="{ 'hidden': loadingData }" class="data-chart"></div>
+    <div ref="sjvairDataChart" @click.shift="downloadChart" :class="{ 'hidden': props.chartDataLoading || noChartData }" class="data-chart"></div>
   </div>
 </template>
 
