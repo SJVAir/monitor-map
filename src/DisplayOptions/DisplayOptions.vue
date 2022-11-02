@@ -57,7 +57,7 @@
             <div class="dropdown-item">
               <label class="checkbox">
                 <input type="checkbox" @change.preventDefault="updateEvStations" />
-                <span class="icon">
+                <span class="icon ev-icon">
                   <span class="material-symbols-outlined">
                     ev_station
                   </span>
@@ -118,6 +118,8 @@
 </template>
 
 <style scoped lang="scss">
+  @use "sass:color";
+
   .dropdown-menu {
     white-space: nowrap;
 
@@ -145,8 +147,13 @@
         &.icon-border {
           
           .material-symbols-outlined {
-            background-color: #000;
             font-size: 16px !important;
+            width: 15px;
+            height: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid black;
           }
         }
 
@@ -166,7 +173,26 @@
             'GRAD' 0,
             'opsz' 20
           }
+
+          &.ev-icon {
+            @extend .has-text-white;
+            margin-left: 3px;
+            background-color: $sjvair-main;
+            border: 2px solid color.scale($sjvair-main, $lightness: -20%);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+
+            .material-symbols-outlined {
+              font-size: 14px;
+              max-width: 14px;
+
+              font-variation-settings:
+              'FILL' 0,
+            }
+          }
         }
+        
       }
 
       .display-group-label {

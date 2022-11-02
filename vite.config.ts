@@ -86,7 +86,10 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `@use "bulma/bulma";`
+        additionalData: `
+          $sjvair-main: rgb(62, 142, 208);
+          @use "bulma/bulma";
+        `
       },
     }
   },
