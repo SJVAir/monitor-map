@@ -105,10 +105,10 @@ export function fillChartDataRecords(
   xAxisData: Array<Dayjs>,
   yAxisRecord: Map<ChartDataField, Array<number | null>>,
   entry: IMonitorEntry,
-  timestamp?: string | Dayjs,
+  timestamp?: Dayjs,
 ) {
   if (timestamp) {
-    xAxisData.push(dateUtil(timestamp).utc().tz('America/Los_Angeles'));
+    xAxisData.push(timestamp.utc().tz('America/Los_Angeles'));
   } else {
     xAxisData.push(dateUtil(entry.timestamp).utc().tz('America/Los_Angeles'));
   }
