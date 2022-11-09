@@ -22,11 +22,11 @@ export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.Al
         const entry = entries[i];
 
         if (xAxisData.length > 1) {
+          const entrytime = dateUtil(entry.timestamp).utc().tz('America/Los_Angeles').toISOString();
           let prevTimestamp = dateUtil(xAxisData[xAxisData.length - 1]);
 
-          while (prevTimestamp.skewedDiff(entry.timestamp, updateDuration) > updateDuration + 1) {
+          while (prevTimestamp.skewedDiff(entrytime, updateDuration) > updateDuration + 1) {
             prevTimestamp = prevTimestamp.add(updateDuration, "m");
-
             fillChartDataRecords(xAxisData, yAxisRecord, entry, prevTimestamp)
           }
         }
