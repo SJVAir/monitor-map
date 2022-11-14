@@ -1,9 +1,9 @@
 import { ref } from "vue";
 import { WorkerServiceClient } from "../Webworkers/WorkerServiceClient";
-import EVChargingWorkerService from "./worker?worker";
+import EVChargingWorkerService from "./EVWorker?worker";
 import { IEvStation } from "../types";
 
-type EVChargingServiceModule = typeof import("./service");
+type EVChargingServiceModule = typeof import("./requests");
 
 const worker = new EVChargingWorkerService();
 const evChargingsWorkerService = new WorkerServiceClient<EVChargingServiceModule>(worker);
