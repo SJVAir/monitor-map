@@ -1,6 +1,4 @@
 import L from "../modules/Leaflet";
-import { evStationMarkersGroup } from "../Map";
-import { fetchEvStations } from "./BackgroundRequests";
 import type { Marker } from "leaflet";
 import type { IEvStation } from "../types";
 
@@ -52,19 +50,6 @@ export function genEvStationMapMarker(evStation: IEvStation): Marker {
   `, tooltipOptions);
 
   return marker;
-}
-
-export async function updateEvStations(ev: Event) {
-  if ((ev.target as HTMLInputElement).checked) {
-    const evStations = await fetchEvStations()
-
-    for (let station of evStations.value) {
-      evStationMarkersGroup.addLayer(genEvStationMapMarker(station));
-    }
-
-  } else {
-    evStationMarkersGroup.clearLayers();
-  }
 }
 
 function evAddressTemplate(evStation: IEvStation) {
