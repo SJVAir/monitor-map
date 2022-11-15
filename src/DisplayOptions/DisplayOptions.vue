@@ -1,9 +1,8 @@
 <script setup lang="ts">
   import { Ref, ref } from "vue";
+  import { EVChargingMarkersManager } from "../EVCharging";
   import { useMapTilesets } from "../Map";
-  import { updateEvStations } from "../EVCharging";
   import { useMonitorMarkersManager } from "./MonitorMarkersManager";
-
   const displayOptionsActive: Ref<boolean> = ref(false);
   const { mapTileSets, overlayTilesets } = useMapTilesets();
   const { monitorMarkersVisibility, refresh } = await useMonitorMarkersManager();
@@ -47,6 +46,7 @@
                 </span>
               </label>
             </div>
+            <!--
             <div class="dropdown-item">
               <label class="checkbox">
                 <input type="checkbox" @change.preventDefault="updateEvStations" />
@@ -60,6 +60,11 @@
                 </span>
               </label>
             </div>
+            -->
+          </div>
+
+          <div class="evcharging-marker-manager column">
+            <EVChargingMarkersManager />
           </div>
 
           <div class="map-layers column">
@@ -109,8 +114,6 @@
 </template>
 
 <style scoped lang="scss">
-  @use "sass:color";
-
   .dropdown-menu {
     white-space: nowrap;
 
@@ -163,24 +166,6 @@
             'wght' 400,
             'GRAD' 0,
             'opsz' 20
-          }
-
-          &.ev-icon {
-            @extend .has-text-white;
-            margin-left: 3px;
-            background-color: $sjvair-main;
-            border: 2px solid color.scale($sjvair-main, $lightness: -20%);
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-
-            .material-symbols-outlined {
-              font-size: 14px;
-              max-width: 14px;
-
-              font-variation-settings:
-              'FILL' 0,
-            }
           }
         }
         
