@@ -1,22 +1,25 @@
 <script setup lang="ts">
-  import { computed, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+  import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import DatePickerVue from './DatePicker.vue';
   import MonitorInfoVue from './MonitorInfo.vue';
   import { MonitorSubscriptionVue } from '../MonitorSubscription';
   import { HumidityDataBoxVue, PM2DataBoxVue, TempDataBoxVue } from "../MonitorDataBox";
-  import { focusAssertion, recenter } from "../Map";
-  import { getMonitor, downloadCSV, widgetSubList } from "../Monitors";
-  import { DataChartVue, fetchChartData } from '../DataChart';
+  import { useInteractiveMap } from "../Map";
+  import { useMonitorsService } from "../Monitors";
+  import { DataChartVue, useDataChartService } from '../DataChart';
   import { SingleEventListener } from "../models/SingleEventListener";
   import { DateRange } from '../models';
   import type { DatePickerSelection } from '../types';
 
   const props = defineProps<{ monitorId: string }>();
+  const { getMonitor, downloadCSV, widgetSubList } = await useMonitorsService();
   const activeMonitor = computed(() => getMonitor(props.monitorId));
   const chartData = ref<uPlot.AlignedData>([]);
   const chartDataLoading = ref<boolean>(false);
   const dateRange = ref(new DateRange());
+  const { focusAssertion, recenter } = useInteractiveMap();
+  const { fetchChartData } = await useDataChartService();
   const router = useRouter();
 
   function close() {
@@ -34,7 +37,7 @@
         chartData.value = data;
         chartDataLoading.value = false;
       })
-      .catch(console.error);
+      .catch(err => console.error("Failed to load chart data: ", err));
   }
 
   async function updateDateRange(newRange: DatePickerSelection) {
@@ -43,7 +46,7 @@
 
   watch(
     () => props.monitorId,
-    async (monitorID) => {
+    () => {
       focusAssertion(activeMonitor.value);
       chartData.value = [];
       loadChartData();
