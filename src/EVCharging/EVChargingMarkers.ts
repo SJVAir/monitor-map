@@ -3,8 +3,9 @@ import { genEvStationMapMarker, useEVChargingService } from ".";
 import type { IEvStation } from "../types";
 import type { Ref } from "vue";
 
-//@ts-ignore: markerClusterGroup does not exist
-export const evStationMarkersGroup = L.markerClusterGroup({ clusterPane: "evStations" });
+const pane = "evStations";
+const lvl2MarkersGroup = L.markerClusterGroup({ clusterPane: pane });
+const lvl3MarkersGroup = L.markerClusterGroup({ clusterPane: pane });
 
 let initialized = false;
 
@@ -16,11 +17,11 @@ export async function useEVChangingMarkers(map?: L.Map) {
   const { fetchLvl2Stations, fetchLvl3Stations, lvl2EVStations, lvl3EVStations } = await useEVChargingService();
 
   async function updateLvl2EvStations(ev: Event) {
-    updateEvStations(ev, lvl2EVStations, fetchLvl2Stations);
+    updateEvStations(ev, lvl2EVStations, lvl2MarkersGroup, fetchLvl2Stations);
   }
 
   async function updateLvl3EvStations(ev: Event) {
-    updateEvStations(ev, lvl3EVStations, fetchLvl3Stations);
+    updateEvStations(ev, lvl3EVStations, lvl3MarkersGroup, fetchLvl3Stations);
   }
 
   const lvl2 = {
@@ -39,16 +40,18 @@ export async function useEVChangingMarkers(map?: L.Map) {
 }
 
 function initializeEVChargingMarkers(map: L.Map) {
-  map.createPane("evStations").style.zIndex = "605";
-  evStationMarkersGroup.addTo(map);
+  map.createPane(pane).style.zIndex = "605";
+  lvl2MarkersGroup.addTo(map);
+  lvl3MarkersGroup.addTo(map);
   initialized = true;
 }
 
 async function updateEvStations(
   ev: Event,
   collection: Ref<Array<IEvStation>>,
+  group: L.MarkerClusterGroup,
   request: () => Promise<void>
-){
+) {
   if ((ev.target as HTMLInputElement).checked) {
 
     if (!collection.value.length) {
@@ -56,10 +59,10 @@ async function updateEvStations(
     }
 
     for (let station of collection.value) {
-      evStationMarkersGroup.addLayer(genEvStationMapMarker(station));
+      group.addLayer(genEvStationMapMarker(station));
     }
 
   } else {
-    evStationMarkersGroup.clearLayers();
+    group.clearLayers();
   }
 }
