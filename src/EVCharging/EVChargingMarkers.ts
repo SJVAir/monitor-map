@@ -1,3 +1,4 @@
+import L from "../modules/Leaflet";
 import { genEvStationMapMarker, useEVChargingService } from ".";
 import type { IEvStation } from "../types";
 import type { Ref } from "vue";
