@@ -101,5 +101,8 @@ export default defineConfig({
         secure: true,
       }
     }
+  },
+  worker: {
+    format: "es"
   }
 })
