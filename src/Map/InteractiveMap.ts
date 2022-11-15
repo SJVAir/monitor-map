@@ -4,6 +4,7 @@ import { useMonitorMarkersManager } from "../DisplayOptions/MonitorMarkersManage
 import { initializeTilesets } from "./Tilesets";
 import type { Ref } from "vue";
 import type { Monitor } from "../Monitors";
+import { useEVChangingMarkers } from "../EVCharging/EVChargingMarkers";
 
 const mapSettings: L.MapOptions = {
   // Initial location: Sidewalk in front of Root Access Hackerspace, Fresno, CA
@@ -21,7 +22,7 @@ let map: L.Map;
 const resizeObserver = new ResizeObserver(() => map.invalidateSize());
 
 //@ts-ignore: markerClusterGroup does not exist
-export const evStationMarkersGroup = L.markerClusterGroup({ clusterPane: "evStations" });
+//export const evStationMarkersGroup = L.markerClusterGroup({ clusterPane: "evStations" });
 
 export async function initializeInteractiveMap(mapTarget: Ref<HTMLDivElement>) {
   const mapContainer = document.createElement("div")
@@ -30,8 +31,8 @@ export async function initializeInteractiveMap(mapTarget: Ref<HTMLDivElement>) {
 
   mapContainer.style.flex = "1";
 
-  map.createPane("evStations").style.zIndex = "605";
-  evStationMarkersGroup.addTo(map);
+  //map.createPane("evStations").style.zIndex = "605";
+  //evStationMarkersGroup.addTo(map);
 
   resizeObserver.observe(mapContainer);
 
@@ -49,6 +50,8 @@ export async function initializeInteractiveMap(mapTarget: Ref<HTMLDivElement>) {
   });
   
   await useMonitorMarkersManager(map);
+  await useEVChangingMarkers(map);
+
   return useInteractiveMap();
 }
 
