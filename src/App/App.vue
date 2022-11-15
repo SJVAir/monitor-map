@@ -1,12 +1,26 @@
 <script setup lang="ts">
+  import { Suspense } from "vue";
   import { RouterView } from "vue-router";
 </script>
 
 <template>
   <div class="sjvair-monitor-map">
-    <router-view></router-view>
+    <RouterView v-slot="{ Component }">
+      <template v-if="Component">
+        <Suspense>
+          <!-- main content -->
+          <component :is="Component"></component>
+
+          <!-- loading state -->
+          <template #fallback>
+            <div></div>
+          </template>
+        </Suspense>
+      </template>
+    </RouterView>
   </div>
 </template>
+
 
 <style scoped lang="scss">
   .sjvair-monitor-map {
