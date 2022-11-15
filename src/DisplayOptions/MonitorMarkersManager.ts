@@ -66,6 +66,31 @@ const monitorMarkersVisibility: MonitorMarkersVisibility = {
 let record: MonitorMarkersRecord;
 let group: L.FeatureGroup;
 let initialized = false;
+
+export async function useMonitorMarkersManager(map?: L.Map) {
+  if (!initialized && map) {
+    await initializeMonitorMarkersManager(map);
+  }
+  const { monitors } = await useMonitorsService();
+
+  function refresh() {
+    record.forEach((marker, id) => {
+      if (isVisible(monitors.value[id])) {
+        group.addLayer(marker);
+
+      } else {
+        group.removeLayer(marker);
+      }
+    });
+  }
+
+  return {
+    monitorMarkers: group,
+    monitorMarkersVisibility,
+    refresh
+  };
+}
+
 async function initializeMonitorMarkersManager(map: L.Map) {
   const router = useRouter();
   const route = useRoute();
@@ -127,32 +152,6 @@ async function initializeMonitorMarkersManager(map: L.Map) {
   });
 
   initialized = true;
-  return useMonitorMarkersManager();
-}
-
-export async function useMonitorMarkersManager(map?: L.Map) {
-  if (!initialized && map) {
-    await initializeMonitorMarkersManager(map);
-  }
-  const { monitors } = await useMonitorsService();
-
-  function refresh() {
-    record.forEach((marker, id) => {
-      if (isVisible(monitors.value[id])) {
-        group.addLayer(marker);
-
-      } else {
-        group.removeLayer(marker);
-      }
-    });
-  }
-
-  return {
-    monitorMarkers: group,
-    monitorMarkersVisibility,
-    refresh
-  };
-
 }
 
 function isVisible(monitor: Monitor): boolean {
