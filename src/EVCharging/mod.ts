@@ -1,6 +1,6 @@
 import L from "../modules/Leaflet";
 import { evStationMarkersGroup } from "../Map";
-import { fetchEvStations } from "./backgroundService";
+import { fetchEvStations } from "./BackgroundRequests";
 import type { Marker } from "leaflet";
 import type { IEvStation } from "../types";
 
@@ -71,13 +71,6 @@ function evAddressTemplate(evStation: IEvStation) {
   return createTemplate((evStation.street_address && evStation.city && evStation.state && evStation.zip), () => {
     const fullAddress = `${ evStation.street_address }+${ evStation.city },+${ evStation.state }+${ evStation.zip }`;
 
-    //return `
-    //  <a href="geo:0,0?q=${ fullAddress }">
-    //    ${ evStation.street_address }
-    //    <br/>
-    //    ${ evStation.city }, ${ evStation.state } ${ evStation.zip }
-    //  </a>
-    //`;
     return `
       <a href="https://maps.google.com/?q=${ fullAddress }" target="_blank">
         ${ evStation.street_address }
