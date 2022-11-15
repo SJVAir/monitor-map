@@ -64,7 +64,7 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
           max = (now.isSame(maxDate, "day") && now.isAfter(maxDate))
             ? now.unix()
             : max;
-          return [min - 10, max];
+          return [min, max];
         }
       },
       y: {

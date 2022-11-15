@@ -1,22 +1,15 @@
 <script setup lang="ts">
   import { Ref, ref } from "vue";
-  import { BaseTileset, $mapTileSets, $overlayTilesets, OverlayTileSet, updateMapMarkerVisibility } from "../Map";
+  import { useMapTilesets } from "../Map";
   import { updateEvStations } from "../EVCharging";
-  import { $visibility } from "./mod";
+  import { useMonitorMarkersManager } from "./MonitorMarkersManager";
 
   const displayOptionsActive: Ref<boolean> = ref(false);
+  const { mapTileSets, overlayTilesets } = useMapTilesets();
+  const { monitorMarkersVisibility, refresh } = await useMonitorMarkersManager();
 
   function toggleDisplayOptions() {
     displayOptionsActive.value = !displayOptionsActive.value;
-  }
-
-  function updateTileset(ev: Event, tileset: BaseTileset | OverlayTileSet) {
-    if (tileset instanceof BaseTileset || tileset.isChecked) {
-      tileset.enable();
-
-    } else if (tileset instanceof OverlayTileSet) {
-      tileset.disable();
-    }
   }
 
 </script>
@@ -40,10 +33,10 @@
 
           <div class="map-visibility column">
             <p class="display-group-label">Visibility</p>
-            <div v-for="deviceType in $visibility" class="dropdown-item" :class="deviceType.containerClass">
+            <div v-for="deviceType in monitorMarkersVisibility" class="dropdown-item" :class="deviceType.containerClass">
               <label class="checkbox">
-                <input type="checkbox" v-model="deviceType.isChecked"
-                  @change.preventDefault="updateMapMarkerVisibility" />
+                <input type="checkbox" v-model="deviceType.isChecked.value"
+                  @change.preventDefault="refresh" />
                 <span class="icon">
                   <span class="material-symbols-outlined">
                     {{ deviceType.icon }}
@@ -73,10 +66,9 @@
 
             <div class="map-overlays">
               <p class="display-group-label">Map Overlays</p>
-              <div v-for="overlay in $overlayTilesets" class="dropdown-item" :class="overlay.containerClass">
+              <div v-for="overlay in overlayTilesets" class="dropdown-item" :class="overlay.containerClass">
                 <label class="checkbox">
-                  <input type="checkbox" v-model="overlay.isChecked"
-                    @change.preventDefault="updateTileset($event, overlay)"/>
+                  <input type="checkbox" v-model="overlay.isChecked.value" />
                   <span class="icon">
                     <span class="material-symbols-outlined">
                       {{ overlay.icon }}
@@ -91,10 +83,9 @@
 
             <div class="map-tiles">
               <p class="display-group-label">Map Tiles</p>
-              <div v-for="tileset in $mapTileSets" class="dropdown-item" :class="tileset.containerClass">
+              <div v-for="tileset in mapTileSets" class="dropdown-item" :class="tileset.containerClass">
                 <label class="radio">
-                  <input type="radio" :checked="tileset.isDefault" name="tiles"
-                    @change="updateTileset($event, tileset)" />
+                  <input type="radio" :checked="tileset.isDefault" name="tiles" @click="tileset.enable"/>
                   <span v-if="tileset.icon" class="icon">
                     <span class="material-symbols-outlined">
                       {{ tileset.icon }}

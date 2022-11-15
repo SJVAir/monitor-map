@@ -1,11 +1,10 @@
-import { ref } from "vue";
 import { WorkerServiceClient } from "../Webworkers/WorkerServiceClient";
-import DataChartWorkerService from "./worker?worker";
+import DataChartWorkerService from "./DataChartWorker?worker";
 
 import type { Monitor } from "../Monitors";
 import type { DateRange } from "../models";
 
-type DataChartServiceModule = typeof import("./service");
+type DataChartServiceModule = typeof import("./requests");
 
 const worker = new DataChartWorkerService();
 const dataChartWorkerService = new WorkerServiceClient<DataChartServiceModule>(worker);

@@ -4,7 +4,7 @@ import { OverlayTileSet } from "./OverlayManagement";
 import type L from "../modules/Leaflet";
 import type { IOverlayTileset, MapTilesetCollection } from "../types";
 
-export const mapTilesets: MapTilesetCollection = [
+const _mapTilesets: MapTilesetCollection = [
   {
     label: "Streets",
     isDefault: true,
@@ -40,11 +40,11 @@ export const mapTilesets: MapTilesetCollection = [
   }
 ];
 
-export const overlayTilesets: Array<IOverlayTileset> = [
+const _overlayTilesets: Array<IOverlayTileset> = [
   {
     containerClass: "has-text-info",
     icon: "air",
-    isChecked: false,
+    isChecked: ref(false),
     label: "Wind",
     urlTemplate: "https://{s}.tile.openweathermap.org/map/wind/{z}/{x}/{y}.png?appid={apiKey}",
     options: {
@@ -58,7 +58,7 @@ export const overlayTilesets: Array<IOverlayTileset> = [
   {
     containerClass: "has-text-grey-light",
     icon: "cloud",
-    isChecked: false,
+    isChecked: ref(false),
     label: "Clouds",
     urlTemplate: "https://{s}.tile.openweathermap.org/map/clouds/{z}/{x}/{y}.png?appid={apiKey}",
     options: {
@@ -71,15 +71,20 @@ export const overlayTilesets: Array<IOverlayTileset> = [
   }
 ];
 
-export function getReactiveTilesets(map: L.Map): {
-  $mapTileSets: Ref<Array<BaseTileset>>,
-  $overlayTilesets: Ref<Array<OverlayTileSet>>
-} {
-  const $mapTileSets = ref(
-    mapTilesets.map(mts => new BaseTileset(map, mts))
-  ) as Ref<Array<BaseTileset>>;
+let mapTileSets: Array<BaseTileset>;
+let overlayTilesets: Array<OverlayTileSet>;
+let initialized = false;
+export function initializeTilesets(map: L.Map) {
+  mapTileSets = _mapTilesets.map(mts => new BaseTileset(map, mts));
+  overlayTilesets = _overlayTilesets.map(ots => new OverlayTileSet(map, ots));
   
-  const $overlayTilesets = ref(overlayTilesets.map(ots => new OverlayTileSet(map, ots))) as Ref<Array<OverlayTileSet>>;
-  
-  return { $mapTileSets, $overlayTilesets };
+  initialized = true;
+  return useMapTilesets();
+}
+
+export function useMapTilesets() {
+  if (!initialized) {
+    throw new Error("Tilesets called before initialization");
+  }
+  return { mapTileSets, overlayTilesets };
 }

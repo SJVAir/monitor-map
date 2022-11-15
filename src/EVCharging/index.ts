@@ -1,3 +1,3 @@
-export * as EVChargingService from "./service"
+export * as EVChargingService from "./requests"
 export * from "./mod";
-export * from "./backgroundService";
+export * from "./BackgroundRequests";

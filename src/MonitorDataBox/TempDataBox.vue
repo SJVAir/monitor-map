@@ -2,10 +2,11 @@
   import { computed, ref, StyleValue, watch } from "vue";
   import MonitorDataBoxVue from "./MonitorDataBox.vue";
   import { tempDataboxStyles } from "./mod";
-  import { fetchTempByCoords } from "../Monitors";
+  import { useMonitorsService } from "../Monitors";
   import type { Monitor } from "../Monitors";
 
   const props = defineProps<{ monitor: Monitor }>();
+  const { fetchTempByCoords } = await useMonitorsService();
   const show = ref<boolean>(true);
   const value = ref<string>("");
   const styles = ref<StyleValue>();

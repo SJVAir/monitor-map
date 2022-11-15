@@ -4,6 +4,7 @@ import type L from "./modules/Leaflet";
 import type { Monitor } from "./Monitors";
 import type { MonitorFieldColors } from "./Monitors";
 import type { MonitorDataField } from "./MonitorDataFields";
+import {Ref} from "vue";
 
 declare module "leaflet" {
   export function shapeMarker(latLng: L.LatLngExpression, IShapeOpions): ShapeMarker;
@@ -231,7 +232,7 @@ export interface IMonitorVisibilityOptions {
 }
 
 export interface IOverlayTileset extends ILeafletTileLayer, IMonitorVisibilityOptions {
-  isChecked: boolean;
+  isChecked: Ref<boolean>;
 }
 
 export interface ITileLayerOptions extends L.TileLayerOptions {

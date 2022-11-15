@@ -2,9 +2,10 @@
   import { RouterView, useRoute } from "vue-router";
   import { DisplayOptionsVue } from "../DisplayOptions";
   import { MapVue } from "../Map";
-  import { widgetSubList } from "../Monitors";
+  import { useMonitorsService } from "../Monitors";
 
   const route = useRoute();
+  const { widgetSubList } = await useMonitorsService();
   let widgetMode = false;
 
   if (route.path === "/widget/") {
@@ -19,7 +20,19 @@
 <template>
   <MapVue></MapVue>
   <DisplayOptionsVue v-if="!widgetMode" class="display-options"></DisplayOptionsVue>
-  <router-view></router-view>
+  <RouterView v-slot="{ Component }">
+    <template v-if="Component">
+      <Suspense>
+        <!-- main content -->
+        <component :is="Component"></component>
+
+        <!-- loading state -->
+        <template #fallback>
+          <div></div>
+        </template>
+      </Suspense>
+    </template>
+  </RouterView>
 </template>
 
 <style scoped lang="scss">
