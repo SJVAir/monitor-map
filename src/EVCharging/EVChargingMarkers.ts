@@ -2,6 +2,7 @@ import L from "../modules/Leaflet";
 import { genEvStationMapMarker, useEVChargingService } from ".";
 import type { IEvStation } from "../types";
 import type { Ref } from "vue";
+import {useInteractiveMap} from "../Map";
 
 const pane = "evStations";
 const lvl2MarkersGroup = L.markerClusterGroup({ clusterPane: pane });
@@ -9,9 +10,9 @@ const lvl3MarkersGroup = L.markerClusterGroup({ clusterPane: pane });
 
 let initialized = false;
 
-export async function useEVChangingMarkers(map?: L.Map) {
-  if (!initialized && map) {
-    initializeEVChargingMarkers(map);
+export async function useEVChangingMarkers() {
+  if (!initialized) {
+    await initializeEVChargingMarkers();
   }
 
   const { fetchLvl2Stations, fetchLvl3Stations, lvl2EVStations, lvl3EVStations } = await useEVChargingService();
@@ -39,7 +40,9 @@ export async function useEVChangingMarkers(map?: L.Map) {
   return [lvl2, lvl3];
 }
 
-function initializeEVChargingMarkers(map: L.Map) {
+async function initializeEVChargingMarkers() {
+  const { map } = await useInteractiveMap();
+
   map.createPane(pane).style.zIndex = "605";
   lvl2MarkersGroup.addTo(map);
   lvl3MarkersGroup.addTo(map);
