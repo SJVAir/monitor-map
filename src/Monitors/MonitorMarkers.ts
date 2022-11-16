@@ -1,10 +1,12 @@
 import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useInteractiveMap } from "../Map";
 import L from "../modules/Leaflet";
-import { MonitorDisplayField, MonitorDataField, useMonitorsService } from "../Monitors";
+import { MonitorDisplayField, MonitorDataField, useMonitorsService } from ".";
 import { darken, dateUtil, readableColor, toHex } from "../modules";
-import type { Monitor } from "../Monitors";
+import type { Monitor } from ".";
 import type { Ref } from "vue";
+import type { RouteLocationNormalizedLoaded, Router } from "vue-router";
 
 type MonitorMarkersRecord = Map<string, L.ShapeMarker>;
 
@@ -67,9 +69,9 @@ let record: MonitorMarkersRecord;
 let group: L.FeatureGroup;
 let initialized = false;
 
-export async function useMonitorMarkersManager(map?: L.Map) {
-  if (!initialized && map) {
-    await initializeMonitorMarkersManager(map);
+export async function useMonitorMarkers() {
+  if (!initialized) {
+    await initializeMonitorMarkers();
   }
   const { monitors } = await useMonitorsService();
 
@@ -91,12 +93,21 @@ export async function useMonitorMarkersManager(map?: L.Map) {
   };
 }
 
-async function initializeMonitorMarkersManager(map: L.Map) {
+async function initializeMonitorMarkers() {
   const router = useRouter();
   const route = useRoute();
   record = new Map();
   group = new L.FeatureGroup();
 
+  useMonitorsService().then(service => {
+    const monitors = service.monitors;
+    watch(
+      monitors,
+      () => rerenderMarkers(route, router, map, monitors)
+    );
+  });
+
+  const { map } = await useInteractiveMap();
   group.addTo(map);
 
   map.createPane("purpleAir").style.zIndex = "601";
@@ -104,54 +115,53 @@ async function initializeMonitorMarkersManager(map: L.Map) {
   map.createPane("sjvAirPurpleAir").style.zIndex = "603";
   map.createPane("sjvAirBam").style.zIndex = "604";
 
-  useMonitorsService().then(service => {
-    const monitors = service.monitors;
-    watch(
-      monitors,
-      () => {
-        for (let id in monitors.value) {
-          const monitor = monitors.value[id];
-
-          if (!monitor.data.latest) {
-            continue;
-          }
-
-          if (record.has(id)) {
-            group.removeLayer(record.get(id)!.remove());
-            record.delete(id);
-          }
-
-          const marker = genMonitorMapMarker(monitor);
-
-          marker.addEventListener('click', () => {
-            router.push({
-              name: "details",
-              params: {
-                monitorId: monitor.data.id
-              }
-            });
-
-          });
-
-          if (marker) {
-            // Assign/reassign marker to record
-            record.set(id, marker);
-
-            
-            if (isVisible(monitor)) {
-              group.addLayer(marker);
-            }
-          }
-        }
-
-        if (record.size > 0 && !("monitorId" in route.params)) {
-          map.fitBounds(group.getBounds());
-        }
-      }
-    );
-  });
-
   initialized = true;
+}
+
+function rerenderMarkers(
+  route: RouteLocationNormalizedLoaded,
+  router: Router,
+  map: L.Map,
+  monitors: Ref<Record<string, Monitor>>
+) {
+  for (let id in monitors.value) {
+    const monitor = monitors.value[id];
+
+    if (!monitor.data.latest) {
+      continue;
+    }
+
+    if (record.has(id)) {
+      group.removeLayer(record.get(id)!.remove());
+      record.delete(id);
+    }
+
+    const marker = genMonitorMapMarker(monitor);
+
+    marker.addEventListener('click', () => {
+      router.push({
+        name: "details",
+        params: {
+          monitorId: monitor.data.id
+        }
+      });
+
+    });
+
+    if (marker) {
+      // Assign/reassign marker to record
+      record.set(id, marker);
+
+      
+      if (isVisible(monitor)) {
+        group.addLayer(marker);
+      }
+    }
+  }
+
+  if (record.size > 0 && !("monitorId" in route.params)) {
+    map.fitBounds(group.getBounds());
+  }
 }
 
 function isVisible(monitor: Monitor): boolean {
