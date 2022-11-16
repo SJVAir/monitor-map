@@ -1,11 +1,10 @@
 <script setup lang="ts">
   import { Ref, ref } from "vue";
-  import { EVChargingMarkersManager } from "../EVCharging";
-  import { useMapTilesets } from "../Map";
-  import { useMonitorMarkersManager } from "./MonitorMarkersManager";
+  import { EVChargingMarkersManagerVue } from "../EVCharging";
+  import { MonitorMarkersManagerVue } from "../Monitors";
+  import { OverlayTilesetsManagerVue, MapTilesetsManagerVue } from "../Map";
+
   const displayOptionsActive: Ref<boolean> = ref(false);
-  const { mapTileSets, overlayTilesets } = useMapTilesets();
-  const { monitorMarkersVisibility, refresh } = await useMonitorMarkersManager();
 
   function toggleDisplayOptions() {
     displayOptionsActive.value = !displayOptionsActive.value;
@@ -29,85 +28,21 @@
     <div class="dropdown-menu" id="dropdown-display" role="menu">
       <div class="dropdown-content">
         <div class="columns">
-
           <div class="map-visibility column">
-            <p class="display-group-label">Visibility</p>
-            <div v-for="deviceType in monitorMarkersVisibility" class="dropdown-item" :class="deviceType.containerClass">
-              <label class="checkbox">
-                <input type="checkbox" v-model="deviceType.isChecked.value"
-                  @change.preventDefault="refresh" />
-                <span class="icon">
-                  <span class="material-symbols-outlined">
-                    {{ deviceType.icon }}
-                  </span>
-                </span>
-                <span class="option-label has-text-black">
-                  {{ deviceType.label }}
-                </span>
-              </label>
-            </div>
-            <!--
-            <div class="dropdown-item">
-              <label class="checkbox">
-                <input type="checkbox" @change.preventDefault="updateEvStations" />
-                <span class="icon ev-icon">
-                  <span class="material-symbols-outlined">
-                    ev_station
-                  </span>
-                </span>
-                <span class="option-label has-text-black">
-                  EV Stations
-                </span>
-              </label>
-            </div>
-            -->
+            <MonitorMarkersManagerVue />
           </div>
-
           <div class="evcharging-marker-manager column">
-            <EVChargingMarkersManager />
+            <EVChargingMarkersManagerVue />
           </div>
-
           <div class="map-layers column">
-
             <div class="map-overlays">
-              <p class="display-group-label">Map Overlays</p>
-              <div v-for="overlay in overlayTilesets" class="dropdown-item" :class="overlay.containerClass">
-                <label class="checkbox">
-                  <input type="checkbox" v-model="overlay.isChecked.value" />
-                  <span class="icon">
-                    <span class="material-symbols-outlined">
-                      {{ overlay.icon }}
-                    </span>
-                  </span>
-                  <span class="option-label has-text-black">
-                    {{ overlay.label }}
-                  </span>
-                </label>
-              </div>
+              <OverlayTilesetsManagerVue />
             </div>
-
             <div class="map-tiles">
-              <p class="display-group-label">Map Tiles</p>
-              <div v-for="tileset in mapTileSets" class="dropdown-item" :class="tileset.containerClass">
-                <label class="radio">
-                  <input type="radio" :checked="tileset.isDefault" name="tiles" @click="tileset.enable"/>
-                  <span v-if="tileset.icon" class="icon">
-                    <span class="material-symbols-outlined">
-                      {{ tileset.icon }}
-                    </span>
-                  </span>
-                  <span v-else="tileset.svg" class="icon" :class="tileset.svg"></span>
-                  <span class="option-label has-text-black">
-                    {{ tileset.label }}
-                  </span>
-                </label>
-              </div>
+              <MapTilesetsManagerVue />
             </div>
-
           </div>
-
         </div>
-
       </div>
     </div>
   </div>
@@ -126,7 +61,7 @@
         margin: 0 0 0 .5em;
       }
       
-      .dropdown-item {
+      :deep(.dropdown-item) {
         user-select: none;
         padding: .375rem .3rem;
 
@@ -171,7 +106,7 @@
         
       }
 
-      .display-group-label {
+      :deep(.display-group-label) {
         text-decoration: underline;
         font-weight: bold;
       }
