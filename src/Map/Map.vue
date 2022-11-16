@@ -1,10 +1,10 @@
 <script setup lang="ts">
   import { Ref, ref } from "vue";
   import MarkerLegendVue from "./MarkerLegend.vue";
-  import { initializeInteractiveMap } from "./InteractiveMap";
+  import { useInteractiveMap } from "./InteractiveMap";
 
   const mapTarget = ref<HTMLDivElement>();
-  await initializeInteractiveMap(mapTarget as Ref<HTMLDivElement>);
+  await useInteractiveMap(mapTarget as Ref<HTMLDivElement>);
 
 </script>
 
