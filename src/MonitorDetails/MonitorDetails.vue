@@ -18,7 +18,7 @@
   const chartData = ref<uPlot.AlignedData>([]);
   const chartDataLoading = ref<boolean>(false);
   const dateRange = ref(new DateRange());
-  const { focusAssertion, recenter } = useInteractiveMap();
+  const { focusAssertion, recenter } = await useInteractiveMap();
   const { fetchChartData } = await useDataChartService();
   const router = useRouter();
 
