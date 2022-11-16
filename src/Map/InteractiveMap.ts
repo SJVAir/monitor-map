@@ -1,10 +1,7 @@
 import { onBeforeUnmount, onMounted } from "vue";
 import L from "../modules/Leaflet";
-import { useMonitorMarkersManager } from "../DisplayOptions/MonitorMarkersManager";
-import { initializeTilesets } from "./Tilesets";
 import type { Ref } from "vue";
 import type { Monitor } from "../Monitors";
-import { useEVChangingMarkers } from "../EVCharging/EVChargingMarkers";
 
 const mapSettings: L.MapOptions = {
   // Initial location: Sidewalk in front of Root Access Hackerspace, Fresno, CA
@@ -18,25 +15,28 @@ const zoomPanOptions: L.ZoomPanOptions = {
   duration: .5
 };
 
-let map: L.Map;
 const resizeObserver = new ResizeObserver(() => map.invalidateSize());
+let map: L.Map;
+let initialized = false;
 
-//@ts-ignore: markerClusterGroup does not exist
-//export const evStationMarkersGroup = L.markerClusterGroup({ clusterPane: "evStations" });
+export async function useInteractiveMap(mapTarget?: Ref<HTMLDivElement>) {
+  if (!initialized && mapTarget) {
+    await initializeInteractiveMap(mapTarget);
+  }
+  return {
+    map,
+    focusAssertion,
+    recenter,
+  };
+}
 
-export async function initializeInteractiveMap(mapTarget: Ref<HTMLDivElement>) {
+async function initializeInteractiveMap(mapTarget: Ref<HTMLDivElement>) {
   const mapContainer = document.createElement("div")
   map = L.map(mapContainer, mapSettings);
-  const { mapTileSets } = initializeTilesets(map);
 
   mapContainer.style.flex = "1";
 
-  //map.createPane("evStations").style.zIndex = "605";
-  //evStationMarkersGroup.addTo(map);
-
   resizeObserver.observe(mapContainer);
-
-  mapTileSets.find(ts => ts.isDefault)?.enable();
 
   const stopCaching = cacheMapStateOnLeave(map);
 
@@ -49,17 +49,7 @@ export async function initializeInteractiveMap(mapTarget: Ref<HTMLDivElement>) {
     resizeObserver.disconnect();
   });
   
-  await useMonitorMarkersManager(map);
-  await useEVChangingMarkers(map);
-
-  return useInteractiveMap();
-}
-
-export function useInteractiveMap() {
-  return {
-    focusAssertion,
-    recenter,
-  };
+  initialized = true;
 }
 
 // Handler for waking browser tab
