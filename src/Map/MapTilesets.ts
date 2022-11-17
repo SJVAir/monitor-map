@@ -1,6 +1,5 @@
 import { useInteractiveMap } from "./InteractiveMap";
 import { MapTileset } from "./MapTileset";
-import { OverlayTileSet } from "./OverlayTileset";
 import type { MapTilesetCollection } from "../types";
 
 const tilesets: MapTilesetCollection = [
