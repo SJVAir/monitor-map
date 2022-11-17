@@ -1,15 +1,12 @@
-import { fillChartDataRecords } from "./mod";
-import { MonitorFieldColors, useMonitorsService } from "../Monitors";
-import { dateUtil } from "../modules";
+import { MonitorFieldColors } from "../Monitors/mod";
+import { fetchEntries } from "../Monitors/requests";
+import { dateUtil } from "../modules/date";
 import type { Monitor } from "../Monitors";
 import type { DateRange } from "../models";
-import type { ChartDataField } from "../types";
+import type { ChartDataField, IMonitorEntry } from "../types";
 import type { Dayjs } from "dayjs";
 
-
 export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.AlignedData> {
-  const { fetchEntries } = await useMonitorsService();
-
   return fetchEntries(m, d)
     .then(entries => {
       const xAxisData: Array<Dayjs> = [];
@@ -42,4 +39,33 @@ export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.Al
       ].filter(collection => collection.length) as uPlot.AlignedData;
     })
     .catch(err => err);
+}
+
+function fillChartDataRecords(
+  xAxisData: Array<Dayjs>,
+  yAxisRecord: Map<ChartDataField, Array<number | null>>,
+  entry: IMonitorEntry,
+  timestamp?: Dayjs,
+) {
+  if (timestamp) {
+    xAxisData.push(timestamp.utc().tz('America/Los_Angeles'));
+  } else {
+    xAxisData.push(dateUtil(entry.timestamp).utc().tz('America/Los_Angeles'));
+  }
+
+  for (let dataKey of yAxisRecord.keys()) {
+    if (dataKey in entry) {
+      const collection = yAxisRecord.get(dataKey)!;
+      let dataPoint: number | null;
+
+      if (timestamp) {
+        dataPoint = null
+      } else {
+        const value = parseFloat(entry[dataKey])
+        dataPoint = (value >= 0) ? value : 0;
+      }
+
+      collection.push(dataPoint);
+    }
+  }
 }
