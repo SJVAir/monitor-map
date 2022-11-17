@@ -28,19 +28,15 @@
     <div class="dropdown-menu" id="dropdown-display" role="menu">
       <div class="dropdown-content">
         <div class="columns">
-          <div class="map-visibility column">
+          <div class="column">
             <MonitorMarkersManagerVue />
           </div>
-          <div class="evcharging-marker-manager column">
+          <div class="column">
             <EVChargingMarkersManagerVue />
+            <OverlayTilesetsManagerVue />
           </div>
-          <div class="map-layers column">
-            <div class="map-overlays">
-              <OverlayTilesetsManagerVue />
-            </div>
-            <div class="map-tiles">
-              <MapTilesetsManagerVue />
-            </div>
+          <div class="column">
+            <MapTilesetsManagerVue />
           </div>
         </div>
       </div>
@@ -56,11 +52,8 @@
       overflow-y: auto;
       overflow-x: hidden;
       max-height: 300px;
+      padding: .75rem;
 
-      .columns {
-        margin: 0 0 0 .5em;
-      }
-      
       :deep(.dropdown-item) {
         user-select: none;
         padding: .375rem .3rem;
@@ -111,9 +104,6 @@
         font-weight: bold;
       }
 
-      .map-overlays, .map-tiles {
-        height: 50%;
-      }
     }
   }
 </style>

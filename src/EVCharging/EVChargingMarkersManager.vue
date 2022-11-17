@@ -26,7 +26,7 @@
 
   .icon.ev-icon {
     @extend .has-text-white;
-    margin-left: 3px;
+    margin: 0 4px;
     background-color: $sjvair-main;
     border: 2px solid color.scale($sjvair-main, $lightness: -20%);
     border-radius: 50%;
@@ -34,11 +34,11 @@
     height: 18px;
 
     .material-symbols-outlined {
-      font-size: 14px;
-      max-width: 14px;
+      font-size: 14px !important;
+      max-width: 14px !important;
 
       font-variation-settings:
-      'FILL' 0,
+      'FILL' 0 !important;
     }
   }
 </style>
