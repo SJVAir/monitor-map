@@ -18,6 +18,20 @@ interface MonitorsServiceConfig {
   webworker: boolean;
 }
 
+export async function useMonitorsService(config?: Partial<MonitorsServiceConfig>) {
+  if (!initialized) {
+    await initializeMonitorService(config);
+  }
+  return {
+    ...service,
+    downloadCSV,
+    fetchMonitors,
+    getMonitor,
+    monitors,
+    widgetSubList
+  };
+}
+
 async function initializeMonitorService(config?: Partial<MonitorsServiceConfig>) {
   const opts: MonitorsServiceConfig = {
     reloadInterval: config?.reloadInterval || 1000 * 60 * 2,
@@ -55,21 +69,7 @@ async function initializeMonitorService(config?: Partial<MonitorsServiceConfig>)
   initialized = true;
 }
 
-export async function useMonitorsService(config?: Partial<MonitorsServiceConfig>) {
-  if (!initialized) {
-    await initializeMonitorService(config);
-  }
-  return {
-    ...service,
-    downloadCSV,
-    fetchMonitors,
-    getMonitor,
-    monitors,
-    widgetSubList
-  };
-}
-
-export function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
+function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
   const path = import.meta.env.DEV 
     ? `${ http.defaults.baseURL }monitors/${ monitor.data.id }/entries/csv`
     : `${ window.location.origin }${ http.defaults.baseURL }monitors/${ monitor.data.id }/entries/csv`;
