@@ -17,17 +17,35 @@
   align-items: stretch;
 }
 
-.marker-cluster-small, 
-.marker-cluster-medium,
-.marker-cluster-large,
-.leaflet-oldie .marker-cluster-small,
-.leaflet-oldie .marker-cluster-medium,
-.leaflet-oldie .marker-cluster-large {
-  background-color: color.scale($sjvair-main, $alpha: -40%);
+.leaflet-lvl2evStations-pane {
+  .marker-cluster-small, 
+  .marker-cluster-medium,
+  .marker-cluster-large,
+  .leaflet-oldie .marker-cluster-small,
+  .leaflet-oldie .marker-cluster-medium,
+  .leaflet-oldie .marker-cluster-large {
+    background-color: color.scale($sjvair-main, $alpha: -40%);
 
-  div {
-    @extend .has-text-white;
-    background-color: $sjvair-main;
+    div {
+      @extend .has-text-white;
+      background-color: $sjvair-main;
+    }
+  }
+}
+
+.leaflet-lvl3evStations-pane {
+  .marker-cluster-small, 
+  .marker-cluster-medium,
+  .marker-cluster-large,
+  .leaflet-oldie .marker-cluster-small,
+  .leaflet-oldie .marker-cluster-medium,
+  .leaflet-oldie .marker-cluster-large {
+    background-color: color.scale($pantone-blue-light, $alpha: -40%);
+
+    div {
+      @extend .has-text-white;
+      background-color: $pantone-blue-light;
+    }
   }
 }
 
@@ -36,9 +54,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: $sjvair-main;
-  border: 2px solid color.scale($sjvair-main, $lightness: -20%);
+  background-color: $pantone-blue-light;
+  border: 2px solid color.scale($pantone-blue-light, $lightness: -20%);
   border-radius: 50%;
+
+  &.light {
+    background-color: $sjvair-main;
+    border: 2px solid color.scale($sjvair-main, $lightness: -20%);
+  }
 
   span {
     font-size: 22px;
