@@ -5,11 +5,11 @@ import type { IMonitorEntry, IMonitorSubscription, MonitorsRecord } from "../typ
 
 type MonitorsServiceModule = typeof import("./requests");
 
-//import MonitorsWorkerService from "./MonitorsWorker?worker";
-//const worker = new MonitorsWorkerService();
+import MonitorsWorkerService from "./MonitorsWorker?worker";
+const worker = new MonitorsWorkerService();
 // FIXME: https://github.com/vitejs/vite/issues/9566
-import MonitorsWorkerServiceURL from "./MonitorsWorker?url";
-const worker = new Worker(MonitorsWorkerServiceURL, { type: 'module' })
+//import MonitorsWorkerServiceURL from "./MonitorsWorker?url";
+//const worker = new Worker(MonitorsWorkerServiceURL, { type: 'module' })
 
 const monitorsWorkerService = new WorkerServiceClient<MonitorsServiceModule>(worker);
 
