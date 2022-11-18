@@ -5,14 +5,22 @@ import * as ZipCodes from "./ZipCodes";
 
 const zipCodes = Object.values(ZipCodes).reduce((prev, curr) => prev.concat(curr)).join(",");
 
-export async function fetchEvStations(): Promise<Array<IEvStation>> {
+export async function fetchLvl3Stations(): Promise<Array<IEvStation>> {
+  return fetchEvStations("dc_fast");
+}
+
+export async function fetchLvl2Stations(): Promise<Array<IEvStation>> {
+  return fetchEvStations("2");
+}
+
+async function fetchEvStations(chargingLevel: "2" | "dc_fast"): Promise<Array<IEvStation>> {
   return http.get(`https://developer.nrel.gov/api/alt-fuel-stations/v1.json`, {
         params: {
         fuel_type: "ELEC",
         state: "CA",
         status: "E",
         access: "public",
-        ev_charging_level: "2,dc_fast",
+        ev_charging_level: chargingLevel,
         zip: zipCodes,
         api_key: import.meta.env.VITE_NREL_KEY
       }

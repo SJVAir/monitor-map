@@ -1,11 +1,11 @@
+import { toRaw } from "vue";
 import L from "../modules/Leaflet";
-import { activeOverlays } from "./OverlayManagement";
+import { activeOverlays } from "./OverlayTileset";
 import type { ILeafletTileLayer, ITileLayerOptions } from "../types";
-import {toRaw} from "vue";
 
 export let baseTileset: L.TileLayer;
 
-export class BaseTileset implements ILeafletTileLayer {
+export class MapTileset implements ILeafletTileLayer {
   containerClass?: string;
   isDefault?: boolean;
   icon?: string;
@@ -17,7 +17,7 @@ export class BaseTileset implements ILeafletTileLayer {
 
   constructor(map: L.Map, tileset: ILeafletTileLayer) {
     if ((tileset.svg && tileset.icon) || (!tileset.svg && !tileset.icon)) {
-      throw new Error("BaseTileset must have either svg or icon");
+      throw new Error("Map Tileset must have either svg or icon");
     }
     this.containerClass = tileset.containerClass;
     this.isDefault = tileset.isDefault;

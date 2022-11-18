@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, ref, StyleValue, watch } from "vue";
+  import { ref, StyleValue, watch } from "vue";
   import MonitorDataBoxVue from "./MonitorDataBox.vue";
   import { tempDataboxStyles } from "./mod";
   import { useMonitorsService } from "../Monitors";

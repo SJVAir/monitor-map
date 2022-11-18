@@ -1,26 +1,18 @@
-import { ref } from "vue";
 import { WorkerServiceClient } from "../Webworkers/WorkerServiceClient";
-import EVChargingWorkerService from "./EVWorker?worker";
-import { IEvStation } from "../types";
+//import EVChargingWorkerService from "./EVWorker?worker";
+//const worker = new EVChargingWorkerService();
+// FIXME: https://github.com/vitejs/vite/issues/9566
+import EVChargingWorkerServiceURL from "./EVWorker?url";
+const worker = new Worker(EVChargingWorkerServiceURL, { type: 'module' })
 
 type EVChargingServiceModule = typeof import("./requests");
 
-const worker = new EVChargingWorkerService();
 const evChargingsWorkerService = new WorkerServiceClient<EVChargingServiceModule>(worker);
 
-export const evStations = ref<Array<IEvStation>>([]);
+export async function fetchLvl2Stations() {
+  return await evChargingsWorkerService.run("fetchLvl2Stations");
+}
 
-export async function fetchEvStations() {
-  if (evStations.value.length) {
-    return evStations;
-
-  } else {
-    await evChargingsWorkerService.run("fetchEvStations")
-      .then(stations => {
-        evStations.value = stations;
-      })
-      .catch(() => console.error("Failed to fetch EV charging stations."));
-
-    return evStations;
-  }
+export async function fetchLvl3Stations() {
+  return await evChargingsWorkerService.run("fetchLvl3Stations");
 }

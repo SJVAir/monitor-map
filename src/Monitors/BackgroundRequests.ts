@@ -1,12 +1,16 @@
 import { WorkerServiceClient } from "../Webworkers/WorkerServiceClient";
-import MonitorsWorkerService from "./MonitorsWorker?worker";
 import { Monitor } from "./Monitor";
 import type { DateRange } from "../models";
 import type { IMonitorEntry, IMonitorSubscription, MonitorsRecord } from "../types";
 
 type MonitorsServiceModule = typeof import("./requests");
 
-const worker = new MonitorsWorkerService();
+//import MonitorsWorkerService from "./MonitorsWorker?worker";
+//const worker = new MonitorsWorkerService();
+// FIXME: https://github.com/vitejs/vite/issues/9566
+import MonitorsWorkerServiceURL from "./MonitorsWorker?url";
+const worker = new Worker(MonitorsWorkerServiceURL, { type: 'module' })
+
 const monitorsWorkerService = new WorkerServiceClient<MonitorsServiceModule>(worker);
 
 export async function fetchMonitors(): Promise<MonitorsRecord> {
