@@ -1,9 +1,9 @@
 import { WorkerServiceClient } from "../Webworkers/WorkerServiceClient";
-//import EVChargingWorkerService from "./EVWorker?worker";
-//const worker = new EVChargingWorkerService();
+import EVChargingWorkerService from "./EVWorker?worker";
+const worker = new EVChargingWorkerService();
 // FIXME: https://github.com/vitejs/vite/issues/9566
-import EVChargingWorkerServiceURL from "./EVWorker?url";
-const worker = new Worker(EVChargingWorkerServiceURL, { type: 'module' })
+//import EVChargingWorkerServiceURL from "./EVWorker?url";
+//const worker = new Worker(EVChargingWorkerServiceURL, { type: 'module' })
 
 type EVChargingServiceModule = typeof import("./requests");
 

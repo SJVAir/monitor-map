@@ -4,11 +4,11 @@ import type { Monitor } from "../Monitors";
 import type { DateRange } from "../models";
 
 
-//import DataChartWorkerService from "./DataChartWorker?worker";
-//const worker = new DataChartWorkerService();
+import DataChartWorkerService from "./DataChartWorker?worker";
+const worker = new DataChartWorkerService();
 // FIXME: https://github.com/vitejs/vite/issues/9566
-import DataChartWorkerServiceURL from "./DataChartWorker?url";
-const worker = new Worker(DataChartWorkerServiceURL, { type: 'module' })
+//import DataChartWorkerServiceURL from "./DataChartWorker?url";
+//const worker = new Worker(DataChartWorkerServiceURL, { type: 'module' })
 
 const dataChartWorkerService = new WorkerServiceClient<DataChartServiceModule>(worker);
 
