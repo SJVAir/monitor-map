@@ -92,6 +92,7 @@ export default defineConfig({
     preprocessorOptions: {
       scss: {
         additionalData: `
+          $pantone-blue-light: #3549B6;
           $sjvair-main: rgb(62, 142, 208);
           @use "bulma/bulma";
         `
