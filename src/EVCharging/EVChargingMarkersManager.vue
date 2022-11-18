@@ -5,19 +5,21 @@
 </script>
 
 <template>
-  <p class="display-group-label">EV Stations</p>
-  <div v-for="stationType in evChargingMarkers" class="dropdown-item">
-    <label class="checkbox">
-      <input type="checkbox" @change.preventDefault="stationType.update" />
-      <span class="icon ev-icon" :class="stationType.class">
-        <span class="material-symbols-outlined">
-          ev_station
+  <div class="display-item">
+    <p class="display-group-label">EV Stations</p>
+    <div v-for="stationType in evChargingMarkers" class="dropdown-item">
+      <label class="checkbox">
+        <input type="checkbox" @change.preventDefault="stationType.update" />
+        <span class="icon ev-icon" :class="stationType.class">
+          <span class="material-symbols-outlined">
+            ev_station
+          </span>
         </span>
-      </span>
-      <span class="option-label has-text-black">
-        {{ stationType.label }}
-      </span>
-    </label>
+        <span class="option-label has-text-black">
+          {{ stationType.label }}
+        </span>
+      </label>
+    </div>
   </div>
 </template>
 

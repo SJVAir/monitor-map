@@ -54,49 +54,55 @@
       max-height: 300px;
       padding: .75rem;
 
-      :deep(.dropdown-item) {
-        user-select: none;
-        padding: .375rem .3rem;
+      :deep(.display-item) {
 
-        label.radio,
-        label.checkbox {
-          &:hover {
-
-            color: inherit !important;
-          }
+        &:not(:last-child) {
+          margin-bottom: 1rem;
         }
+        .dropdown-item {
+          user-select: none;
+          padding: .375rem .3rem;
 
-        &.icon-border {
+          label.radio,
+          label.checkbox {
+            &:hover {
+
+              color: inherit !important;
+            }
+          }
+
+          &.icon-border {
+            
+            .material-symbols-outlined {
+              font-size: 16px !important;
+              width: 15px;
+              height: 15px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              border: 2px solid black;
+            }
+          }
+
+          & * {
+            vertical-align: middle;
+          }
+
+          .icon {
+
+            .material-symbols-outlined {
+              font-size: 20px;
+              max-width: 20px;
+
+              font-variation-settings:
+              'FILL' 1,
+              'wght' 400,
+              'GRAD' 0,
+              'opsz' 20
+            }
+          }
           
-          .material-symbols-outlined {
-            font-size: 16px !important;
-            width: 15px;
-            height: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 2px solid black;
-          }
         }
-
-        & * {
-          vertical-align: middle;
-        }
-
-        .icon {
-
-          .material-symbols-outlined {
-            font-size: 20px;
-            max-width: 20px;
-
-            font-variation-settings:
-            'FILL' 1,
-            'wght' 400,
-            'GRAD' 0,
-            'opsz' 20
-          }
-        }
-        
       }
 
       :deep(.display-group-label) {
