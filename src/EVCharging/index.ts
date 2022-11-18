@@ -1,3 +1,3 @@
-export * as EVChargingService from "./service"
+export { default as EVChargingMarkersManagerVue } from "./EVChargingMarkersManager.vue";
 export * from "./mod";
-export * from "./backgroundService";
+export * from "./service";

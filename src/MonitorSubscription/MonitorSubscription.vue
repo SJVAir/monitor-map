@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, Ref, ref, watch } from "vue";
-import { fetchSubscriptions, Monitor } from "../Monitors";
+import { Monitor, useMonitorsService } from "../Monitors";
 import { SubscriptionLevel } from "./SubscriptionLevel";
 import { http } from "../modules"
 import type { IMonitorSubscription } from "../types";
 
 const props = defineProps<{ monitor: Monitor}>();
+const { fetchSubscriptions } = await useMonitorsService();
 // Dropdown state
 const active = ref(false);
 // Subscription status

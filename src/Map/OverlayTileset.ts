@@ -1,4 +1,4 @@
-import {toRaw} from "vue";
+import { Ref, toRaw, watch } from "vue";
 import L from "../modules/Leaflet";
 import type { IOverlayTileset, ITileLayerOptions } from "../types";
 
@@ -7,7 +7,7 @@ export const activeOverlays: Map<string, L.TileLayer> = new Map();
 export class OverlayTileSet implements IOverlayTileset {
   containerClass?: string;
   icon?: string;
-  isChecked: boolean;
+  isChecked: Ref<boolean>;
   label: string;
   urlTemplate: string;
   options: ITileLayerOptions;
@@ -21,18 +21,18 @@ export class OverlayTileSet implements IOverlayTileset {
     this.urlTemplate = tileset.urlTemplate;
     this.options = tileset.options;
     this.map = map;
-  }
 
-  enable() {
-    const layer = L.tileLayer(this.urlTemplate, this.options).addTo(toRaw(this.map));
-    activeOverlays.set(this.label, layer);
-  }
+    watch(this.isChecked, () => {
+      if (this.isChecked.value) {
+        const layer = L.tileLayer(this.urlTemplate, this.options).addTo(toRaw(this.map));
+        activeOverlays.set(this.label, layer);
 
-  disable() {
-    if (activeOverlays.has(this.label)) {
-      activeOverlays.get(this.label)!.remove();
-      activeOverlays.delete(this.label);
-    }
-
+      } else {
+        if (activeOverlays.has(this.label)) {
+          activeOverlays.get(this.label)!.remove();
+          activeOverlays.delete(this.label);
+        }
+      }
+    });
   }
 }

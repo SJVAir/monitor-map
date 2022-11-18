@@ -27,7 +27,7 @@ export class WorkerServiceClient<T extends IWorkerServiceModule> {
         responder.resolve(payload as Awaited<ReturnType<T[keyof T]>>);
 
       } else if (error) {
-        responder.reject(payload);
+        responder.reject(error);
 
       } else {
         console.error(`Unknown response from background service "${this.constructor.name}"`, msg)

@@ -1,11 +1,10 @@
 import L from "../modules/Leaflet";
-import { evStationMarkersGroup } from "../Map";
-import { fetchEvStations } from "./backgroundService";
 import type { Marker } from "leaflet";
 import type { IEvStation } from "../types";
 
-export function genEvStationMapMarker(evStation: IEvStation): Marker {
+export function genEvStationMapMarker(evStation: IEvStation, pane: string): Marker {
   const { longitude, latitude } = evStation;
+  const iconClass = (pane === "lvl2evStations") ? "light" : "";
   const tooltipOptions: L.TooltipOptions = {
     offset: new L.Point(0, 0),
     opacity: 1,
@@ -14,13 +13,13 @@ export function genEvStationMapMarker(evStation: IEvStation): Marker {
 
   const icon = L.divIcon({
     html: '<span class="material-symbols-outlined">ev_station</span>',
-    className: "leaflet-ev-icon",
+    className: "leaflet-ev-icon".concat(` ${ iconClass }`),
     iconSize: [30, 30]
   });
 
   const marker = L.marker([latitude, longitude], {
     icon,
-    pane: "evStations"
+    pane
   })
 
   marker.bindPopup(`
@@ -54,30 +53,10 @@ export function genEvStationMapMarker(evStation: IEvStation): Marker {
   return marker;
 }
 
-export async function updateEvStations(ev: Event) {
-  if ((ev.target as HTMLInputElement).checked) {
-    const evStations = await fetchEvStations()
-
-    for (let station of evStations.value) {
-      evStationMarkersGroup.addLayer(genEvStationMapMarker(station));
-    }
-
-  } else {
-    evStationMarkersGroup.clearLayers();
-  }
-}
-
 function evAddressTemplate(evStation: IEvStation) {
   return createTemplate((evStation.street_address && evStation.city && evStation.state && evStation.zip), () => {
     const fullAddress = `${ evStation.street_address }+${ evStation.city },+${ evStation.state }+${ evStation.zip }`;
 
-    //return `
-    //  <a href="geo:0,0?q=${ fullAddress }">
-    //    ${ evStation.street_address }
-    //    <br/>
-    //    ${ evStation.city }, ${ evStation.state } ${ evStation.zip }
-    //  </a>
-    //`;
     return `
       <a href="https://maps.google.com/?q=${ fullAddress }" target="_blank">
         ${ evStation.street_address }

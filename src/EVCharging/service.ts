@@ -1,51 +1,49 @@
-import { http } from "../modules";
-import { IEvStation } from "../types";
-import { accessDetailCodeTypes, creditCardTypes, evConnectorTypes, evNetworkTypes, facilityTypes } from "./DataMaps";
-import * as ZipCodes from "./ZipCodes";
+import { ref } from "vue";
+import type { IEvStation } from "../types";
+import type { Ref } from "vue";
 
-const zipCodes = Object.values(ZipCodes).reduce((prev, curr) => prev.concat(curr)).join(",");
+interface EVChargingServiceConfig {
+  webworker: boolean;
+}
 
-export async function fetchEvStations(): Promise<Array<IEvStation>> {
-  return http.get(`https://developer.nrel.gov/api/alt-fuel-stations/v1.json`, {
-        params: {
-        fuel_type: "ELEC",
-        state: "CA",
-        status: "E",
-        access: "public",
-        ev_charging_level: "2,dc_fast",
-        zip: zipCodes,
-        api_key: import.meta.env.VITE_NREL_KEY
-      }
-    }).then(res => {
-        const fuelStations: Array<IEvStation> = res.data.fuel_stations!;
-        return fuelStations.map(station => {
+const lvl2EVStations = ref<Array<IEvStation>>([]);
+const lvl3EVStations = ref<Array<IEvStation>>([]);
+let service: typeof import("./requests") | typeof import("./BackgroundRequests");
 
-          if (station.access_detail_code) {
-            station.access_detail_code = accessDetailCodeTypes.get(station.access_detail_code);
-          }
+export async function useEVChargingService(config?: Partial<EVChargingServiceConfig>) {
+  const opts: EVChargingServiceConfig = {
+    webworker: config?.webworker || true
+  };
 
-          if (station.cards_accepted) {
-            station.cards_accepted = station.cards_accepted.split(" ")
-              .map(c => creditCardTypes.get(c))
-              .join(", ")
-          }
+  if (!service) {
+    service = opts.webworker
+      ? await import("./BackgroundRequests")
+      : await import("./requests");
+  }
 
-          if (station.ev_connector_types && station.ev_connector_types.length) {
-            station.ev_connector_types = station.ev_connector_types.map(t => evConnectorTypes.get(t))
-          }
+  async function fetchLvl2Stations() {
+    return await fetchEvStations(lvl2EVStations, service.fetchLvl2Stations);
+  }
 
-          if (station.ev_network) {
-            station.ev_network = evNetworkTypes.get(station.ev_network);
-          }
+  async function fetchLvl3Stations() {
+    return await fetchEvStations(lvl3EVStations, service.fetchLvl3Stations);
+  }
 
+  return {
+    ...service,
+    fetchLvl2Stations,
+    fetchLvl3Stations,
+    lvl2EVStations,
+    lvl3EVStations
+  };
+}
 
-          if (station.facility_type) {
-            station.facility_type = facilityTypes.get(station.facility_type)
-          }
-
-          return station;
-        })
-        // remove stations with invalid coordinates
-        .filter(station => station.id !== 226154);
-    });
+async function fetchEvStations(collection: Ref<Array<IEvStation>>, request: () => Promise<Array<IEvStation>>) {
+  if (!collection.value.length) {
+    await request()
+      .then(stations => {
+        collection.value = stations;
+      })
+      .catch(() => console.error("Failed to fetch EV charging stations."));
+  }
 }

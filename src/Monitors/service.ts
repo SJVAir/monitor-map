@@ -1,69 +1,97 @@
-import { Monitor } from "./Monitor";
+import { onBeforeMount, onBeforeUnmount, ref } from "vue";
 import { http, dateUtil } from "../modules";
-import type { DateRange } from "../models";
-import type { MonitorsRecord, IMonitorData,IMonitorEntry, IMonitorSubscription, IEntriesPageResponse } from "../types";
+import { DateRange } from "../models";
+import type { Monitor } from "./Monitor";
+import type { MonitorId } from "../types";
 
-export async function fetchMonitors(): Promise<MonitorsRecord> {
-  return http.get<{ data: Array<IMonitorData> }>("/monitors")
-    .then(res => {
-      const monitors: MonitorsRecord = {};
+type milliseconds = number;
 
-      for (let monitorData of res.data.data) {
-        // Skip any monitors reporting north of CA
-        // TODO: Skip ALL monitors outside of SJV/reporting area
-        if (monitorData.position.coordinates[1] > 42) {
-          continue;
-        }
-        monitors[monitorData.id] = new Monitor(monitorData);
-      }
+const monitorsLoadedEvent = new Event("MonitorsLoaded");
+const monitors = ref<Record<string, Monitor>>({});
+const widgetSubList = ref<Array<MonitorId>>([]);
+let service: typeof import("./requests") | typeof import("./BackgroundRequests");
+let updateInterval: number;
+let initialized = false;
 
-      return monitors;
-    });
+interface MonitorsServiceConfig {
+  reloadInterval: milliseconds;
+  webworker: boolean;
 }
 
-export async function fetchEntries(m: Monitor, d: DateRange, pageNumber: number = 1): Promise<Array<IMonitorEntry>> {
-  const entries: Array<IMonitorEntry> = [];
-  const params = {
-    fields: m.dataFields.join(','),
-    page: pageNumber,
-    timestamp__gte: dateUtil.$defaultFormat(d.start),
-    timestamp__lte: dateUtil.$defaultFormat(d.end)
+export async function useMonitorsService(config?: Partial<MonitorsServiceConfig>) {
+  if (!initialized) {
+    await initializeMonitorService(config);
+  }
+  return {
+    ...service,
+    downloadCSV,
+    fetchMonitors,
+    getMonitor,
+    monitors,
+    widgetSubList
+  };
+}
+
+async function initializeMonitorService(config?: Partial<MonitorsServiceConfig>) {
+  const opts: MonitorsServiceConfig = {
+    reloadInterval: config?.reloadInterval || 1000 * 60 * 2,
+    webworker: config?.webworker || true
   };
 
-  return http.get<IEntriesPageResponse>(`monitors/${m.data.id}/entries/`, { params })
-    .then(async res => {
-      const page = res.data;
+  //@ts-ignore: Cannot find name 'WorkerGlobalScope'
+  // 'WorkerGlobalScope' only exists in web workers
+  if (typeof WorkerGlobalScope !== 'undefined') {
+    opts.webworker = false;
 
-      if (page.data.length) {
-        entries.push(...page.data);
+  } else {
+    onBeforeMount(async () => {
+      await fetchMonitors();
 
-        if (page.has_next_page) {
-          const nextEntries = await fetchEntries(m, d, ++pageNumber)
-            .catch(err => { throw err; });
+      if (!updateInterval || updateInterval <= 0 && opts.reloadInterval > 0) {
+        updateInterval = window.setInterval(async () => await fetchMonitors(), 1000 * 60 * 2);
 
-          nextEntries.length && entries.push(...nextEntries);
-        }
       }
+    });
 
-      return entries;
+    onBeforeUnmount(() => {
+      clearInterval(updateInterval);
+      updateInterval = 0;
+    });
+
+  }
+
+  if (!service) {
+    service = opts.webworker
+      ? await import("./BackgroundRequests")
+      : await import("./requests");
+  }
+
+  initialized = true;
+}
+
+function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
+  const path = import.meta.env.DEV 
+    ? `${ http.defaults.baseURL }monitors/${ monitor.data.id }/entries/csv`
+    : `${ window.location.origin }${ http.defaults.baseURL }monitors/${ monitor.data.id }/entries/csv`;
+  const params = new URLSearchParams({
+    fields: monitor.dataFields.join(','),
+    timestamp__gte: dateUtil.$defaultFormat(dateRange.start),
+    timestamp__lte: dateUtil.$defaultFormat(dateRange.end),
+  }).toString();
+
+  window.open(`${ path }/?${ params }`);
+}
+
+async function fetchMonitors(): Promise<void> {
+  return await service.fetchMonitors()
+    .then(monitorsRecord => {
+      monitors.value = widgetSubList.value.length
+        ? widgetSubList.value.reduce((subRecord, id) => ({ [id]: monitorsRecord[id], ...subRecord }), {})
+        : monitorsRecord;
+      window.dispatchEvent(monitorsLoadedEvent);
     });
 }
 
-export async function fetchSubscriptions(): Promise<Array<IMonitorSubscription>> {
-  return http.get("alerts/subscriptions")
-    .then(res => res.data.data);
-}
-
-export async function fetchTempByCoords(coords: [number, number]): Promise<number> {
-  const url = `https://api.weather.gov/points/${ coords.join(",")}`;
-  return await http(url)
-    .then(async res => {
-        try {
-          const forecast = await http(res.data.properties.forecastHourly)
-          return forecast.data.properties.periods[0].temperature;
-        } catch (err) {
-          throw err
-        }
-    });
-
+export function getMonitor(id: MonitorId) {
+  return monitors.value[id];
 }

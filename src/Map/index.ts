@@ -1,6 +1,9 @@
 export { default as MapVue} from "./Map.vue";
 export { default as MarkerLegendVue } from "./MarkerLegend.vue";
-export { evStationMarkersGroup, $mapTileSets, $overlayTilesets } from "./InteractiveMap";
-export { OverlayTileSet } from "./OverlayManagement";
-export { BaseTileset } from "./BaseLayerManagement";
-export * from "./mod";
+export { default as OverlayTilesetsManagerVue } from "./OverlayTilesetsManager.vue";
+export { default as MapTilesetsManagerVue } from "./MapTilesetsManager.vue";
+export * from "./InteractiveMap";
+export * from "./MapTilesets";
+export * from "./OverlayTilesets";
+export { OverlayTileSet } from "./OverlayTileset";
+export { MapTileset } from "./MapTileset";

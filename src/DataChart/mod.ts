@@ -1,8 +1,7 @@
 import { MonitorDataField, MonitorFieldColors } from "../Monitors";
 import { dateUtil } from "../modules";
 import { tooltipsPlugin, uPlotCursorConfig } from "./tooltip";
-import type { Dayjs } from "dayjs";
-import type { ChartDataField, IMonitorEntry, MonitorDevice } from "../types";
+import type { MonitorDevice } from "../types";
 import type uPlot from "uplot";
 
 const colors = MonitorDataField.levels.map(level => [level.min, level.color]) as Array<[number, string]>;
@@ -64,7 +63,7 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
           max = (now.isSame(maxDate, "day") && now.isAfter(maxDate))
             ? now.unix()
             : max;
-          return [min - 10, max];
+          return [min, max];
         }
       },
       y: {
@@ -99,35 +98,6 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
       ]
     }
   };
-}
-
-export function fillChartDataRecords(
-  xAxisData: Array<Dayjs>,
-  yAxisRecord: Map<ChartDataField, Array<number | null>>,
-  entry: IMonitorEntry,
-  timestamp?: Dayjs,
-) {
-  if (timestamp) {
-    xAxisData.push(timestamp.utc().tz('America/Los_Angeles'));
-  } else {
-    xAxisData.push(dateUtil(entry.timestamp).utc().tz('America/Los_Angeles'));
-  }
-
-  for (let dataKey of yAxisRecord.keys()) {
-    if (dataKey in entry) {
-      const collection = yAxisRecord.get(dataKey)!;
-      let dataPoint: number | null;
-
-      if (timestamp) {
-        dataPoint = null
-      } else {
-        const value = parseFloat(entry[dataKey])
-        dataPoint = (value >= 0) ? value : 0;
-      }
-
-      collection.push(dataPoint);
-    }
-  }
 }
 
 function getSeriesConfigs(deviceType: MonitorDevice) {
