@@ -158,10 +158,6 @@ function rerenderMarkers(
       }
     }
   }
-
-  if (record.size > 0 && !("monitorId" in route.params)) {
-    map.fitBounds(group.getBounds());
-  }
 }
 
 function isVisible(monitor: Monitor): boolean {
