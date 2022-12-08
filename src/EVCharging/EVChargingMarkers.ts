@@ -24,7 +24,6 @@ export async function useEVChangingMarkers() {
 
   async function updateLvl3EvStations(ev: Event) {
     updateEvStations(ev, lvl3EVStations, lvl3MarkersGroup, lvl3pane, fetchLvl3Stations);
-    console.log("lvl3", lvl3EVStations.value.length)
   }
 
   const lvl2 = {

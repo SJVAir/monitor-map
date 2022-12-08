@@ -9,7 +9,7 @@
     <p class="display-group-label">Map Tiles</p>
     <div v-for="tileset in mapTilesets" class="dropdown-item" :class="tileset.containerClass">
       <label class="radio">
-        <input type="radio" :checked="tileset.isDefault" name="tiles" @click="tileset.enable"/>
+        <input type="radio" :checked="tileset.isDefault" name="tiles" @click="() => tileset.enable()"/>
         <span v-if="tileset.icon" class="icon">
           <span class="material-symbols-outlined">
             {{ tileset.icon }}

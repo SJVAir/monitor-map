@@ -33,11 +33,11 @@
   async function loadChartData() {
     chartDataLoading.value = true;
     await fetchChartData(activeMonitor.value, dateRange.value)
-      .then(data => {
+      .then((data: uPlot.AlignedData) => {
         chartData.value = data;
         chartDataLoading.value = false;
       })
-      .catch(err => console.error("Failed to load chart data: ", err));
+      .catch((err: any) => console.error("Failed to load chart data: ", err));
   }
 
   async function updateDateRange(newRange: DatePickerSelection) {
