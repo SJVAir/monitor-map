@@ -47,19 +47,23 @@
   watch(
     () => props.monitorId,
     () => {
-      focusAssertion(activeMonitor.value);
+      if (activeMonitor.value) {
+        focusAssertion(activeMonitor.value);
+        loadChartData();
+      }
       chartData.value = [];
-      loadChartData();
     }
   );
 
   onMounted(async () => {
     if (!activeMonitor.value) {
       new SingleEventListener("MonitorsLoaded", async () => {
-        window.requestAnimationFrame(() => setTimeout(async () => {
-          focusAssertion(activeMonitor.value);
-          await loadChartData();
-        }, 5));
+        if (activeMonitor.value) {
+          window.requestAnimationFrame(() => setTimeout(async () => {
+            focusAssertion(activeMonitor.value);
+            await loadChartData();
+          }, 5));
+        }
       });
 
     } else {
@@ -82,7 +86,7 @@
 
     <div class="column data-control">
       <MonitorInfoVue :monitor="activeMonitor"></MonitorInfoVue>
-      <MonitorSubscriptionVue :monitor="activeMonitor"></MonitorSubscriptionVue>
+      <MonitorSubscriptionVue :monitorId="props.monitorId"></MonitorSubscriptionVue>
       <div class="date-control">
         <div class="control">
           <label for="startDate" class="label is-small has-text-weight-normal">Date Range</label>
