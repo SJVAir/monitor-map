@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, Ref, ref, watch } from "vue";
-import { Monitor, useMonitorsService } from "../Monitors";
+import { useMonitorsService } from "../Monitors";
 import { SubscriptionLevel } from "./SubscriptionLevel";
 import { http } from "../modules"
 import type { IMonitorSubscription } from "../types";
 
-const props = defineProps<{ monitor: Monitor}>();
+const props = defineProps<{ monitorId: string }>();
 const { fetchSubscriptions } = await useMonitorsService();
 // Dropdown state
 const active = ref(false);
@@ -48,7 +48,7 @@ async function loadSubscriptions() {
     const subscriptions = await fetchSubscriptions();
 
     if (subscriptions) {
-      subscription = subscriptions.find(s => s.monitor === props.monitor.data.id);
+      subscription = subscriptions.find(s => s.monitor === props.monitorId);
     }
   }
 
@@ -84,7 +84,7 @@ function showUnsubscribe(target: HTMLElement, selectedLevel: SubscriptionLevel) 
 }
 
 function subscribe(level: IMonitorSubscription["level"]) {
-  http.post(`monitors/${ props.monitor.data.id }/alerts/subscribe/`, { level })
+  http.post(`monitors/${ props.monitorId }/alerts/subscribe/`, { level })
     .catch(err => console.error("Failed to subscribe", err));
 }
 
@@ -93,7 +93,7 @@ function toggleDropdown() {
 }
 
 function unsubscribe(level: IMonitorSubscription["level"]) {
-  http.post(`monitors/${ props.monitor.data.id }/alerts/unsubscribe/`, { level })
+  http.post(`monitors/${ props.monitorId }/alerts/unsubscribe/`, { level })
     .catch(err => console.error("Failed to unsubscribe", err));
 }
 
@@ -114,13 +114,11 @@ function update(level: IMonitorSubscription["level"] | null) {
 
 
 watch(
-  () => props.monitor,
+  () => props.monitorId,
   async () => {
-    if (props.monitor) {
-      active.value = false;
-      await loadSubscriptions();
-    }
-  }
+    active.value = false;
+    await loadSubscriptions();
+  },
 );
 
 onMounted(async () => {
@@ -130,6 +128,7 @@ onMounted(async () => {
     const buttonRect = (subscriptionOptions.value.previousSibling! as HTMLElement).getBoundingClientRect();
     subscriptionOptions.value.style.width = `${ buttonRect.width }px`
   }
+  await loadSubscriptions();
 });
 </script>
 
