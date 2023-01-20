@@ -2,7 +2,7 @@ import { MonitorDataField, getDataFields } from "./MonitorDataField";
 import { Colors, dateUtil, darken, toHex, valueToColor } from "../modules";
 import type { ChartDataField, IMarkerParams, IMonitor, IMonitorData, MonitorDataFieldName } from "../types";
 
-export const MonitorDisplayField = "pm25_avg_15" as const;
+export const MonitorDisplayField = "pm25" as const;
 
 export class Monitor implements IMonitor {
   data: IMonitorData;
@@ -13,12 +13,14 @@ export class Monitor implements IMonitor {
   monitorFields!: Record<MonitorDataFieldName, MonitorDataField>;
 
   constructor(monitorData: IMonitorData) {
+    const monitorFields = getDataFields(monitorData)
+
     this.data = monitorData;
     this.markerParams = getMarkerParams(monitorData);
-    this.monitorFields = getDataFields(monitorData);
+    this.monitorFields = monitorFields;
 
     this.dataFields = Object.keys(this.monitorFields) as Array<ChartDataField>;
-    this.displayField = this.monitorFields[MonitorDisplayField];
+    this.displayField = monitorFields[MonitorDisplayField];
     this.lastUpdated = (monitorData.latest && Object.keys(monitorData.latest).length > 1)
       ? dateUtil(monitorData.latest.timestamp).fromNow()
       : "never";
