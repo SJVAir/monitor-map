@@ -66,7 +66,7 @@ function getMarkerParams(monitorData: IMonitorData): IMarkerParams {
           break;
         case "PurpleAir":
           if (monitorData.is_sjvair) {
-            params.size = 16
+            params.size = 12
           } else {
             params.size = 10;
           }
