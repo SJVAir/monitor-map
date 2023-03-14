@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { useMonitorMarkers } from './MonitorMarkers';
 
-  const { monitorMarkersVisibility, refresh } = await useMonitorMarkers();
+  const { monitorMarkersVisibility } = await useMonitorMarkers();
 </script>
 
 <template>
@@ -9,11 +9,10 @@
     <p class="display-group-label">Air Monitors</p>
     <div v-for="deviceType in monitorMarkersVisibility" class="dropdown-item" :class="deviceType.containerClass">
       <label class="checkbox">
-        <input type="checkbox" v-model="deviceType.isChecked.value"
-          @change.preventDefault="refresh" />
+        <input type="checkbox" v-model="deviceType.isChecked.value" />
         <span class="icon">
           <span class="material-symbols-outlined">
-            {{ deviceType.icon }}
+            {{ deviceType.icon?.id }}
           </span>
         </span>
         <span class="option-label has-text-black">
