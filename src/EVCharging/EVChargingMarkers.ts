@@ -3,7 +3,7 @@ import { watch } from "vue";
 import { genEvStationMapMarker, useEVChargingService } from ".";
 import { useInteractiveMap } from "../Map";
 import { asyncInitializer } from "../modules";
-import { CheckboxDisplayOptions, DisplayOptionCheckbox } from "../DisplayOptions";
+import { CheckboxDisplayOptions, Checkbox } from "../DisplayOptions";
 import type { Ref } from "vue";
 import type { IEvStation } from "../types";
 
@@ -13,7 +13,7 @@ const lvl3pane = "lvl3evStations";
 const lvl2MarkersGroup = L.markerClusterGroup({ clusterPane: lvl2pane });
 const lvl3MarkersGroup = L.markerClusterGroup({ clusterPane: lvl3pane });
 
-const evStationsVisibility = DisplayOptionCheckbox.defineOptions({
+const evStationsVisibility = Checkbox.defineOptions({
   lvl2: {
     label: "Level 2",
     model: false,

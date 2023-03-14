@@ -2,15 +2,29 @@ import { ref, watch } from "vue";
 import L from "../modules/Leaflet";
 import { asyncInitializer } from "../modules";
 import { useInteractiveMap } from "./InteractiveMap";
-import { DisplayOptionTileLayer } from "../DisplayOptions";
+import { Checkbox, CheckboxConfig } from "../DisplayOptions";
+import type { TileLayer, TileLayerOptions } from "../modules/Leaflet";
 
-const overlayTilesets = DisplayOptionTileLayer.defineOptions({
+type OverlayConfig = TileLayer & CheckboxConfig;
+export class OverlayOption extends Checkbox implements TileLayer {
+  options: TileLayerOptions;
+  urlTemplate: string;
+
+  constructor(config: OverlayConfig) {
+    super(config);
+    this.options = config.options;
+    this.urlTemplate = config.urlTemplate;
+  }
+}
+
+//interface OverlayOptionClass extends OverlayOption {};
+const overlayTilesets: Record<string, OverlayOption> = Checkbox.defineOptions({
   wind: {
     containerClass: "has-text-info",
     icon: {
       id: "air"
     },
-    value: "wind",
+    model: false,
     label: "Wind",
     urlTemplate: "https://{s}.tile.openweathermap.org/map/wind/{z}/{x}/{y}.png?appid={apiKey}",
     options: {
@@ -26,7 +40,7 @@ const overlayTilesets = DisplayOptionTileLayer.defineOptions({
     icon: {
       id: "cloud"
     },
-    model: ref("clouds"),
+    model: false,
     label: "Clouds",
     urlTemplate: "https://{s}.tile.openweathermap.org/map/clouds/{z}/{x}/{y}.png?appid={apiKey}",
     options: {

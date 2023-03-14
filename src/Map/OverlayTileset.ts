@@ -1,5 +1,6 @@
 import { Ref, toRaw, watch } from "vue";
 import L from "../modules/Leaflet";
+import type {} from "../modules/Leaflet";
 import type { IOverlayTileset, ITileLayerOptions } from "../types";
 
 export const activeOverlays: Map<string, L.TileLayer> = new Map();

@@ -3,13 +3,33 @@ import L from "../modules/Leaflet";
 import { useInteractiveMap } from "./InteractiveMap";
 import { activeOverlays } from "./OverlayTileset";
 import { asyncInitializer } from "../modules";
-import type { TileLayerDisplayOptions } from "../DisplayOptions";
+import { RadioConfig, RadioOption, DisplayOptionRecord, defineOptions } from "../DisplayOptions";
+import type { Ref } from "vue";
+import type { TileLayer, TileLayerOptions } from "../modules/Leaflet";
 
-const mapTilesets: TileLayerDisplayOptions = { 
+type TileLayerConfig = TileLayer & RadioConfig;
+//interface TileLayerConfig extends TileLayer, RadioConfig {};
+export class TileLayerOption extends RadioOption<TileLayerConfig> implements TileLayerConfig {
+  //static defineOptions = RadioOption.defineOptions<TileLayerOption, TileLayerConfig>;
+  //static getOptionsGenerator(configs: DisplayOptionRecord<TileLayerConfig>) { return defineOptions(this, configs); }
+
+  value: string;
+  options: TileLayerOptions;
+  urlTemplate: string;
+
+  constructor(sharedModel: Ref<string>, value: string, config: TileLayerConfig) {
+    super(sharedModel, value, config);
+    this.options = config.options;
+    this.urlTemplate = config.urlTemplate;
+    this.value = value;
+  }
+}
+
+interface TileLayerOptionClass extends TileLayerOption {};
+const mapTilesets: Record<string, TileLayerOption> = TileLayerOption.defineOptions<TileLayerOptionClass, TileLayerConfig>({ 
   streets: {
     label: "Streets",
     isDefault: true,
-    model: ref(true),
     svg: "road-svg",
     urlTemplate: "https://api.maptiler.com/maps/streets/256/{z}/{x}/{y}.png?key={apiKey}",
     options: {
@@ -20,7 +40,6 @@ const mapTilesets: TileLayerDisplayOptions = {
   },
   satellite: {
     label: "Satellite Hybrid",
-    model: ref(false),
     urlTemplate: "https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key={apiKey}",
     icon: {
       id: "satellite_alt"
@@ -34,7 +53,6 @@ const mapTilesets: TileLayerDisplayOptions = {
   },
   topographique: {
     label: "Topographique",
-    model: ref(false),
     icon: {
       id: "landscape"
     },
@@ -46,37 +64,36 @@ const mapTilesets: TileLayerDisplayOptions = {
       attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'
     }
   }
-};
+});
 
-export const useMapTilesets = asyncInitializer<TileLayerDisplayOptions>((resolve, reject) => {
+export const useMapTilesets = asyncInitializer<Record<string, TileLayerOption>>((resolve, reject) => {
   useInteractiveMap()
     .then(({ map }) => {
-      const sources = Object.values(mapTilesets).map(ts => () => ts.model.value);
       const { streets } = mapTilesets;
       let currentTileset = streets.label;
       let baseTileset = L.tileLayer(streets.urlTemplate, streets.options).addTo(map);
 
       watch(
-        sources,
-        (isChecked) => {
-          console.log("running watcher")
-          window.requestAnimationFrame(() => {
-            if (isChecked) {
-              Object.values(mapTilesets).find(ts => ts.label === currentTileset)!.model.value = false;
-              baseTileset.remove();
+        () => Object.values(mapTilesets)[0].model,
+        (tilesetKey) => {
+          console.log("running watcher, tilesetkey: ", tilesetKey)
+          //window.requestAnimationFrame(() => {
+          //  if (isChecked) {
+          //    Object.values(mapTilesets).find(ts => ts.label === currentTileset)!.model.value = false;
+          //    baseTileset.remove();
 
-              const tileset = Object.values(mapTilesets).find(ts => ts.model.value === true)!;
-              console.log("tileset: ", tileset)
-              console.log("maptTilesets: ", mapTilesets);
-              baseTileset = L.tileLayer(tileset.urlTemplate, tileset.options).addTo(map);
+          //    const tileset = Object.values(mapTilesets).find(ts => ts.model.value === true)!;
+          //    console.log("tileset: ", tileset)
+          //    console.log("maptTilesets: ", mapTilesets);
+          //    baseTileset = L.tileLayer(tileset.urlTemplate, tileset.options).addTo(map);
 
-              if (activeOverlays.size) {
-                for (let layer of activeOverlays.values()) {
-                  layer.redraw();
-                }
-              }
-            }
-          });
+          //    if (activeOverlays.size) {
+          //      for (let layer of activeOverlays.values()) {
+          //        layer.redraw();
+          //      }
+          //    }
+          //  }
+          //});
         }
       );
 

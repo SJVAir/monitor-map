@@ -1,8 +1,9 @@
 import { ref } from "vue"; import type { Ref } from "vue";
 
 export type DisplayOptions = CheckboxDisplayOptions | RadioDisplayOptions;
-export type CheckboxDisplayOptions = Record<string, DisplayOptionCheckbox>;
-export type RadioDisplayOptions = Record<string, DisplayOptionRadio>;
+export type CheckboxDisplayOptions = Record<string, Checkbox>;
+export type RadioDisplayOptions = Record<string, RadioOption>;
+export type DisplayOptionRecord<T extends DisplayOption> = Record<string, T>;
 
 interface DisplayOptionIcon {
   id: string;
@@ -16,28 +17,15 @@ interface DisplayOptionConfig {
   label: string;
 }
 
-
-interface DisplayOptionCheckboxConfig extends DisplayOptionConfig {
+export interface CheckboxConfig extends DisplayOptionConfig {
   model: boolean;
 }
 
-
-interface DisplayOptionRadioConfig extends DisplayOption {
+export interface RadioConfig extends DisplayOption {
   isDefault?: boolean;
-  value: string;
 }
 
-interface TileLayerConfig extends DisplayOptionRadioConfig {
-  options: TileLayerOptions;
-  urlTemplate: string;
-}
-
-
-interface TileLayerOptions extends L.TileLayerOptions {
-  apiKey?: string;
-}
-
-abstract class DisplayOption implements DisplayOptionConfig {
+class DisplayOption implements DisplayOptionConfig {
   containerClass?: string;
   icon?: DisplayOptionIcon;
   svg?: string;
@@ -54,56 +42,42 @@ abstract class DisplayOption implements DisplayOptionConfig {
   }
 }
 
-export class DisplayOptionCheckbox extends DisplayOption {
-  static defineOptions(configs: Record<string, DisplayOptionCheckboxConfig>): CheckboxDisplayOptions {
-    Object.values(configs).map(config => new DisplayOptionCheckbox(config));
-    return configs as unknown as CheckboxDisplayOptions;
+interface CheckboxClass extends Checkbox {};
+export class Checkbox extends DisplayOption {
+  static defineOptions<T extends CheckboxClass, U extends CheckboxConfig>(configs: DisplayOptionRecord<U>): DisplayOptionRecord<T> {
+    Object.values(configs).map(config => new this(config));
+    return configs as unknown as DisplayOptionRecord<T>;
   }
 
   labelClass = "checkbox";
   model: Ref<boolean>;
 
-  constructor(config: DisplayOptionCheckboxConfig) {
+  constructor(config: CheckboxConfig) {
     super(config);
     this.model = ref(config.model);
   }
 }
 
-function defineOptions<T extends DisplayOptionRadioConfig, U extends RadioDisplayOptions>(configs: Record<string, T>): U {
-  const model = ref<string>("");
-  Object.values(configs).map(config => {
-    if (config.isDefault) {
-      model.value = config.label;
-    }
-    return new DisplayOptionRadio(model, config);
-  });
-  return configs as unknown as U;
-}
-
-export class DisplayOptionRadio extends DisplayOption implements DisplayOptionRadioConfig {
-  static defineOptions = defineOptions<DisplayOptionRadioConfig, RadioDisplayOptions>;
-  //static defineOptions(configs: Record<string, DisplayOptionRadioConfig>): RadioDisplayOptions 
+interface RadioOptionClass extends RadioOption {};
+export class RadioOption<T extends RadioConfig = RadioConfig> extends DisplayOption implements RadioConfig {
+  static defineOptions<T extends RadioOptionClass, U extends RadioConfig>(configs: DisplayOptionRecord<U>): DisplayOptionRecord<T> {
+    const model = ref<string>("");
+    Object.entries(configs).map(config => {
+      if (config[1].isDefault) {
+        model.value = config[0];
+      }
+      return new this(model, ...config);
+    });
+    return configs as unknown as DisplayOptionRecord<T>;
+  }
 
   labelClass = "radio";
   model: Ref<String>;
   value: string;
 
-  constructor(sharedModel: Ref<string>, config: DisplayOptionRadioConfig) {
+  constructor(sharedModel: Ref<string>, value: string, config: T) {
     super(config);
     this.model = sharedModel;
-    this.value = config.value;
-  }
-}
-
-export class DisplayOptionTileLayer extends DisplayOptionRadio implements TileLayerConfig {
-  static defineOptions = defineOptions<TileLayerConfig, TileLayerOptions>;
-
-  options: TileLayerOptions;
-  urlTemplate: string;
-
-  constructor(sharedModel: Ref<string>, config: TileLayerConfig) {
-    super(sharedModel, config);
-    this.options = config.options;
-    this.urlTemplate = config.urlTemplate;
+    this.value = value;
   }
 }
