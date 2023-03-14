@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { DisplayOptionCheckbox, DisplayOptionRadio } from "./mod";
+  import { Checkbox, RadioOption } from "./mod";
   import type { DisplayOptions } from "./mod";
 
   const props = defineProps<{ displayOptions: DisplayOptions }>();
@@ -10,8 +10,8 @@
     <p class="display-group-label">Air Monitors</p>
     <div v-for="option in props.displayOptions" class="dropdown-item" :class="option.containerClass">
       <label :class="option.labelClass">
-        <input v-if="option instanceof DisplayOptionCheckbox" type="checkbox" v-model="option.model.value" />
-        <input v-else-if="option instanceof DisplayOptionRadio" type="radio" :value="option.value" v-model="option.model" />
+        <input v-if="option instanceof Checkbox" type="checkbox" v-model="option.model.value" />
+        <input v-else-if="option instanceof RadioOption" type="radio" :value="option.value" v-model="option.model" />
         <span v-if="option.icon" class="icon" :class="option.icon.class">
           <span class="material-symbols-outlined">
             {{ option.icon.id }}

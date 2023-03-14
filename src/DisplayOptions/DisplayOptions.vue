@@ -1,10 +1,15 @@
 <script setup lang="ts">
   import { Ref, ref } from "vue";
   import { EVChargingMarkersManagerVue } from "../EVCharging";
-  import { MonitorMarkersManagerVue } from "../Monitors";
+  //import { MonitorMarkersManagerVue } from "../Monitors";
   import { OverlayTilesetsManagerVue, MapTilesetsManagerVue } from "../Map";
+  import DisplayOption from "./DisplayOption.vue";
+  import {useMonitorMarkers} from "../Monitors/MonitorMarkers";
+  import {useEVChargingMarkers} from "../EVCharging/EVChargingMarkers";
 
   const displayOptionsActive: Ref<boolean> = ref(false);
+  const { monitorMarkersVisibility } = await useMonitorMarkers();
+  const evStationsVisibility = await useEVChargingMarkers();
 
   function toggleDisplayOptions() {
     displayOptionsActive.value = !displayOptionsActive.value;
@@ -29,10 +34,10 @@
       <div class="dropdown-content">
         <div class="columns">
           <div class="column">
-            <MonitorMarkersManagerVue />
+            <DisplayOption :displayOptions="monitorMarkersVisibility" />
           </div>
           <div class="column">
-            <EVChargingMarkersManagerVue />
+            <DisplayOption :displayOptions="evStationsVisibility" />
             <OverlayTilesetsManagerVue />
           </div>
           <div class="column">

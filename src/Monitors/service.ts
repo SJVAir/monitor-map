@@ -85,9 +85,12 @@ function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
 async function fetchMonitors(): Promise<void> {
   return await service.fetchMonitors()
     .then(monitorsRecord => {
+      console.log("widgetSubList: ", widgetSubList.value);
+      console.log("MonitorsRecord: ", monitorsRecord);
       monitors.value = widgetSubList.value.length
         ? widgetSubList.value.reduce((subRecord, id) => ({ [id]: monitorsRecord[id], ...subRecord }), {})
         : monitorsRecord;
+      console.log("Monitors: ", monitors.value);
       window.dispatchEvent(monitorsLoadedEvent);
     });
 }

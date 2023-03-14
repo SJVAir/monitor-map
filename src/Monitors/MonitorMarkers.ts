@@ -4,7 +4,7 @@ import { useInteractiveMap } from "../Map";
 import L from "../modules/Leaflet";
 import { asyncInitializer, darken, dateUtil, readableColor, toHex } from "../modules";
 import { MonitorDisplayField, MonitorDataField, useMonitorsService } from ".";
-import { DisplayOptionCheckbox } from "../DisplayOptions";
+import { Checkbox } from "../DisplayOptions";
 import type { Ref } from "vue";
 import type { Router } from "vue-router";
 import type { CheckboxDisplayOptions } from "../DisplayOptions";
@@ -12,7 +12,7 @@ import type { Monitor } from ".";
 
 const monitorMarkersMap: Map<string, L.ShapeMarker> = new Map();
 const monitorMarkersGroup: L.FeatureGroup = new L.FeatureGroup();
-const monitorMarkersVisibility: CheckboxDisplayOptions = DisplayOptionCheckbox.defineOptions({
+const monitorMarkersVisibility: CheckboxDisplayOptions = Checkbox.defineOptions({
   SJVAirPurple: {
     containerClass: "has-text-success",
     icon: {
