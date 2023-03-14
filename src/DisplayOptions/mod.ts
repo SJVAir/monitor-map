@@ -1,69 +1,109 @@
-import { reactive } from "vue";
-import type { IMonitorVisibility } from "../types";
-import type { Monitor } from "../Monitors";
+import { ref } from "vue"; import type { Ref } from "vue";
 
-export const $visibility: IMonitorVisibility = reactive({
-  SJVAirPurple: {
-    containerClass: "has-text-success",
-    icon: "circle",
-    isChecked: true,
-    label: "SJVAir (PurpleAir)"
-  },
-  SJVAirBAM: {
-    containerClass: "has-text-success",
-    icon: "change_history",
-    isChecked: true,
-    label: "SJVAir (BAM1022)"
-  },
-  AirNow: {
-    containerClass: "has-text-success",
-    icon: "change_history",
-    isChecked: true,
-    label: "AirNow network"
-  },
-  PurpleAir: {
-    containerClass: "has-text-success",
-    icon: "square",
-    isChecked: true,
-    label: "PurpleAir network"
-  },
-  PurpleAirInside: {
-    containerClass: "icon-border has-text-success",
-    icon: "square",
-    isChecked: false,
-    label: "Inside monitors"
-  },
-  displayInactive: {
-    containerClass: "has-text-grey-light",
-    icon: "square",
-    isChecked: false,
-    label: "Inactive monitors"
-  },
-});
+export type DisplayOptions = CheckboxDisplayOptions | RadioDisplayOptions;
+export type CheckboxDisplayOptions = Record<string, DisplayOptionCheckbox>;
+export type RadioDisplayOptions = Record<string, DisplayOptionRadio>;
 
-export function isVisible(m: Monitor): boolean {
-  // showSJVAirPurple
-  // showSJVAirBAM
-  // showPurpleAir
-  // showPurpleAirInside
-  // showAirNow
+interface DisplayOptionIcon {
+  id: string;
+  class?: string;
+}
 
-  if ($visibility) {
-    if(!$visibility.displayInactive.isChecked && !m.data.is_active){
-      return false;
+interface DisplayOptionConfig {
+  containerClass?: string;
+  icon?: DisplayOptionIcon;
+  svg?: string;
+  label: string;
+}
+
+
+interface DisplayOptionCheckboxConfig extends DisplayOptionConfig {
+  model: boolean;
+}
+
+
+interface DisplayOptionRadioConfig extends DisplayOption {
+  isDefault?: boolean;
+  value: string;
+}
+
+interface TileLayerConfig extends DisplayOptionRadioConfig {
+  options: TileLayerOptions;
+  urlTemplate: string;
+}
+
+
+interface TileLayerOptions extends L.TileLayerOptions {
+  apiKey?: string;
+}
+
+abstract class DisplayOption implements DisplayOptionConfig {
+  containerClass?: string;
+  icon?: DisplayOptionIcon;
+  svg?: string;
+  label: string;
+
+  constructor(config: DisplayOptionConfig) {
+    if (config.icon && config.svg) {
+      throw new Error(`Error constructing "${ config.label }" display option: Cannot accept both "icon" and "svg".`);
     }
-
-    if (m.data.device == 'PurpleAir') {
-      return (m.data.is_sjvair 
-        ? $visibility.SJVAirPurple.isChecked
-        : $visibility.PurpleAir.isChecked) && ($visibility.PurpleAirInside.isChecked || m.data.location == 'outside');
-
-    } else if (m.data.device == 'BAM1022'){
-      return $visibility.SJVAirBAM.isChecked;
-
-    }  else if (m.data.device == 'AirNow'){
-      return $visibility.AirNow.isChecked;
-    }
+    this.containerClass = config.containerClass || "";
+    this.icon = config.icon;
+    this.svg = config.svg;
+    this.label = config.label;
   }
-  return false;
+}
+
+export class DisplayOptionCheckbox extends DisplayOption {
+  static defineOptions(configs: Record<string, DisplayOptionCheckboxConfig>): CheckboxDisplayOptions {
+    Object.values(configs).map(config => new DisplayOptionCheckbox(config));
+    return configs as unknown as CheckboxDisplayOptions;
+  }
+
+  labelClass = "checkbox";
+  model: Ref<boolean>;
+
+  constructor(config: DisplayOptionCheckboxConfig) {
+    super(config);
+    this.model = ref(config.model);
+  }
+}
+
+function defineOptions<T extends DisplayOptionRadioConfig, U extends RadioDisplayOptions>(configs: Record<string, T>): U {
+  const model = ref<string>("");
+  Object.values(configs).map(config => {
+    if (config.isDefault) {
+      model.value = config.label;
+    }
+    return new DisplayOptionRadio(model, config);
+  });
+  return configs as unknown as U;
+}
+
+export class DisplayOptionRadio extends DisplayOption implements DisplayOptionRadioConfig {
+  static defineOptions = defineOptions<DisplayOptionRadioConfig, RadioDisplayOptions>;
+  //static defineOptions(configs: Record<string, DisplayOptionRadioConfig>): RadioDisplayOptions 
+
+  labelClass = "radio";
+  model: Ref<String>;
+  value: string;
+
+  constructor(sharedModel: Ref<string>, config: DisplayOptionRadioConfig) {
+    super(config);
+    this.model = sharedModel;
+    this.value = config.value;
+  }
+}
+
+export class DisplayOptionTileLayer extends DisplayOptionRadio implements TileLayerConfig {
+  static defineOptions = defineOptions<TileLayerConfig, TileLayerOptions>;
+
+  options: TileLayerOptions;
+  urlTemplate: string;
+
+  constructor(sharedModel: Ref<string>, config: TileLayerConfig) {
+    super(sharedModel, config);
+    this.options = config.options;
+    this.urlTemplate = config.urlTemplate;
+  }
 }
