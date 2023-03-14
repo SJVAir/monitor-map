@@ -1,7 +1,7 @@
 <script setup lang="ts">
-  import { useEVChangingMarkers } from './EVChargingMarkers';
+  import { useEVChargingMarkers } from './EVChargingMarkers';
 
-  const evChargingMarkers = await useEVChangingMarkers();
+  const evChargingMarkers = await useEVChargingMarkers();
 </script>
 
 <template>
@@ -9,10 +9,10 @@
     <p class="display-group-label">EV Stations</p>
     <div v-for="stationType in evChargingMarkers" class="dropdown-item">
       <label class="checkbox">
-        <input type="checkbox" @change.preventDefault="stationType.update" />
-        <span class="icon ev-icon" :class="stationType.class">
+        <input type="checkbox" v-model="stationType.isChecked.value" />
+        <span class="icon ev-icon" :class="stationType.icon?.class">
           <span class="material-symbols-outlined">
-            ev_station
+            {{ stationType.icon?.id }}
           </span>
         </span>
         <span class="option-label has-text-black">
