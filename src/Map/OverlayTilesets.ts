@@ -1,13 +1,16 @@
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import L from "../modules/Leaflet";
+import { asyncInitializer } from "../modules";
 import { useInteractiveMap } from "./InteractiveMap";
-import { OverlayTileSet } from "./OverlayTileset";
-import type { IOverlayTileset } from "../types";
+import { DisplayOptionTileLayer } from "../DisplayOptions";
 
-const tilesets: Array<IOverlayTileset> = [
-  {
+const overlayTilesets = DisplayOptionTileLayer.defineOptions({
+  wind: {
     containerClass: "has-text-info",
-    icon: "air",
-    isChecked: ref(false),
+    icon: {
+      id: "air"
+    },
+    value: "wind",
     label: "Wind",
     urlTemplate: "https://{s}.tile.openweathermap.org/map/wind/{z}/{x}/{y}.png?appid={apiKey}",
     options: {
@@ -18,10 +21,12 @@ const tilesets: Array<IOverlayTileset> = [
       zIndex: 11
     }
   },
-  {
+  clouds: {
     containerClass: "has-text-grey-light",
-    icon: "cloud",
-    isChecked: ref(false),
+    icon: {
+      id: "cloud"
+    },
+    model: ref("clouds"),
     label: "Clouds",
     urlTemplate: "https://{s}.tile.openweathermap.org/map/clouds/{z}/{x}/{y}.png?appid={apiKey}",
     options: {
@@ -32,22 +37,33 @@ const tilesets: Array<IOverlayTileset> = [
       zIndex: 12
     }
   }
-];
+});
 
-let overlayTilesets: Array<OverlayTileSet>;
-let initialized = false;
+export const useOverlayTilesets = asyncInitializer<TileLayerDisplayOptions>((resolve, reject) => {
+  useInteractiveMap()
+    .then(({ map }) => {
+      const activeOverlays: Map<string, L.TileLayer> = new Map();
+      const sources = Object.values(overlayTilesets).map(ts => () => ts.model.value);
 
-export async function useOverlayTilesets() {
-  if (!initialized) {
-    await initializeTilesets();
-  }
-  return overlayTilesets;
-}
+      watch(
+        sources,
+        () => {
+          const newActive = Object.values(overlayTilesets).filter(ts => ts.model.value === true && !activeOverlays.has(ts.label))
+          const newRemove = Object.values(overlayTilesets).filter(ts => ts.model.value === false && activeOverlays.has(ts.label))
 
-async function initializeTilesets() {
-  const { map } = await useInteractiveMap();
+          newActive.forEach(ts => {
+            const layer = L.tileLayer(ts.urlTemplate, ts.options).addTo(map);
+            activeOverlays.set(ts.label, layer);
+          })
 
-  overlayTilesets = tilesets.map(ots => new OverlayTileSet(map, ots));
-  
-  initialized = true;
-}
+          newRemove.forEach(ts => {
+            activeOverlays.get(ts.label)!.remove();
+            activeOverlays.delete(ts.label);
+          });
+        }
+      );
+
+      resolve(overlayTilesets);
+    })
+    .catch(reject);
+});

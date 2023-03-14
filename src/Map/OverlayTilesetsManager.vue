@@ -12,7 +12,7 @@
         <input type="checkbox" v-model="overlay.isChecked.value" />
         <span class="icon">
           <span class="material-symbols-outlined">
-            {{ overlay.icon }}
+            {{ overlay.icon!.id }}
           </span>
         </span>
         <span class="option-label has-text-black">
