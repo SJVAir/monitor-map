@@ -2,6 +2,7 @@ import { onBeforeUnmount, onMounted } from "vue";
 import L from "../modules/Leaflet";
 import type { Ref } from "vue";
 import type { Monitor } from "../Monitors";
+import {asyncInitializer} from "../modules";
 
 const mapSettings: L.MapOptions = {
   // Initial location: Sidewalk in front of Root Access Hackerspace, Fresno, CA
@@ -15,22 +16,17 @@ const zoomPanOptions: L.ZoomPanOptions = {
   duration: .5
 };
 
-const resizeObserver = new ResizeObserver(() => map.invalidateSize());
 let map: L.Map;
-let initialized = false;
 
-export async function useInteractiveMap(mapTarget?: Ref<HTMLDivElement>) {
-  if (!initialized && mapTarget) {
-    await initializeInteractiveMap(mapTarget);
-  }
-  return {
-    map,
-    focusAssertion,
-    recenter,
-  };
+interface InteractiveMap {
+  map: L.Map;
+  mapContainer: HTMLDivElement;
+  focusAssertion(monitor: Monitor): void;
+  recenter(coordinates: L.LatLng): void;
 }
 
-async function initializeInteractiveMap(mapTarget: Ref<HTMLDivElement>) {
+export const useInteractiveMap = asyncInitializer<InteractiveMap>((resolve) => {
+  const resizeObserver = new ResizeObserver(() => map.invalidateSize());
   const mapContainer = document.createElement("div")
   map = L.map(mapContainer, mapSettings);
 
@@ -40,17 +36,18 @@ async function initializeInteractiveMap(mapTarget: Ref<HTMLDivElement>) {
 
   const stopCaching = cacheMapStateOnLeave(map);
 
-  onMounted(() => {
-    window.requestAnimationFrame(() => mapTarget.value.appendChild(mapContainer));
-  });
-
   onBeforeUnmount(() => {
     stopCaching();
     resizeObserver.disconnect();
   });
-  
-  initialized = true;
-}
+
+  resolve({
+    map,
+    mapContainer,
+    focusAssertion,
+    recenter,
+  });
+});
 
 // Handler for waking browser tab
 function cacheMapStateOnLeave(map: L.Map) {
