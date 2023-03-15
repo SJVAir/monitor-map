@@ -1,72 +1,63 @@
 import { onBeforeMount, onBeforeUnmount, ref } from "vue";
-import { http, dateUtil } from "../modules";
+import { http, dateUtil, asyncInitializer } from "../modules";
 import { DateRange } from "../models";
 import { useWidgetMode } from "../modules";
+import type { Ref } from "vue";
 import type { Monitor } from "./Monitor";
 import type { MonitorId } from "../types";
-
-type milliseconds = number;
 
 const monitorsLoadedEvent = new Event("MonitorsLoaded");
 const monitors = ref<Record<string, Monitor>>({});
 let service: typeof import("./requests") | typeof import("./BackgroundRequests");
-let updateInterval: number;
-let initialized = false;
+let intervalUpdater: number;
 
-interface MonitorsServiceConfig {
-  reloadInterval: milliseconds;
-  webworker: boolean;
+interface MonitorsServiceExtras {
+  downloadCSV(monitor: Monitor, dateRange: DateRange): void;
+  getMonitor(id: MonitorId): Monitor;
+  monitors: Ref<Record<string, Monitor>>;
 }
 
-export async function useMonitorsService(config?: Partial<MonitorsServiceConfig>) {
-  if (!initialized) {
-    await initializeMonitorService(config);
-  }
-  return {
-    ...service,
-    downloadCSV,
-    fetchMonitors,
-    getMonitor,
-    monitors,
-  };
-}
-
-async function initializeMonitorService(config?: Partial<MonitorsServiceConfig>) {
-  const opts: MonitorsServiceConfig = {
-    reloadInterval: config?.reloadInterval || 1000 * 60 * 2,
-    webworker: config?.webworker || true
-  };
+type MonitorsServiceModule = MonitorsServiceExtras & typeof service;
+export const useMonitorsService = asyncInitializer<MonitorsServiceModule>((resolve, reject) => {
+  const reloadInterval = 1000 * 60 * 2;
+  let webworker = true;
 
   //@ts-ignore: Cannot find name 'WorkerGlobalScope'
   // 'WorkerGlobalScope' only exists in web workers
   if (typeof WorkerGlobalScope !== 'undefined') {
-    opts.webworker = false;
+    webworker = false;
 
   } else {
     onBeforeMount(async () => {
-      await fetchMonitors();
+      await updateMonitors();
 
-      if (!updateInterval || updateInterval <= 0 && opts.reloadInterval > 0) {
-        updateInterval = window.setInterval(async () => await fetchMonitors(), 1000 * 60 * 2);
-
+      if (!intervalUpdater || intervalUpdater <= 0 && reloadInterval > 0) {
+        intervalUpdater = window.setInterval(async () => await updateMonitors(), 1000 * 60 * 2);
       }
     });
 
     onBeforeUnmount(() => {
-      clearInterval(updateInterval);
-      updateInterval = 0;
+      clearInterval(intervalUpdater);
+      intervalUpdater = 0;
     });
 
   }
 
-  if (!service) {
-    service = opts.webworker
-      ? await import("./BackgroundRequests")
-      : await import("./requests");
-  }
+  const importService = webworker
+    ? import("./BackgroundRequests")
+    : import("./requests");
 
-  initialized = true;
-}
+  importService.then(serviceModule => {
+    service = serviceModule;
+    resolve({
+      ...serviceModule,
+      downloadCSV,
+      getMonitor,
+      monitors,
+    });
+  })
+  .catch(reject);
+});
 
 function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
   const path = import.meta.env.DEV 
@@ -81,7 +72,7 @@ function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
   window.open(`${ path }/?${ params }`);
 }
 
-async function fetchMonitors(): Promise<void> {
+async function updateMonitors(): Promise<void> {
   const { widgetSubList } = await useWidgetMode();
   return await service.fetchMonitors()
     .then(monitorsRecord => {
@@ -92,6 +83,6 @@ async function fetchMonitors(): Promise<void> {
     });
 }
 
-export function getMonitor(id: MonitorId) {
+export function getMonitor(id: MonitorId): Monitor {
   return monitors.value[id];
 }
