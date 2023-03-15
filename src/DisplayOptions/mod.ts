@@ -58,17 +58,16 @@ export class Checkbox extends DisplayOption {
   }
 }
 
-interface RadioOptionClass extends RadioOption {};
-export class RadioOption<T extends RadioConfig = RadioConfig> extends DisplayOption implements RadioConfig {
-  static defineOptions<T extends RadioOptionClass, U extends RadioConfig>(configs: DisplayOptionRecord<U>): DisplayOptionRecord<T> {
+export class RadioOption<T extends RadioConfig> extends DisplayOption {
+  static defineOptions<T extends RadioOption<U>, U extends RadioConfig>(configs: DisplayOptionRecord<U>): DisplayOptionRecord<T> {
     const model = ref<string>("");
-    Object.entries(configs).map(config => {
-      if (config[1].isDefault) {
-        model.value = config[0];
-      }
-      return new this(model, ...config);
-    });
-    return configs as unknown as DisplayOptionRecord<T>;
+    return Object.entries(configs).reduce((options: DisplayOptionRecord<T>, config) => {
+        if (config[1].isDefault) {
+          model.value = config[0];
+        }
+        options[config[0]] = new this(model, ...config) as T;
+        return options;
+      }, {});
   }
 
   labelClass = "radio";

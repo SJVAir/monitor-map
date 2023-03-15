@@ -6,7 +6,7 @@ import { Checkbox, CheckboxConfig } from "../DisplayOptions";
 import type { TileLayer, TileLayerOptions } from "../modules/Leaflet";
 
 type OverlayConfig = TileLayer & CheckboxConfig;
-export class OverlayOption extends Checkbox implements TileLayer {
+export class MapOverlayOption extends Checkbox implements TileLayer {
   options: TileLayerOptions;
   urlTemplate: string;
 
@@ -18,7 +18,7 @@ export class OverlayOption extends Checkbox implements TileLayer {
 }
 
 //interface OverlayOptionClass extends OverlayOption {};
-const overlayTilesets: Record<string, OverlayOption> = Checkbox.defineOptions({
+const overlayTilesets: Record<string, MapOverlayOption> = Checkbox.defineOptions({
   wind: {
     containerClass: "has-text-info",
     icon: {

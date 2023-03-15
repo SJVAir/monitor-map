@@ -1,19 +1,13 @@
-import { ref, watch } from "vue";
+import { watch } from "vue";
 import L from "../modules/Leaflet";
 import { useInteractiveMap } from "./InteractiveMap";
-import { activeOverlays } from "./OverlayTileset";
 import { asyncInitializer } from "../modules";
-import { RadioConfig, RadioOption, DisplayOptionRecord, defineOptions } from "../DisplayOptions";
+import { RadioConfig, RadioOption } from "../DisplayOptions";
 import type { Ref } from "vue";
 import type { TileLayer, TileLayerOptions } from "../modules/Leaflet";
 
 type TileLayerConfig = TileLayer & RadioConfig;
-//interface TileLayerConfig extends TileLayer, RadioConfig {};
 export class TileLayerOption extends RadioOption<TileLayerConfig> implements TileLayerConfig {
-  //static defineOptions = RadioOption.defineOptions<TileLayerOption, TileLayerConfig>;
-  //static getOptionsGenerator(configs: DisplayOptionRecord<TileLayerConfig>) { return defineOptions(this, configs); }
-
-  value: string;
   options: TileLayerOptions;
   urlTemplate: string;
 
@@ -21,12 +15,10 @@ export class TileLayerOption extends RadioOption<TileLayerConfig> implements Til
     super(sharedModel, value, config);
     this.options = config.options;
     this.urlTemplate = config.urlTemplate;
-    this.value = value;
   }
 }
 
-interface TileLayerOptionClass extends TileLayerOption {};
-const mapTilesets: Record<string, TileLayerOption> = TileLayerOption.defineOptions<TileLayerOptionClass, TileLayerConfig>({ 
+const mapTilesets: Record<string, TileLayerOption> = TileLayerOption.defineOptions<TileLayerOption, TileLayerConfig>({ 
   streets: {
     label: "Streets",
     isDefault: true,

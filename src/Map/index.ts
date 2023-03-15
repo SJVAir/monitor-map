@@ -6,4 +6,3 @@ export * from "./InteractiveMap";
 export * from "./MapTilesets";
 export * from "./OverlayTilesets";
 export { OverlayTileSet } from "./OverlayTileset";
-export { MapTileset } from "./MapTileset";
