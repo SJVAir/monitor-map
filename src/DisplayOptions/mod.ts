@@ -1,9 +1,7 @@
 import { ref } from "vue"; import type { Ref } from "vue";
 
-export type DisplayOptions = CheckboxDisplayOptions | RadioDisplayOptions;
-export type CheckboxDisplayOptions = Record<string, Checkbox>;
-export type RadioDisplayOptions = Record<string, RadioOption>;
 export type DisplayOptionRecord<T extends DisplayOption> = Record<string, T>;
+export type DisplayOptionConfigRecord<T extends DisplayOptionConfig> = Record<string, T>;
 
 interface DisplayOptionIcon {
   id: string;
@@ -21,11 +19,14 @@ export interface CheckboxConfig extends DisplayOptionConfig {
   model: boolean;
 }
 
-export interface RadioConfig extends DisplayOption {
+export interface RadioConfig extends DisplayOptionConfig {
   isDefault?: boolean;
 }
 
-class DisplayOption implements DisplayOptionConfig {
+export interface DisplayOption extends DisplayOptionConfig {
+  labelClass: string;
+}
+export abstract class DisplayOption implements DisplayOptionConfig {
   containerClass?: string;
   icon?: DisplayOptionIcon;
   svg?: string;
@@ -42,24 +43,29 @@ class DisplayOption implements DisplayOptionConfig {
   }
 }
 
-interface CheckboxClass extends Checkbox {};
-export class Checkbox extends DisplayOption {
-  static defineOptions<T extends CheckboxClass, U extends CheckboxConfig>(configs: DisplayOptionRecord<U>): DisplayOptionRecord<T> {
-    Object.values(configs).map(config => new this(config));
-    return configs as unknown as DisplayOptionRecord<T>;
+
+
+export class Checkbox<T extends CheckboxConfig = CheckboxConfig> extends DisplayOption {
+  static defineOptions<T extends Checkbox<U>, U extends CheckboxConfig>(configs: DisplayOptionConfigRecord<U>): DisplayOptionRecord<T> {
+    //Object.values(configs).map(config => new this(config));
+    //return configs as unknown as DisplayOptionRecord<T>;
+    return Object.entries(configs).reduce((options: DisplayOptionRecord<T>, config) => {
+        options[config[0]] = new this(config[1]) as T;
+        return options;
+      }, {});
   }
 
   labelClass = "checkbox";
   model: Ref<boolean>;
 
-  constructor(config: CheckboxConfig) {
+  constructor(config: T) {
     super(config);
     this.model = ref(config.model);
   }
 }
 
 export class RadioOption<T extends RadioConfig> extends DisplayOption {
-  static defineOptions<T extends RadioOption<U>, U extends RadioConfig>(configs: DisplayOptionRecord<U>): DisplayOptionRecord<T> {
+  static defineOptions<T extends RadioOption<U>, U extends RadioConfig>(configs: DisplayOptionConfigRecord<U>): DisplayOptionRecord<T> {
     const model = ref<string>("");
     return Object.entries(configs).reduce((options: DisplayOptionRecord<T>, config) => {
         if (config[1].isDefault) {
