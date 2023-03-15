@@ -1,8 +1,8 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends DisplayOption">
   import { Checkbox, RadioOption } from "./mod";
-  import type { DisplayOptions } from "./mod";
+  import type { DisplayOption } from "./mod";
 
-  const props = defineProps<{ displayOptions: DisplayOptions }>();
+  const props = defineProps<{ displayOptions: Record<string, T> }>();
 </script>
 
 <template>
@@ -11,7 +11,7 @@
     <div v-for="option in props.displayOptions" class="dropdown-item" :class="option.containerClass">
       <label :class="option.labelClass">
         <input v-if="option instanceof Checkbox" type="checkbox" v-model="option.model.value" />
-        <input v-else-if="option instanceof RadioOption" type="radio" :value="option.value" v-model="option.model" />
+        <input v-else-if="option instanceof RadioOption" type="radio" :value="option.value" v-model="option.model.value" />
         <span v-if="option.icon" class="icon" :class="option.icon.class">
           <span class="material-symbols-outlined">
             {{ option.icon.id }}

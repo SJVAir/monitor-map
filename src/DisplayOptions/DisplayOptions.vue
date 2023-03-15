@@ -1,15 +1,16 @@
 <script setup lang="ts">
   import { Ref, ref } from "vue";
-  import { EVChargingMarkersManagerVue } from "../EVCharging";
-  //import { MonitorMarkersManagerVue } from "../Monitors";
-  import { OverlayTilesetsManagerVue, MapTilesetsManagerVue } from "../Map";
   import DisplayOption from "./DisplayOption.vue";
-  import {useMonitorMarkers} from "../Monitors/MonitorMarkers";
-  import {useEVChargingMarkers} from "../EVCharging/EVChargingMarkers";
+  import { useOverlayTilesets } from "./OverlayTilesets";
+  import { useMonitorMarkers } from "./MonitorMarkers";
+  import { useEVChargingMarkers } from "./EVChargingMarkers";
+  import { useMapTilesets } from "./MapTilesets";
 
   const displayOptionsActive: Ref<boolean> = ref(false);
   const { monitorMarkersVisibility } = await useMonitorMarkers();
   const evStationsVisibility = await useEVChargingMarkers();
+  const { overlayTilesets } = await useOverlayTilesets();
+  const mapTilesets = await useMapTilesets();
 
   function toggleDisplayOptions() {
     displayOptionsActive.value = !displayOptionsActive.value;
@@ -38,10 +39,10 @@
           </div>
           <div class="column">
             <DisplayOption :displayOptions="evStationsVisibility" />
-            <OverlayTilesetsManagerVue />
+            <DisplayOption :displayOptions="overlayTilesets" />
           </div>
           <div class="column">
-            <MapTilesetsManagerVue />
+            <DisplayOption :displayOptions="mapTilesets" />
           </div>
         </div>
       </div>
@@ -50,6 +51,9 @@
 </template>
 
 <style scoped lang="scss">
+  @use "sass:color";
+  $sjvair-comp: color.complement($sjvair-main);
+
   .dropdown-menu {
     white-space: nowrap;
 
@@ -94,6 +98,28 @@
           }
 
           .icon {
+            &.ev-icon {
+              @extend .has-text-white;
+              margin: 0 4px;
+              background-color: $pantone-blue-light;
+              border: 2px solid color.scale($pantone-blue-light, $lightness: -20%);
+              border-radius: 50%;
+              width: 18px;
+              height: 18px;
+
+              &.light {
+                background-color: $sjvair-main;
+                border: 2px solid color.scale($sjvair-main, $lightness: -20%);
+              }
+
+              .material-symbols-outlined {
+                font-size: 14px !important;
+                max-width: 14px !important;
+
+                font-variation-settings:
+                'FILL' 0 !important;
+              }
+            }
 
             .material-symbols-outlined {
               font-size: 20px;
