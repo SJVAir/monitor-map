@@ -22,7 +22,7 @@ interface InteractiveMap {
   map: L.Map;
   mapContainer: HTMLDivElement;
   focusAssertion(monitor: Monitor): void;
-  recenter(coordinates: L.LatLng): void;
+  recenter(coordinates?: L.LatLng): void;
 }
 
 export const useInteractiveMap = asyncInitializer<InteractiveMap>((resolve) => {
