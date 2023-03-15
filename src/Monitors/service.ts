@@ -1,6 +1,7 @@
 import { onBeforeMount, onBeforeUnmount, ref } from "vue";
 import { http, dateUtil } from "../modules";
 import { DateRange } from "../models";
+import { useWidgetMode } from "../modules";
 import type { Monitor } from "./Monitor";
 import type { MonitorId } from "../types";
 
@@ -8,7 +9,6 @@ type milliseconds = number;
 
 const monitorsLoadedEvent = new Event("MonitorsLoaded");
 const monitors = ref<Record<string, Monitor>>({});
-const widgetSubList = ref<Array<MonitorId>>([]);
 let service: typeof import("./requests") | typeof import("./BackgroundRequests");
 let updateInterval: number;
 let initialized = false;
@@ -28,7 +28,6 @@ export async function useMonitorsService(config?: Partial<MonitorsServiceConfig>
     fetchMonitors,
     getMonitor,
     monitors,
-    widgetSubList
   };
 }
 
@@ -83,6 +82,7 @@ function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
 }
 
 async function fetchMonitors(): Promise<void> {
+  const { widgetSubList } = await useWidgetMode();
   return await service.fetchMonitors()
     .then(monitorsRecord => {
       monitors.value = widgetSubList.value.length

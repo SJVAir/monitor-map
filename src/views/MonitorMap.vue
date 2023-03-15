@@ -2,24 +2,14 @@
   import { RouterView, useRoute } from "vue-router";
   import { DisplayOptionsVue } from "../DisplayOptions";
   import { MapVue } from "../Map";
-  import { useMonitorsService } from "../Monitors";
+  import { useWidgetMode } from "../modules";
 
-  const route = useRoute();
-  const { widgetSubList } = await useMonitorsService();
-  let widgetMode = false;
-
-  if (route.path === "/widget/") {
-    if (!route.query.monitors?.length) {
-      throw new Error("No monitor ID's provided for widget");
-    }
-    widgetMode = true;
-    widgetSubList.value = (route.query.monitors! as string).split(",");
-  }
+  await useWidgetMode();
 </script>
 
 <template>
   <MapVue></MapVue>
-  <DisplayOptionsVue v-if="!widgetMode" class="display-options"></DisplayOptionsVue>
+  <DisplayOptionsVue class="display-options"></DisplayOptionsVue>
   <RouterView v-slot="{ Component }">
     <template v-if="Component">
       <Suspense>
