@@ -35,7 +35,6 @@
   async function loadChartData() {
     if (activeMonitor.value) {
       chartDataLoading.value = true;
-      console.log("loadChartData activeMonitor: ", activeMonitor.value)
       await fetchChartData(activeMonitor.value, dateRange.value)
         .then((data: uPlot.AlignedData) => {
           chartData.value = data;
@@ -51,12 +50,12 @@
 
   watch(
     () => props.monitorId,
-    (monitorId) => {
-    console.log("watcher running: ", monitorId)
-      if (activeMonitor.value && activeMonitor.value.data.id !== monitorId) {
+    (monitorId, oldMonitorID) => {
+      if (monitorId !== oldMonitorID) {
         activeMonitor.value = getMonitor(monitorId);
       }
-      if (activeMonitor.value) {
+
+      if (activeMonitor.value !== undefined) {
         // Leaflet already calls requestAnimationFrame, macrotask for smoother animation
         setTimeout(() => focusAssertion(activeMonitor.value!));
         loadChartData();
