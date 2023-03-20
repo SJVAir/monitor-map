@@ -57,7 +57,7 @@
 
       if (activeMonitor.value !== undefined) {
         // Leaflet already calls requestAnimationFrame, macrotask for smoother animation
-        setTimeout(() => focusAssertion(activeMonitor.value!));
+        setTimeout(() => focusAssertion(activeMonitor.value!), 5);
         loadChartData();
       }
       chartData.value = [];
