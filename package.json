@@ -4,7 +4,7 @@
   "files": [
     "dist"
   ],
-  "version": "1.35.0",
+  "version": "1.36.0",
   "type": "module",
   "scripts": {
     "dev": "VITE_BUILD_MODE='development' vite",

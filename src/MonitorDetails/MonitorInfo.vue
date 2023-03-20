@@ -2,7 +2,7 @@
   import { computed, toRefs } from "vue";
   import type { Monitor } from "../Monitors";
 
-  const props = defineProps<{ monitor: Monitor }>();
+  const props = defineProps<{ monitor: Monitor | undefined }>();
   const { monitor } = toRefs(props);
 
   const location = computed(() => {

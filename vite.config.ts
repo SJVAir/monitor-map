@@ -85,7 +85,7 @@ export default defineConfig({
     ...config.build
   },
   plugins: [
-    htmlPurge(htmlPurgeOptions) as PluginOption,
+    htmlPurge(htmlPurgeOptions) as unknown as PluginOption,
     vue()
   ],
   css: {

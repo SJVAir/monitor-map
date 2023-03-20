@@ -1,69 +1,92 @@
-import { reactive } from "vue";
-import type { IMonitorVisibility } from "../types";
-import type { Monitor } from "../Monitors";
+import { ref } from "vue"; import type { Ref } from "vue";
 
-export const $visibility: IMonitorVisibility = reactive({
-  SJVAirPurple: {
-    containerClass: "has-text-success",
-    icon: "circle",
-    isChecked: true,
-    label: "SJVAir (PurpleAir)"
-  },
-  SJVAirBAM: {
-    containerClass: "has-text-success",
-    icon: "change_history",
-    isChecked: true,
-    label: "SJVAir (BAM1022)"
-  },
-  AirNow: {
-    containerClass: "has-text-success",
-    icon: "change_history",
-    isChecked: true,
-    label: "AirNow network"
-  },
-  PurpleAir: {
-    containerClass: "has-text-success",
-    icon: "square",
-    isChecked: true,
-    label: "PurpleAir network"
-  },
-  PurpleAirInside: {
-    containerClass: "icon-border has-text-success",
-    icon: "square",
-    isChecked: false,
-    label: "Inside monitors"
-  },
-  displayInactive: {
-    containerClass: "has-text-grey-light",
-    icon: "square",
-    isChecked: false,
-    label: "Inactive monitors"
-  },
-});
+export type DisplayOptionRecord<T extends DisplayOption> = Record<string, T>;
+export type DisplayOptionConfigRecord<T extends DisplayOptionConfig> = Record<string, T>;
 
-export function isVisible(m: Monitor): boolean {
-  // showSJVAirPurple
-  // showSJVAirBAM
-  // showPurpleAir
-  // showPurpleAirInside
-  // showAirNow
+interface DisplayOptionIcon {
+  id: string;
+  class?: string;
+}
 
-  if ($visibility) {
-    if(!$visibility.displayInactive.isChecked && !m.data.is_active){
-      return false;
+interface DisplayOptionConfig {
+  containerClass?: string;
+  icon?: DisplayOptionIcon;
+  svg?: string;
+  label: string;
+}
+
+export interface DisplayOptionProps<T extends DisplayOption = DisplayOption> {
+  label: string;
+  options: DisplayOptionRecord<T>;
+}
+
+export interface CheckboxConfig extends DisplayOptionConfig {
+  model: boolean;
+}
+
+export interface RadioConfig extends DisplayOptionConfig {
+  isDefault?: boolean;
+}
+
+export interface DisplayOption extends DisplayOptionConfig {
+  labelClass: string;
+}
+
+export abstract class DisplayOption implements DisplayOptionConfig {
+  containerClass?: string;
+  icon?: DisplayOptionIcon;
+  svg?: string;
+  label: string;
+
+  constructor(config: DisplayOptionConfig) {
+    if (config.icon && config.svg) {
+      throw new Error(`Error constructing "${ config.label }" display option: Cannot accept both "icon" and "svg".`);
     }
-
-    if (m.data.device == 'PurpleAir') {
-      return (m.data.is_sjvair 
-        ? $visibility.SJVAirPurple.isChecked
-        : $visibility.PurpleAir.isChecked) && ($visibility.PurpleAirInside.isChecked || m.data.location == 'outside');
-
-    } else if (m.data.device == 'BAM1022'){
-      return $visibility.SJVAirBAM.isChecked;
-
-    }  else if (m.data.device == 'AirNow'){
-      return $visibility.AirNow.isChecked;
-    }
+    this.containerClass = config.containerClass || "";
+    this.icon = config.icon;
+    this.svg = config.svg;
+    this.label = config.label;
   }
-  return false;
+}
+
+export class Checkbox<T extends CheckboxConfig = CheckboxConfig> extends DisplayOption {
+  static defineOptions<T extends Checkbox<U>, U extends CheckboxConfig>(configs: DisplayOptionConfigRecord<U>): DisplayOptionRecord<T> {
+    //Object.values(configs).map(config => new this(config));
+    //return configs as unknown as DisplayOptionRecord<T>;
+    return Object.entries(configs).reduce((options: DisplayOptionRecord<T>, config) => {
+        options[config[0]] = new this(config[1]) as T;
+        return options;
+      }, {});
+  }
+
+  labelClass = "checkbox";
+  model: Ref<boolean>;
+
+  constructor(config: T) {
+    super(config);
+    this.model = ref(config.model);
+  }
+}
+
+export class RadioOption<T extends RadioConfig> extends DisplayOption {
+  static defineOptions<T extends RadioOption<U>, U extends RadioConfig>(configs: DisplayOptionConfigRecord<U>): DisplayOptionRecord<T> {
+    const model = ref<string>("");
+    return Object.entries(configs).reduce((options: DisplayOptionRecord<T>, config) => {
+        if (config[1].isDefault) {
+          model.value = config[0];
+        }
+        options[config[0]] = new this(model, ...config) as T;
+        return options;
+      }, {});
+  }
+
+  labelClass = "radio";
+  model: Ref<String>;
+  value: string;
+
+  constructor(sharedModel: Ref<string>, value: string, config: T) {
+    super(config);
+    this.model = sharedModel;
+    this.value = value;
+  }
 }

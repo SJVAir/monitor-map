@@ -1,15 +1,22 @@
 <script setup lang="ts">
   import { Ref, ref } from "vue";
-  import { EVChargingMarkersManagerVue } from "../EVCharging";
-  import { MonitorMarkersManagerVue } from "../Monitors";
-  import { OverlayTilesetsManagerVue, MapTilesetsManagerVue } from "../Map";
+  import DisplayOption from "./DisplayOption.vue";
+  import { useOverlayTilesets } from "./OverlayTilesets";
+  import { useMonitorMarkers } from "./MonitorMarkers";
+  import { useEVChargingMarkers } from "./EVChargingMarkers";
+  import { useMapTilesets } from "./MapTilesets";
+import {useWidgetMode} from "../modules";
 
   const displayOptionsActive: Ref<boolean> = ref(false);
+  const { widgetMode } = await useWidgetMode();
+  const { displayOptions: monitorMarkerDisplayOptions } = await useMonitorMarkers();
+  const evStationDisplayOptions = await useEVChargingMarkers();
+  const { displayOptions: overlayTilesetDisplayOptions } = await useOverlayTilesets();
+  const mapTilesets = await useMapTilesets();
 
   function toggleDisplayOptions() {
     displayOptionsActive.value = !displayOptionsActive.value;
   }
-
 </script>
 
 <template>
@@ -29,14 +36,14 @@
       <div class="dropdown-content">
         <div class="columns">
           <div class="column">
-            <MonitorMarkersManagerVue />
+            <DisplayOption :props="monitorMarkerDisplayOptions" />
+          </div>
+          <div v-if="!widgetMode" class="column">
+            <DisplayOption :props="evStationDisplayOptions" />
+            <DisplayOption :props="overlayTilesetDisplayOptions" />
           </div>
           <div class="column">
-            <EVChargingMarkersManagerVue />
-            <OverlayTilesetsManagerVue />
-          </div>
-          <div class="column">
-            <MapTilesetsManagerVue />
+            <DisplayOption :props="mapTilesets" />
           </div>
         </div>
       </div>
@@ -45,6 +52,9 @@
 </template>
 
 <style scoped lang="scss">
+  @use "sass:color";
+  $sjvair-comp: color.complement($sjvair-main);
+
   .dropdown-menu {
     white-space: nowrap;
 
@@ -89,6 +99,28 @@
           }
 
           .icon {
+            &.ev-icon {
+              @extend .has-text-white;
+              margin: 0 4px;
+              background-color: $pantone-blue-light;
+              border: 2px solid color.scale($pantone-blue-light, $lightness: -20%);
+              border-radius: 50%;
+              width: 18px;
+              height: 18px;
+
+              &.light {
+                background-color: $sjvair-main;
+                border: 2px solid color.scale($sjvair-main, $lightness: -20%);
+              }
+
+              .material-symbols-outlined {
+                font-size: 14px !important;
+                max-width: 14px !important;
+
+                font-variation-settings:
+                'FILL' 0 !important;
+              }
+            }
 
             .material-symbols-outlined {
               font-size: 20px;

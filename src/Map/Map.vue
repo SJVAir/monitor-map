@@ -1,11 +1,14 @@
 <script setup lang="ts">
-  import { Ref, ref } from "vue";
+  import { onMounted, ref } from "vue";
   import MarkerLegendVue from "./MarkerLegend.vue";
   import { useInteractiveMap } from "./InteractiveMap";
 
   const mapTarget = ref<HTMLDivElement>();
-  await useInteractiveMap(mapTarget as Ref<HTMLDivElement>);
+  const { mapContainer } = await useInteractiveMap();
 
+  onMounted(() => {
+    window.requestAnimationFrame(() => mapTarget.value!.appendChild(mapContainer));
+  });
 </script>
 
 <template>

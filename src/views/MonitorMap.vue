@@ -1,25 +1,32 @@
 <script setup lang="ts">
-  import { RouterView, useRoute } from "vue-router";
+  import { onBeforeMount, onBeforeUnmount } from "vue";
+  import { RouterView } from "vue-router";
   import { DisplayOptionsVue } from "../DisplayOptions";
   import { MapVue } from "../Map";
+  import { useWidgetMode } from "../modules";
   import { useMonitorsService } from "../Monitors";
 
-  const route = useRoute();
-  const { widgetSubList } = await useMonitorsService();
-  let widgetMode = false;
+  const reloadInterval = 1000 * 60 * 2;
+  let intervalUpdater: number;
 
-  if (route.path === "/widget/") {
-    if (!route.query.monitors?.length) {
-      throw new Error("No monitor ID's provided for widget");
+  await useWidgetMode();
+  const { updateMonitors } = await useMonitorsService();
+
+  onBeforeMount(async () => {
+    if (!intervalUpdater || intervalUpdater <= 0 && reloadInterval > 0) {
+      intervalUpdater = window.setInterval(async () => await updateMonitors(), 1000 * 60 * 2);
     }
-    widgetMode = true;
-    widgetSubList.value = (route.query.monitors! as string).split(",");
-  }
+  });
+
+  onBeforeUnmount(() => {
+    clearInterval(intervalUpdater);
+    intervalUpdater = 0;
+  });
 </script>
 
 <template>
   <MapVue></MapVue>
-  <DisplayOptionsVue v-if="!widgetMode" class="display-options"></DisplayOptionsVue>
+  <DisplayOptionsVue class="display-options"></DisplayOptionsVue>
   <RouterView v-slot="{ Component }">
     <template v-if="Component">
       <Suspense>

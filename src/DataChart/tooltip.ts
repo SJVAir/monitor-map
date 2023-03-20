@@ -128,10 +128,11 @@ export function tooltipsPlugin() {
       showTips();
     });
 
-    if (u.cursor.left! < 0)
-      hideTips();
-    else
+    if (u.cursor.left! < 0) {
+      setTimeout(() => hideTips());
+    } else {
       showTips();
+    }
   }
 
   function setCursor(u: uPlot) {

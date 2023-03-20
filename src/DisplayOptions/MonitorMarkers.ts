@@ -1,129 +1,115 @@
-import { ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { watch } from "vue";
+import { useRouter } from "vue-router";
 import { useInteractiveMap } from "../Map";
 import L from "../modules/Leaflet";
-import { MonitorDisplayField, MonitorDataField, useMonitorsService } from ".";
-import { darken, dateUtil, readableColor, toHex } from "../modules";
-import type { Monitor } from ".";
+import { asyncInitializer, darken, dateUtil, readableColor, toHex } from "../modules";
+import { MonitorDisplayField, MonitorDataField, useMonitorsService } from "../Monitors";
+import { Checkbox } from "../DisplayOptions";
 import type { Ref } from "vue";
-import type { RouteLocationNormalizedLoaded, Router } from "vue-router";
+import type { Router } from "vue-router";
+import type { DisplayOptionProps, DisplayOptionRecord } from "../DisplayOptions";
+import type { Monitor } from "../Monitors";
 
-type MonitorMarkersRecord = Map<string, L.ShapeMarker>;
-
-export interface MarkerVisibilityOptions {
-  containerClass?: string;
-  icon: string;
-  isChecked: Ref<boolean>;
-  label: string;
-}
-
-export interface MonitorMarkersVisibility {
-  SJVAirPurple: MarkerVisibilityOptions;
-  SJVAirBAM: MarkerVisibilityOptions;
-  PurpleAir: MarkerVisibilityOptions;
-  PurpleAirInside: MarkerVisibilityOptions;
-  AirNow: MarkerVisibilityOptions;
-  displayInactive: MarkerVisibilityOptions;
-} 
-
-const monitorMarkersVisibility: MonitorMarkersVisibility = {
+const monitorMarkersMap: Map<string, L.ShapeMarker> = new Map();
+const monitorMarkersGroup: L.FeatureGroup = new L.FeatureGroup();
+const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineOptions({
   SJVAirPurple: {
     containerClass: "has-text-success",
-    icon: "circle",
-    isChecked: ref(true),
+    icon: {
+      id: "circle"
+    },
+    model: true,
     label: "SJVAir (PurpleAir)"
   },
   SJVAirBAM: {
     containerClass: "has-text-success",
-    icon: "change_history",
-    isChecked: ref(true),
+    icon: {
+      id: "change_history"
+    },
+    model: true,
     label: "SJVAir (BAM1022)"
   },
   AirNow: {
     containerClass: "has-text-success",
-    icon: "change_history",
-    isChecked: ref(true),
+    icon: {
+      id: "change_history"
+    },
+    model: true,
     label: "AirNow network"
   },
   PurpleAir: {
     containerClass: "has-text-success",
-    icon: "square",
-    isChecked: ref(true),
+    icon: {
+      id: "square"
+    },
+    model: true,
     label: "PurpleAir network"
   },
   PurpleAirInside: {
     containerClass: "icon-border has-text-success",
-    icon: "square",
-    isChecked: ref(false),
+    icon: {
+      id: "square"
+    },
+    model: false,
     label: "Inside monitors"
   },
   displayInactive: {
     containerClass: "has-text-grey-light",
-    icon: "square",
-    isChecked: ref(false),
+    icon: {
+      id: "square"
+    },
+    model: false,
     label: "Inactive monitors"
   },
-};
+});
 
-let record: MonitorMarkersRecord;
-let group: L.FeatureGroup;
-let initialized = false;
-
-export async function useMonitorMarkers() {
-  if (!initialized) {
-    await initializeMonitorMarkers();
-  }
-  const { monitors } = await useMonitorsService();
-
-  function refresh() {
-    record.forEach((marker, id) => {
-      if (isVisible(monitors.value[id])) {
-        group.addLayer(marker);
-
-      } else {
-        group.removeLayer(marker);
-      }
-    });
-  }
-
-  return {
-    monitorMarkers: group,
-    monitorMarkersVisibility,
-    refresh
-  };
+interface MonitorMarkersModule {
+  monitorMarkers: L.FeatureGroup;
+  displayOptions: DisplayOptionProps<Checkbox>;
 }
 
-async function initializeMonitorMarkers() {
+export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (resolve) => {
   const router = useRouter();
-  const route = useRoute();
-  record = new Map();
-  group = new L.FeatureGroup();
+  const [{ monitors }, { map }] = await Promise.all([ useMonitorsService(), useInteractiveMap() ]);
+  const displayRefs = Object.values(monitorMarkersVisibility).map(visibility => () => visibility.model.value);
 
-  useMonitorsService().then(service => {
-    const monitors = service.monitors;
-    watch(
-      monitors,
-      () => rerenderMarkers(route, router, map, monitors)
-    );
-  });
-
-  const { map } = await useInteractiveMap();
-  group.addTo(map);
+  monitorMarkersGroup.addTo(map);
 
   map.createPane("purpleAir").style.zIndex = "601";
   map.createPane("airNow").style.zIndex = "602";
   map.createPane("sjvAirPurpleAir").style.zIndex = "603";
   map.createPane("sjvAirBam").style.zIndex = "604";
 
-  initialized = true;
-}
+  watch(
+    monitors,
+    () => rerenderMarkers(router, monitors),
+    { immediate: true }
+  );
 
-function rerenderMarkers(
-  route: RouteLocationNormalizedLoaded,
-  router: Router,
-  map: L.Map,
-  monitors: Ref<Record<string, Monitor>>
-) {
+  watch(
+    displayRefs,
+    () => {
+      monitorMarkersMap.forEach((marker, id) => {
+        if (isVisible(monitors.value[id])) {
+          monitorMarkersGroup.addLayer(marker);
+
+        } else {
+          monitorMarkersGroup.removeLayer(marker);
+        }
+      });
+    }
+  );
+
+  resolve({
+    monitorMarkers: monitorMarkersGroup,
+    displayOptions: {
+      label: "Air Monitors",
+      options: monitorMarkersVisibility
+    },
+  });
+});
+
+function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>) {
   for (let id in monitors.value) {
     const monitor = monitors.value[id];
 
@@ -131,9 +117,9 @@ function rerenderMarkers(
       continue;
     }
 
-    if (record.has(id)) {
-      group.removeLayer(record.get(id)!.remove());
-      record.delete(id);
+    if (monitorMarkersMap.has(id)) {
+      monitorMarkersGroup.removeLayer(monitorMarkersMap.get(id)!.remove());
+      monitorMarkersMap.delete(id);
     }
 
     const marker = genMonitorMapMarker(monitor);
@@ -150,11 +136,11 @@ function rerenderMarkers(
 
     if (marker) {
       // Assign/reassign marker to record
-      record.set(id, marker);
+      monitorMarkersMap.set(id, marker);
 
       
       if (isVisible(monitor)) {
-        group.addLayer(marker);
+        monitorMarkersGroup.addLayer(marker);
       }
     }
   }
@@ -167,24 +153,24 @@ function isVisible(monitor: Monitor): boolean {
   // showPurpleAirInside
   // showAirNow
 
-  if(!monitorMarkersVisibility.displayInactive.isChecked.value && !monitor.data.is_active){
+  if(!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active){
     return false;
   }
 
   if (monitor.data.device == 'PurpleAir') {
-    const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.isChecked.value
+    const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
       || monitor.data.location == 'outside';
     const visibleByNetwork = monitor.data.is_sjvair
-      ? monitorMarkersVisibility.SJVAirPurple.isChecked.value
-      : monitorMarkersVisibility.PurpleAir.isChecked.value;
+      ? monitorMarkersVisibility.SJVAirPurple.model.value
+      : monitorMarkersVisibility.PurpleAir.model.value;
 
     return  visibleByNetwork && visibleByLocation;
 
   } else if (monitor.data.device == 'BAM1022'){
-    return monitorMarkersVisibility.SJVAirBAM.isChecked.value;
+    return monitorMarkersVisibility.SJVAirBAM.model.value;
 
   }  else if (monitor.data.device == 'AirNow'){
-    return monitorMarkersVisibility.AirNow.isChecked.value;
+    return monitorMarkersVisibility.AirNow.model.value;
   }
   return false;
 }
