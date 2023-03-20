@@ -60,7 +60,6 @@ async function updateMonitors(): Promise<void> {
       monitors.value = widgetSubList.value.length
         ? widgetSubList.value.reduce((subRecord, id) => ({ [id]: monitorsRecord[id], ...subRecord }), {})
         : monitorsRecord;
-      console.log("Route: ", );
       window.dispatchEvent(monitorsLoadedEvent);
     });
 }

@@ -94,7 +94,6 @@ function focusAssertion(monitor: Monitor) {
 }
 
 function recenter(coordinates?: L.LatLng) {
-  console.log("recentering")
   if (coordinates) {
     // Don't adjust the zoom if we're already zoomed in greater than 10
     const zoom = Math.max(map.getZoom(), 10);
