@@ -5,17 +5,18 @@
   import { useMonitorMarkers } from "./MonitorMarkers";
   import { useEVChargingMarkers } from "./EVChargingMarkers";
   import { useMapTilesets } from "./MapTilesets";
+import {useWidgetMode} from "../modules";
 
   const displayOptionsActive: Ref<boolean> = ref(false);
-  const { monitorMarkersVisibility } = await useMonitorMarkers();
-  const evStationsVisibility = await useEVChargingMarkers();
-  const { overlayTilesets } = await useOverlayTilesets();
+  const { widgetMode } = await useWidgetMode();
+  const { displayOptions: monitorMarkerDisplayOptions } = await useMonitorMarkers();
+  const evStationDisplayOptions = await useEVChargingMarkers();
+  const { displayOptions: overlayTilesetDisplayOptions } = await useOverlayTilesets();
   const mapTilesets = await useMapTilesets();
 
   function toggleDisplayOptions() {
     displayOptionsActive.value = !displayOptionsActive.value;
   }
-
 </script>
 
 <template>
@@ -35,14 +36,14 @@
       <div class="dropdown-content">
         <div class="columns">
           <div class="column">
-            <DisplayOption :displayOptions="monitorMarkersVisibility" />
+            <DisplayOption :props="monitorMarkerDisplayOptions" />
+          </div>
+          <div v-if="!widgetMode" class="column">
+            <DisplayOption :props="evStationDisplayOptions" />
+            <DisplayOption :props="overlayTilesetDisplayOptions" />
           </div>
           <div class="column">
-            <DisplayOption :displayOptions="evStationsVisibility" />
-            <DisplayOption :displayOptions="overlayTilesets" />
-          </div>
-          <div class="column">
-            <DisplayOption :displayOptions="mapTilesets" />
+            <DisplayOption :props="mapTilesets" />
           </div>
         </div>
       </div>

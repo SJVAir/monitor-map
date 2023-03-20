@@ -2,7 +2,7 @@ import { watch } from "vue";
 import L from "../modules/Leaflet";
 import { useInteractiveMap } from "../Map/InteractiveMap";
 import { asyncInitializer } from "../modules";
-import { RadioConfig, RadioOption } from "./mod";
+import { DisplayOptionProps, RadioConfig, RadioOption } from "./mod";
 import { useOverlayTilesets } from "./OverlayTilesets";
 import type { Ref } from "vue";
 import type { TileLayer, TileLayerOptions } from "../modules/Leaflet";
@@ -59,7 +59,7 @@ const mapTilesets: Record<string, TileLayerOption> = TileLayerOption.defineOptio
   }
 });
 
-export const useMapTilesets = asyncInitializer<Record<string, TileLayerOption>>(async (resolve) => {
+export const useMapTilesets = asyncInitializer<DisplayOptionProps<TileLayerOption>>(async (resolve) => {
   const [{ map }, { activeOverlays }] = await Promise.all([useInteractiveMap(), useOverlayTilesets()]);
   const { streets } = mapTilesets;
   let currentTileset = L.tileLayer(streets.urlTemplate, streets.options).addTo(map);
@@ -80,5 +80,8 @@ export const useMapTilesets = asyncInitializer<Record<string, TileLayerOption>>(
     }
   );
 
-  resolve(mapTilesets);
+  resolve({
+    label: "Map Tiles",
+    options: mapTilesets
+  });
 });

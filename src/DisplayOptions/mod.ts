@@ -15,6 +15,11 @@ interface DisplayOptionConfig {
   label: string;
 }
 
+export interface DisplayOptionProps<T extends DisplayOption = DisplayOption> {
+  label: string;
+  options: DisplayOptionRecord<T>;
+}
+
 export interface CheckboxConfig extends DisplayOptionConfig {
   model: boolean;
 }
@@ -26,6 +31,7 @@ export interface RadioConfig extends DisplayOptionConfig {
 export interface DisplayOption extends DisplayOptionConfig {
   labelClass: string;
 }
+
 export abstract class DisplayOption implements DisplayOptionConfig {
   containerClass?: string;
   icon?: DisplayOptionIcon;
@@ -42,8 +48,6 @@ export abstract class DisplayOption implements DisplayOptionConfig {
     this.label = config.label;
   }
 }
-
-
 
 export class Checkbox<T extends CheckboxConfig = CheckboxConfig> extends DisplayOption {
   static defineOptions<T extends Checkbox<U>, U extends CheckboxConfig>(configs: DisplayOptionConfigRecord<U>): DisplayOptionRecord<T> {

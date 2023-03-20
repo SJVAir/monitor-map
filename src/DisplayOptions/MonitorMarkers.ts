@@ -7,7 +7,7 @@ import { MonitorDisplayField, MonitorDataField, useMonitorsService } from "../Mo
 import { Checkbox } from "../DisplayOptions";
 import type { Ref } from "vue";
 import type { Router } from "vue-router";
-import type { DisplayOptionRecord } from "../DisplayOptions";
+import type { DisplayOptionProps, DisplayOptionRecord } from "../DisplayOptions";
 import type { Monitor } from "../Monitors";
 
 const monitorMarkersMap: Map<string, L.ShapeMarker> = new Map();
@@ -65,7 +65,7 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
 
 interface MonitorMarkersModule {
   monitorMarkers: L.FeatureGroup;
-  monitorMarkersVisibility: DisplayOptionRecord<Checkbox>;
+  displayOptions: DisplayOptionProps<Checkbox>;
 }
 
 export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (resolve) => {
@@ -102,7 +102,10 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
 
   resolve({
     monitorMarkers: monitorMarkersGroup,
-    monitorMarkersVisibility,
+    displayOptions: {
+      label: "Air Monitors",
+      options: monitorMarkersVisibility
+    },
   });
 });
 

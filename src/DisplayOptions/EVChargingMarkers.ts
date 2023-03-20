@@ -3,8 +3,7 @@ import { watch } from "vue";
 import { genEvStationMapMarker, useEVChargingService } from "../EVCharging";
 import { useInteractiveMap } from "../Map";
 import { asyncInitializer } from "../modules";
-import { Checkbox } from "../DisplayOptions";
-import type { DisplayOptionRecord } from "../DisplayOptions";
+import { Checkbox, DisplayOptionProps } from "../DisplayOptions";
 import type { Ref } from "vue";
 import type { IEvStation } from "../types";
 
@@ -32,7 +31,7 @@ const evStationsVisibility = Checkbox.defineOptions({
   }
 });
 
-export const useEVChargingMarkers = asyncInitializer<DisplayOptionRecord<Checkbox>>(async (resolve) => {
+export const useEVChargingMarkers = asyncInitializer<DisplayOptionProps<Checkbox>>(async (resolve) => {
   const [{ map }, { fetchLvl2Stations, fetchLvl3Stations, lvl2EVStations, lvl3EVStations } ] = await Promise.all([ useInteractiveMap(), useEVChargingService() ]);
   map.createPane(lvl2pane).style.zIndex = "605";
   map.createPane(lvl3pane).style.zIndex = "606";
@@ -53,7 +52,10 @@ export const useEVChargingMarkers = asyncInitializer<DisplayOptionRecord<Checkbo
     }
   );
 
-  resolve(evStationsVisibility);
+  resolve({
+    label: "EV Stations",
+    options: evStationsVisibility
+  });
 });
 
 async function updateEvStations(

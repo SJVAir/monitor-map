@@ -2,7 +2,7 @@ import { watch } from "vue";
 import L from "../modules/Leaflet";
 import { asyncInitializer } from "../modules";
 import { useInteractiveMap } from "../Map/InteractiveMap";
-import { Checkbox } from "./mod";
+import { Checkbox, DisplayOptionProps } from "./mod";
 import type { CheckboxConfig, DisplayOptionRecord } from "./mod";
 import type { TileLayer, TileLayerOptions } from "../modules/Leaflet";
 
@@ -56,7 +56,7 @@ const overlayTilesets: DisplayOptionRecord<MapOverlayOption> = MapOverlayOption.
 
 interface OverlayTilesetsModule {
   activeOverlays: Map<string, L.TileLayer>;
-  overlayTilesets: DisplayOptionRecord<Checkbox>;
+  displayOptions: DisplayOptionProps<MapOverlayOption>
 }
 
 export const useOverlayTilesets = asyncInitializer<OverlayTilesetsModule>(async (resolve) => {
@@ -83,7 +83,10 @@ export const useOverlayTilesets = asyncInitializer<OverlayTilesetsModule>(async 
   );
 
   resolve({
-    overlayTilesets,
-    activeOverlays
+    activeOverlays,
+    displayOptions: {
+      label: "Map Overlays",
+      options: overlayTilesets
+    }
   });
 });
