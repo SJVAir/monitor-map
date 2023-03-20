@@ -1,62 +1,43 @@
-import { onBeforeMount, onBeforeUnmount, ref } from "vue";
+import { ref } from "vue";
+import { useRoute } from "vue-router";
 import { http, dateUtil, asyncInitializer } from "../modules";
 import { DateRange } from "../models";
 import { useWidgetMode } from "../modules";
+import * as MonitorsService from "./BackgroundRequests";
 import type { Ref } from "vue";
 import type { Monitor } from "./Monitor";
 import type { MonitorId } from "../types";
 
 const monitorsLoadedEvent = new Event("MonitorsLoaded");
 const monitors = ref<Record<string, Monitor>>({});
-let service: typeof import("./requests") | typeof import("./BackgroundRequests");
-let intervalUpdater: number;
+const activeMonitor = ref<Monitor>();
 
 interface MonitorsServiceExtras {
+  activeMonitor: Ref<Monitor | undefined>;
+  monitors: Ref<Record<string, Monitor>>;
+  updateMonitors(): Promise<void>;
   downloadCSV(monitor: Monitor, dateRange: DateRange): void;
   getMonitor(id: MonitorId): Monitor;
-  monitors: Ref<Record<string, Monitor>>;
 }
 
-type MonitorsServiceModule = MonitorsServiceExtras & typeof service;
-export const useMonitorsService = asyncInitializer<MonitorsServiceModule>((resolve, reject) => {
-  const reloadInterval = 1000 * 60 * 2;
-  let webworker = true;
+type MonitorsServiceModule = MonitorsServiceExtras & typeof MonitorsService;
+export const useMonitorsService = asyncInitializer<MonitorsServiceModule>(async (resolve) => {
+  const route = useRoute();
 
-  //@ts-ignore: Cannot find name 'WorkerGlobalScope'
-  // 'WorkerGlobalScope' only exists in web workers
-  if (typeof WorkerGlobalScope !== 'undefined') {
-    webworker = false;
+  await updateMonitors();
 
-  } else {
-    onBeforeMount(async () => {
-      await updateMonitors();
-
-      if (!intervalUpdater || intervalUpdater <= 0 && reloadInterval > 0) {
-        intervalUpdater = window.setInterval(async () => await updateMonitors(), 1000 * 60 * 2);
-      }
-    });
-
-    onBeforeUnmount(() => {
-      clearInterval(intervalUpdater);
-      intervalUpdater = 0;
-    });
-
+  if ("monitorId" in route.params) {
+    activeMonitor.value = monitors.value[route.params.monitorId as string];
   }
 
-  const importService = webworker
-    ? import("./BackgroundRequests")
-    : import("./requests");
-
-  importService.then(serviceModule => {
-    service = serviceModule;
-    resolve({
-      ...serviceModule,
-      downloadCSV,
-      getMonitor,
-      monitors,
-    });
-  })
-  .catch(reject);
+  resolve({
+    activeMonitor,
+    monitors,
+    downloadCSV,
+    getMonitor,
+    updateMonitors,
+    ...MonitorsService
+  });
 });
 
 function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
@@ -74,11 +55,12 @@ function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
 
 async function updateMonitors(): Promise<void> {
   const { widgetSubList } = await useWidgetMode();
-  return await service.fetchMonitors()
+  return await MonitorsService.fetchMonitors()
     .then(monitorsRecord => {
       monitors.value = widgetSubList.value.length
         ? widgetSubList.value.reduce((subRecord, id) => ({ [id]: monitorsRecord[id], ...subRecord }), {})
         : monitorsRecord;
+      console.log("Route: ", );
       window.dispatchEvent(monitorsLoadedEvent);
     });
 }

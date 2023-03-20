@@ -68,45 +68,42 @@ interface MonitorMarkersModule {
   monitorMarkersVisibility: DisplayOptionRecord<Checkbox>;
 }
 
-export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>((resolve, reject) => {
+export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (resolve) => {
   const router = useRouter();
-  Promise.all([ useMonitorsService(), useInteractiveMap() ])
-    .then(services => {
-      const [ monitors, map ] = [ services[0].monitors, services[1].map ];
-      const displayRefs = Object.values(monitorMarkersVisibility).map(visibility => () => visibility.model.value);
+  const [{ monitors }, { map }] = await Promise.all([ useMonitorsService(), useInteractiveMap() ]);
+  const displayRefs = Object.values(monitorMarkersVisibility).map(visibility => () => visibility.model.value);
 
-      monitorMarkersGroup.addTo(map);
+  monitorMarkersGroup.addTo(map);
 
-      map.createPane("purpleAir").style.zIndex = "601";
-      map.createPane("airNow").style.zIndex = "602";
-      map.createPane("sjvAirPurpleAir").style.zIndex = "603";
-      map.createPane("sjvAirBam").style.zIndex = "604";
+  map.createPane("purpleAir").style.zIndex = "601";
+  map.createPane("airNow").style.zIndex = "602";
+  map.createPane("sjvAirPurpleAir").style.zIndex = "603";
+  map.createPane("sjvAirBam").style.zIndex = "604";
 
-      watch(
-        monitors,
-        () => rerenderMarkers(router, monitors)
-      );
+  watch(
+    monitors,
+    () => rerenderMarkers(router, monitors),
+    { immediate: true }
+  );
 
-      watch(
-        displayRefs,
-        () => {
-          monitorMarkersMap.forEach((marker, id) => {
-            if (isVisible(monitors.value[id])) {
-              monitorMarkersGroup.addLayer(marker);
+  watch(
+    displayRefs,
+    () => {
+      monitorMarkersMap.forEach((marker, id) => {
+        if (isVisible(monitors.value[id])) {
+          monitorMarkersGroup.addLayer(marker);
 
-            } else {
-              monitorMarkersGroup.removeLayer(marker);
-            }
-          });
+        } else {
+          monitorMarkersGroup.removeLayer(marker);
         }
-      );
-
-      resolve({
-        monitorMarkers: monitorMarkersGroup,
-        monitorMarkersVisibility,
       });
-    })
-    .catch(reject);
+    }
+  );
+
+  resolve({
+    monitorMarkers: monitorMarkersGroup,
+    monitorMarkersVisibility,
+  });
 });
 
 function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>) {

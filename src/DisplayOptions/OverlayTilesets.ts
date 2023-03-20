@@ -58,34 +58,32 @@ interface OverlayTilesetsModule {
   activeOverlays: Map<string, L.TileLayer>;
   overlayTilesets: DisplayOptionRecord<Checkbox>;
 }
-export const useOverlayTilesets = asyncInitializer<OverlayTilesetsModule>((resolve, reject) => {
-  useInteractiveMap()
-    .then(({ map }) => {
-      const activeOverlays: Map<string, L.TileLayer> = new Map();
-      const sources = Object.values(overlayTilesets).map(ts => () => ts.model.value);
 
-      watch(
-        sources,
-        () => {
-          const newActive = Object.values(overlayTilesets).filter(ts => ts.model.value === true && !activeOverlays.has(ts.label))
-          const newRemove = Object.values(overlayTilesets).filter(ts => ts.model.value === false && activeOverlays.has(ts.label))
+export const useOverlayTilesets = asyncInitializer<OverlayTilesetsModule>(async (resolve) => {
+  const { map } = await useInteractiveMap();
+  const activeOverlays: Map<string, L.TileLayer> = new Map();
+  const sources = Object.values(overlayTilesets).map(ts => () => ts.model.value);
 
-          newActive.forEach(ts => {
-            const layer = L.tileLayer(ts.urlTemplate, ts.options).addTo(map);
-            activeOverlays.set(ts.label, layer);
-          })
+  watch(
+    sources,
+    () => {
+      const newActive = Object.values(overlayTilesets).filter(ts => ts.model.value === true && !activeOverlays.has(ts.label))
+      const newRemove = Object.values(overlayTilesets).filter(ts => ts.model.value === false && activeOverlays.has(ts.label))
 
-          newRemove.forEach(ts => {
-            activeOverlays.get(ts.label)!.remove();
-            activeOverlays.delete(ts.label);
-          });
-        }
-      );
+      newActive.forEach(ts => {
+        const layer = L.tileLayer(ts.urlTemplate, ts.options).addTo(map);
+        activeOverlays.set(ts.label, layer);
+      })
 
-      resolve({
-        overlayTilesets,
-        activeOverlays
+      newRemove.forEach(ts => {
+        activeOverlays.get(ts.label)!.remove();
+        activeOverlays.delete(ts.label);
       });
-    })
-    .catch(reject);
+    }
+  );
+
+  resolve({
+    overlayTilesets,
+    activeOverlays
+  });
 });

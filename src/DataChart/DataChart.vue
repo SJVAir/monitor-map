@@ -8,7 +8,7 @@
   import type { MonitorDevice } from '../types';
 
   const props = defineProps<{
-    activeMonitor: Monitor,
+    activeMonitor: Monitor | undefined,
     chartData: uPlot.AlignedData,
     chartDataLoading: boolean,
     dateRange: DateRange
@@ -51,14 +51,16 @@
   }
 
   function downloadChart() {
-    const link = document.createElement('a');
-    const monitorName = `${ props.activeMonitor.data.name.split(" ").join("-") }`;
-    let { start, end} = props.dateRange;
-    start = formatDate(start);
-    end = formatDate(end);
-    link.download = `${ monitorName }_${ start }-${ end }.png`;
-    link.href = uplot.ctx.canvas.toDataURL()
-    link.click();
+    if (props.activeMonitor) {
+      const link = document.createElement('a');
+      const monitorName = `${ props.activeMonitor.data.name.split(" ").join("-") }`;
+      let { start, end} = props.dateRange;
+      start = formatDate(start);
+      end = formatDate(end);
+      link.download = `${ monitorName }_${ start }-${ end }.png`;
+      link.href = uplot.ctx.canvas.toDataURL()
+      link.click();
+    }
   }
 
   watch(

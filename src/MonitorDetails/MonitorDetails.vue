@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+  import { onUnmounted, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import DatePickerVue from './DatePicker.vue';
   import MonitorInfoVue from './MonitorInfo.vue';
@@ -7,14 +7,14 @@
   import { HumidityDataBoxVue, PM2DataBoxVue, TempDataBoxVue } from "../MonitorDataBox";
   import { useInteractiveMap } from "../Map";
   import { useMonitorsService } from "../Monitors";
+  import { useWidgetMode } from '../modules';
   import { DataChartVue, useDataChartService } from '../DataChart';
-  import { SingleEventListener } from "../models/SingleEventListener";
   import { DateRange } from '../models';
   import type { DatePickerSelection } from '../types';
 
   const props = defineProps<{ monitorId: string }>();
-  const { getMonitor, downloadCSV, widgetSubList } = await useMonitorsService();
-  const activeMonitor = computed(() => getMonitor(props.monitorId));
+  const { activeMonitor, getMonitor, downloadCSV } = await useMonitorsService();
+  const { widgetSubList } = await useWidgetMode();
   const chartData = ref<uPlot.AlignedData>([]);
   const chartDataLoading = ref<boolean>(false);
   const dateRange = ref(new DateRange());
@@ -27,17 +27,22 @@
   }
 
   async function csvDownload() {
-    downloadCSV(activeMonitor.value, dateRange.value);
+    if (activeMonitor.value) {
+      downloadCSV(activeMonitor.value, dateRange.value);
+    }
   }
 
   async function loadChartData() {
-    chartDataLoading.value = true;
-    await fetchChartData(activeMonitor.value, dateRange.value)
-      .then((data: uPlot.AlignedData) => {
-        chartData.value = data;
-        chartDataLoading.value = false;
-      })
-      .catch((err: any) => console.error("Failed to load chart data: ", err));
+    if (activeMonitor.value) {
+      chartDataLoading.value = true;
+      console.log("loadChartData activeMonitor: ", activeMonitor.value)
+      await fetchChartData(activeMonitor.value, dateRange.value)
+        .then((data: uPlot.AlignedData) => {
+          chartData.value = data;
+          chartDataLoading.value = false;
+        })
+        .catch((err: any) => console.error("Failed to load chart data: ", err));
+    }
   }
 
   async function updateDateRange(newRange: DatePickerSelection) {
@@ -46,33 +51,20 @@
 
   watch(
     () => props.monitorId,
-    () => {
+    (monitorId) => {
+    console.log("watcher running: ", monitorId)
+      if (activeMonitor.value && activeMonitor.value.data.id !== monitorId) {
+        activeMonitor.value = getMonitor(monitorId);
+      }
       if (activeMonitor.value) {
-        focusAssertion(activeMonitor.value);
+        // Leaflet already calls requestAnimationFrame, macrotask for smoother animation
+        setTimeout(() => focusAssertion(activeMonitor.value!));
         loadChartData();
       }
       chartData.value = [];
-    }
+    },
+    { immediate: true }
   );
-
-  onMounted(async () => {
-    if (!activeMonitor.value) {
-      new SingleEventListener("MonitorsLoaded", async () => {
-        if (activeMonitor.value) {
-          window.requestAnimationFrame(() => setTimeout(async () => {
-            focusAssertion(activeMonitor.value);
-            await loadChartData();
-          }, 5));
-        }
-      });
-
-    } else {
-      window.requestAnimationFrame(async () => {
-        focusAssertion(activeMonitor.value);
-        await loadChartData();
-      });
-    }
-  });
 
   onUnmounted(() => widgetSubList.value.length || recenter());
 </script>

@@ -9,14 +9,14 @@ interface WidgetModeModule {
   widgetSubList: Ref<Array<MonitorId>>;
 }
 
-export const useWidgetMode = asyncInitializer<WidgetModeModule>((resolve, reject) => {
+export const useWidgetMode = asyncInitializer<WidgetModeModule>(async (resolve) => {
   const route = useRoute();
   const widgetMode = ref(false);
   const widgetSubList = ref<Array<MonitorId>>([]);
 
   if (route.path === "/widget/") {
     if (!route.query.monitors?.length) {
-      reject("No monitor ID's provided for widget");
+      throw new Error("No monitor ID's provided for widget");
     }
     widgetMode.value = true;
     widgetSubList.value = (route.query.monitors! as string).split(",");

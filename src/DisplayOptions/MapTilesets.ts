@@ -59,44 +59,26 @@ const mapTilesets: Record<string, TileLayerOption> = TileLayerOption.defineOptio
   }
 });
 
-export const useMapTilesets = asyncInitializer<Record<string, TileLayerOption>>((resolve, reject) => {
-  Promise.all([useInteractiveMap(), useOverlayTilesets()])
-    .then(([{ map }, { activeOverlays }]) => {
-      const { streets } = mapTilesets;
-      let currentTileset = L.tileLayer(streets.urlTemplate, streets.options).addTo(map);
+export const useMapTilesets = asyncInitializer<Record<string, TileLayerOption>>(async (resolve) => {
+  const [{ map }, { activeOverlays }] = await Promise.all([useInteractiveMap(), useOverlayTilesets()]);
+  const { streets } = mapTilesets;
+  let currentTileset = L.tileLayer(streets.urlTemplate, streets.options).addTo(map);
 
-      watch(
-        () => Object.values(mapTilesets)[0].model.value,
-        (tilesetKey) => {
-          window.requestAnimationFrame(() => {
-            const tileset = mapTilesets[tilesetKey as keyof typeof mapTilesets];
-            currentTileset.remove();
-            currentTileset = L.tileLayer(tileset.urlTemplate, tileset.options).addTo(map);
-            if (activeOverlays.size) {
-              for (let layer of activeOverlays.values()) {
-                layer.redraw();
-              }
-            }
-            //if (isChecked) {
-            //  Object.values(mapTilesets).find(ts => ts.label === currentTileset)!.model.value = false;
-            //  baseTileset.remove();
-
-            //  const tileset = Object.values(mapTilesets).find(ts => ts.model.value === true)!;
-            //  console.log("tileset: ", tileset)
-            //  console.log("maptTilesets: ", mapTilesets);
-            //  baseTileset = L.tileLayer(tileset.urlTemplate, tileset.options).addTo(map);
-
-            //  if (activeOverlays.size) {
-            //    for (let layer of activeOverlays.values()) {
-            //      layer.redraw();
-            //    }
-            //  }
-            //}
-          });
+  watch(
+    () => Object.values(mapTilesets)[0].model.value,
+    (tilesetKey) => {
+      window.requestAnimationFrame(() => {
+        const tileset = mapTilesets[tilesetKey as keyof typeof mapTilesets];
+        currentTileset.remove();
+        currentTileset = L.tileLayer(tileset.urlTemplate, tileset.options).addTo(map);
+        if (activeOverlays.size) {
+          for (let layer of activeOverlays.values()) {
+            layer.redraw();
+          }
         }
-      );
+      });
+    }
+  );
 
-      resolve(mapTilesets);
-    })
-    .catch(reject);
+  resolve(mapTilesets);
 });

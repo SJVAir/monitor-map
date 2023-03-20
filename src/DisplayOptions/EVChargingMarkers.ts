@@ -32,31 +32,28 @@ const evStationsVisibility = Checkbox.defineOptions({
   }
 });
 
-export const useEVChargingMarkers = asyncInitializer<DisplayOptionRecord<Checkbox>>((resolve, reject) => {
-  Promise.all([ useInteractiveMap(), useEVChargingService() ])
-    .then(([{ map }, { fetchLvl2Stations, fetchLvl3Stations, lvl2EVStations, lvl3EVStations } ]) => {
-      map.createPane(lvl2pane).style.zIndex = "605";
-      map.createPane(lvl3pane).style.zIndex = "606";
-      lvl2MarkersGroup.addTo(map);
-      lvl3MarkersGroup.addTo(map);
+export const useEVChargingMarkers = asyncInitializer<DisplayOptionRecord<Checkbox>>(async (resolve) => {
+  const [{ map }, { fetchLvl2Stations, fetchLvl3Stations, lvl2EVStations, lvl3EVStations } ] = await Promise.all([ useInteractiveMap(), useEVChargingService() ]);
+  map.createPane(lvl2pane).style.zIndex = "605";
+  map.createPane(lvl3pane).style.zIndex = "606";
+  lvl2MarkersGroup.addTo(map);
+  lvl3MarkersGroup.addTo(map);
 
-      watch(
-        () => evStationsVisibility.lvl2.model.value,
-        (isChecked) => {
-          updateEvStations(isChecked, lvl2EVStations, lvl2MarkersGroup, lvl2pane, fetchLvl2Stations);
-        }
-      );
+  watch(
+    () => evStationsVisibility.lvl2.model.value,
+    (isChecked) => {
+      updateEvStations(isChecked, lvl2EVStations, lvl2MarkersGroup, lvl2pane, fetchLvl2Stations);
+    }
+  );
 
-      watch(
-        () => evStationsVisibility.lvl3.model.value,
-        (isChecked) => {
-          updateEvStations(isChecked, lvl3EVStations, lvl3MarkersGroup, lvl3pane, fetchLvl3Stations);
-        }
-      );
+  watch(
+    () => evStationsVisibility.lvl3.model.value,
+    (isChecked) => {
+      updateEvStations(isChecked, lvl3EVStations, lvl3MarkersGroup, lvl3pane, fetchLvl3Stations);
+    }
+  );
 
-      resolve(evStationsVisibility);
-    })
-    .catch(reject);
+  resolve(evStationsVisibility);
 });
 
 async function updateEvStations(
