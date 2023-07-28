@@ -8,14 +8,12 @@
   import { HumidityDataBoxVue, PM2DataBoxVue, TempDataBoxVue } from "../MonitorDataBox";
   import { useInteractiveMap } from "../Map";
   import { useMonitorsService } from "../Monitors";
-  import { useWidgetMode } from "../modules";
   import { DataChartVue, useDataChartService } from "../DataChart";
   import { DateRange } from "../models";
   import type { DatePickerSelection } from "../types";
 
   const props = defineProps<{ monitorId: string }>();
   const { activeMonitor, getMonitor, downloadCSV } = await useMonitorsService();
-  const { widgetSubList } = await useWidgetMode();
   const chartData = ref<uPlot.AlignedData>([]);
   const chartDataLoading = ref<boolean>(false);
   const dateRange = ref(new DateRange());
@@ -66,7 +64,7 @@
     { immediate: true }
   );
 
-  onUnmounted(() => widgetSubList.value.length || recenter());
+  onUnmounted(() =>  recenter());
 </script>
 
 <template>

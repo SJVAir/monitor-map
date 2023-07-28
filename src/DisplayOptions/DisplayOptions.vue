@@ -5,10 +5,8 @@
   import { useMonitorMarkers } from "./MonitorMarkers";
   import { useEVChargingMarkers } from "./EVChargingMarkers";
   import { useMapTilesets } from "./MapTilesets";
-import {useWidgetMode} from "../modules";
 
   const displayOptionsActive: Ref<boolean> = ref(false);
-  const { widgetMode } = await useWidgetMode();
   const { displayOptions: monitorMarkerDisplayOptions } = await useMonitorMarkers();
   const evStationDisplayOptions = await useEVChargingMarkers();
   const { displayOptions: overlayTilesetDisplayOptions } = await useOverlayTilesets();
@@ -38,7 +36,7 @@ import {useWidgetMode} from "../modules";
           <div class="column">
             <DisplayOption :props="monitorMarkerDisplayOptions" />
           </div>
-          <div v-if="!widgetMode" class="column">
+          <div class="column">
             <DisplayOption :props="evStationDisplayOptions" />
             <DisplayOption :props="overlayTilesetDisplayOptions" />
           </div>
