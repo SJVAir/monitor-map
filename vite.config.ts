@@ -33,47 +33,25 @@ const devConfig: UserConfig = {
   build: {}
 };
 
-const rollupOptions: UserConfig["build"]["rollupOptions"] = {
-  input: {
-    sjvairMonitorMap: resolve(__dirname, "./src/main.ts")
-  },
-  output: {
-    entryFileNames: "[name].js",
-    assetFileNames: "[name].[ext]"
-  }
-};
-
-const widgetConfig: UserConfig = {
-  base: "/static/widget/",
-  build: {
-    outDir: resolve(__dirname, "./dist/widget"),
-    rollupOptions
-  }
-};
-
 const moduleConfig: UserConfig = {
   base: "/static/monitor-map/",
   build: {
     outDir: resolve(__dirname, "./dist/monitor-map"),
-    rollupOptions
+    rollupOptions: {
+      input: {
+        sjvairMonitorMap: resolve(__dirname, "./src/main.ts")
+      },
+      output: {
+        entryFileNames: "[name].js",
+        assetFileNames: "[name].[ext]"
+      }
+    }
   }
 };
 
-const pagesConfig: UserConfig = {
-  base: "/monitor-map/",
-  build: {
-    outDir: resolve(__dirname, "./pages")
-  }
-};
+const devMode = !process.env.Prod;
 
-const devMode = (process.env.VITE_BUILD_MODE === "development");
-const modMode = (process.env.VITE_BUILD_MODE === "mod");
-const ghpages = (process.env.VITE_BUILD_MODE === "ghp");
-
-const config: UserConfig = devMode ? devConfig
-  : modMode ? moduleConfig
-    : ghpages ? pagesConfig
-      : widgetConfig;
+const config: UserConfig = devMode ? devConfig : moduleConfig;
 
 // https://vitejs.dev/config/
 export default defineConfig({
