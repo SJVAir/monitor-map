@@ -1,16 +1,17 @@
 <script setup lang="ts">
-  import { onUnmounted, ref, watch } from 'vue';
-  import { useRouter } from 'vue-router';
-  import DatePickerVue from './DatePicker.vue';
-  import MonitorInfoVue from './MonitorInfo.vue';
-  import { MonitorSubscriptionVue } from '../MonitorSubscription';
+  import { onUnmounted, ref, watch } from "vue";
+  import { useRouter } from "vue-router";
+  import DatePickerVue from "./DatePicker.vue";
+  import MonitorInfoVue from "./MonitorInfo.vue";
+  import WidgetModalVue from "./WidgetModal.vue";
+  import { MonitorSubscriptionVue } from "../MonitorSubscription";
   import { HumidityDataBoxVue, PM2DataBoxVue, TempDataBoxVue } from "../MonitorDataBox";
   import { useInteractiveMap } from "../Map";
   import { useMonitorsService } from "../Monitors";
-  import { useWidgetMode } from '../modules';
-  import { DataChartVue, useDataChartService } from '../DataChart';
-  import { DateRange } from '../models';
-  import type { DatePickerSelection } from '../types';
+  import { useWidgetMode } from "../modules";
+  import { DataChartVue, useDataChartService } from "../DataChart";
+  import { DateRange } from "../models";
+  import type { DatePickerSelection } from "../types";
 
   const props = defineProps<{ monitorId: string }>();
   const { activeMonitor, getMonitor, downloadCSV } = await useMonitorsService();
@@ -104,6 +105,8 @@
           </button>
         </div>
       </div>
+
+      <WidgetModalVue />
 
       <div v-if="activeMonitor" class="monitor-data-info">
         <PM2DataBoxVue :monitor="activeMonitor"></PM2DataBoxVue>
