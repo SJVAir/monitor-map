@@ -2,7 +2,6 @@ import { ref } from "vue";
 import { useRoute } from "vue-router";
 import { http, dateUtil, asyncInitializer } from "../modules";
 import { DateRange } from "../models";
-import { useWidgetMode } from "../modules";
 import * as MonitorsService from "./BackgroundRequests";
 import type { Ref } from "vue";
 import type { Monitor } from "./Monitor";
@@ -54,12 +53,9 @@ function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
 }
 
 async function updateMonitors(): Promise<void> {
-  const { widgetSubList } = await useWidgetMode();
   return await MonitorsService.fetchMonitors()
     .then(monitorsRecord => {
-      monitors.value = widgetSubList.value.length
-        ? widgetSubList.value.reduce((subRecord, id) => ({ [id]: monitorsRecord[id], ...subRecord }), {})
-        : monitorsRecord;
+      monitors.value =  monitorsRecord;
       window.dispatchEvent(monitorsLoadedEvent);
     });
 }

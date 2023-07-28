@@ -3,13 +3,11 @@
   import { RouterView } from "vue-router";
   import { DisplayOptionsVue } from "../DisplayOptions";
   import { MapVue } from "../Map";
-  import { useWidgetMode } from "../modules";
   import { useMonitorsService } from "../Monitors";
 
   const reloadInterval = 1000 * 60 * 2;
   let intervalUpdater: number;
 
-  await useWidgetMode();
   const { updateMonitors } = await useMonitorsService();
 
   onBeforeMount(async () => {
