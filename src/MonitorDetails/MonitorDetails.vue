@@ -3,7 +3,7 @@
   import { useRouter } from "vue-router";
   import DatePickerVue from "./DatePicker.vue";
   import MonitorInfoVue from "./MonitorInfo.vue";
-  import WidgetModalVue from "./WidgetModal.vue";
+  import WidgetModalVue from "../WidgetModal/WidgetModal.vue";
   import { MonitorSubscriptionVue } from "../MonitorSubscription";
   import { HumidityDataBoxVue, PM2DataBoxVue, TempDataBoxVue } from "../MonitorDataBox";
   import { useInteractiveMap } from "../Map";
@@ -77,6 +77,7 @@
     <div class="column data-control">
       <MonitorInfoVue :monitor="activeMonitor"></MonitorInfoVue>
       <MonitorSubscriptionVue :monitorId="props.monitorId"></MonitorSubscriptionVue>
+      <WidgetModalVue :monitorId="props.monitorId"/>
       <div class="date-control">
         <div class="control">
           <label for="startDate" class="label is-small has-text-weight-normal">Date Range</label>
@@ -104,13 +105,12 @@
         </div>
       </div>
 
-      <WidgetModalVue />
-
       <div v-if="activeMonitor" class="monitor-data-info">
         <PM2DataBoxVue :monitor="activeMonitor"></PM2DataBoxVue>
         <TempDataBoxVue :monitor="activeMonitor"></TempDataBoxVue>
         <HumidityDataBoxVue :monitor="activeMonitor"></HumidityDataBoxVue>
       </div>
+
     </div>
   </div>
 </template>
@@ -147,6 +147,7 @@
         flex-flow: row wrap;
         flex-direction: row;
         justify-content: space-evenly;
+        align-items: center;
       }
 
       .monitor-data-info {
