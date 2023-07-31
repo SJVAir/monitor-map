@@ -36,7 +36,7 @@ const devConfig: UserConfig = {
 const prodConfig: UserConfig = {
   base: "/static/monitor-map/",
   build: {
-    outDir: resolve(__dirname, "./dist/monitor-map"),
+    outDir: resolve(__dirname, "./dist"),
     rollupOptions: {
       input: {
         sjvairMonitorMap: resolve(__dirname, "./src/main.ts")
@@ -49,7 +49,7 @@ const prodConfig: UserConfig = {
   }
 };
 
-const devMode = !process.env.Prod;
+const devMode = process.env.PROD !== "true";
 
 const { base, build }: UserConfig = devMode ? devConfig : prodConfig;
 

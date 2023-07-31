@@ -4,12 +4,12 @@
   "files": [
     "dist"
   ],
-  "version": "1.4.0",
+  "version": "1.4.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:host": "vite --host",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && PROD=true vite build",
     "prepublishOnly": "npm run build",
     "preview": "vite preview"
   },
