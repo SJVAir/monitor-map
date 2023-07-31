@@ -79,7 +79,7 @@
       background-color: rgba(0, 0, 0, .5);
       -webkit-backdrop-filter: blur(9.9px);
       backdrop-filter: blur(9.9px);
-      transition: 300ms;
+      transition: 200ms;
       opacity: 0;
 
       &.visible {
