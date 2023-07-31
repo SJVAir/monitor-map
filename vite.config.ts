@@ -33,7 +33,7 @@ const devConfig: UserConfig = {
   build: {}
 };
 
-const moduleConfig: UserConfig = {
+const prodConfig: UserConfig = {
   base: "/static/monitor-map/",
   build: {
     outDir: resolve(__dirname, "./dist/monitor-map"),
@@ -51,16 +51,16 @@ const moduleConfig: UserConfig = {
 
 const devMode = !process.env.Prod;
 
-const config: UserConfig = devMode ? devConfig : moduleConfig;
+const { base, build }: UserConfig = devMode ? devConfig : prodConfig;
 
 // https://vitejs.dev/config/
 export default defineConfig({
   // Base directory compiled files will be served from
-  base: config.base,
+  base,
   build: {
     sourcemap: devMode,
     minify: "terser",
-    ...config.build
+    ...build
   },
   plugins: [
     htmlPurge(htmlPurgeOptions) as unknown as PluginOption,
