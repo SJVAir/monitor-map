@@ -12,11 +12,17 @@
       ? new URL(import.meta.url).origin
       : "http://localhost:8000";
 
-    return `${ baseURL }/static/widget/index.html#/${ monitorId }`
+    return `${ baseURL }/widget/#/${ monitorId }`
   });
 
+  const widgetStyles = {
+    overflow: "hidden",
+    width: "290px",
+    height: "390px"
+  };
+
   const iframeCode = computed(() => {
-    return `<iframe src="${ iframeSrc.value }" frameborder="0" allowtransparency="true" style="overflow: hidden; width: 290px; height: 390px;"></iframe>`;
+    return `<iframe src="${ iframeSrc.value }" frameborder="0" allowtransparency="true" style="overflow: ${ widgetStyles.overflow }; width: ${ widgetStyles.width }; height: ${ widgetStyles.height };"></iframe>`;
   });
 
   function copyToClipboard() {
@@ -44,7 +50,7 @@
     <div class="modal-background" :class="{ visible: modalOpen}" @click.self="closeModal">
       <div class="my-modal">
         <span class="close-btn material-symbols-outlined" @click.self="closeModal">close</span>
-        <iframe :src="iframeSrc" frameborder="0" allowtransparency="true" style="overflow: hidden; width: 290px; height: 390px;"></iframe>
+        <iframe :src="iframeSrc" frameborder="0" allowtransparency="true" :style="widgetStyles"></iframe>
         <p class="has-text-centered">Copy the following code and paste it in your website</p>
         <div class="code">
           <code>
