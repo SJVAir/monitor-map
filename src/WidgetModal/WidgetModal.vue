@@ -9,7 +9,7 @@
   const copied = ref<boolean>(false);
   const iframeSrc = computed(() => {
     const baseURL = (import.meta.env.PROD)
-      ? new URL(import.meta.url).origin
+      ? window.location.origin
       : "http://localhost:8000";
 
     return `${ baseURL }/widget/#/${ monitorId }`
