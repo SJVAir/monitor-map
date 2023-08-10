@@ -1,7 +1,7 @@
 <script setup lang="ts">
-  import { computed, ref } from "vue";
+  import { computed, ref, watch } from "vue";
 
-  const { monitorId } = defineProps<{
+  const props = defineProps<{
     monitorId: string
   }>();
 
@@ -12,7 +12,7 @@
       ? window.location.origin
       : "http://localhost:8000";
 
-    return `${ baseURL }/widget/#/${ monitorId }`
+    return `${ baseURL }/widget/#/${ props.monitorId }`
   });
 
   const widgetStyles = {
@@ -41,6 +41,13 @@
     modalOpen.value = false;
     document.body.style.overflow = "auto";
   }
+  watch(
+    () => props.monitorId,
+    () => {
+      console.log("monitorID changed", props.monitorId)
+      console.log("other things:", iframeSrc)
+    }
+  );
 </script>
 
 <template>
@@ -50,7 +57,10 @@
     <div class="modal-background" :class="{ visible: modalOpen}" @click.self="closeModal">
       <div class="my-modal">
         <span class="close-btn material-symbols-outlined" @click.self="closeModal">close</span>
+        <!--
         <iframe :src="iframeSrc" frameborder="0" allowtransparency="true" :style="widgetStyles"></iframe>
+        -->
+        <div class="iframe" v-html="iframeCode"></div>
         <p class="has-text-centered">Copy the following code and paste it in your website</p>
         <div class="code">
           <code>
