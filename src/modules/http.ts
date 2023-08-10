@@ -1,8 +1,8 @@
-import Axios from 'axios';
+import Axios from "axios";
 
 const baseURL = (() => {
   if (import.meta.env.PROD) {
-    if (window !== undefined) {
+    if (typeof window !== "undefined") {
       return window.location.origin;
     } else {
       return self.location.origin
@@ -13,4 +13,5 @@ const baseURL = (() => {
 })();
 
 
+console.log(baseURL)
 export const http = Axios.create({ baseURL });
