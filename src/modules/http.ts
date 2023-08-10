@@ -2,11 +2,11 @@ import Axios from "axios";
 
 const baseURL = (() => {
   if (import.meta.env.PROD) {
-    if (typeof window !== "undefined") {
-      return window.location.origin;
-    } else {
-      return self.location.origin
-    }
+    const origin = (typeof window !== "undefined")
+      ? window.location.origin
+      : self.location.origin
+
+    return `${ origin }/api/1.0/`
   } else {
     return "/api/1.0/";
   }
