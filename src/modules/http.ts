@@ -12,6 +12,4 @@ const baseURL = (() => {
   }
 })();
 
-
-console.log(baseURL)
 export const http = Axios.create({ baseURL });
