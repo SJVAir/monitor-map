@@ -42,7 +42,7 @@ export const useMonitorsService = asyncInitializer<MonitorsServiceModule>(async 
 function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
   const path = import.meta.env.DEV 
     ? `${ http.defaults.baseURL }monitors/${ monitor.data.id }/entries/csv`
-    : `${ window.location.origin }${ http.defaults.baseURL }monitors/${ monitor.data.id }/entries/csv`;
+    : `${ http.defaults.baseURL }monitors/${ monitor.data.id }/entries/csv`;
   const params = new URLSearchParams({
     fields: monitor.dataFields.join(','),
     timestamp__gte: dateUtil.$defaultFormat(dateRange.start),
