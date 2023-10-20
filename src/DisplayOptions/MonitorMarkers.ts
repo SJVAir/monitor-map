@@ -37,6 +37,14 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
     model: true,
     label: "AirNow network"
   },
+  AQview: {
+    containerClass: "has-text-success",
+    icon: {
+      id: "change_history"
+    },
+    model: true,
+    label: "AQview network"
+  },
   PurpleAir: {
     containerClass: "has-text-success",
     icon: {
@@ -77,8 +85,9 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
 
   map.createPane("purpleAir").style.zIndex = "601";
   map.createPane("airNow").style.zIndex = "602";
-  map.createPane("sjvAirPurpleAir").style.zIndex = "603";
-  map.createPane("sjvAirBam").style.zIndex = "604";
+  map.createPane("aqview").style.zIndex = "603";
+  map.createPane("sjvAirPurpleAir").style.zIndex = "604";
+  map.createPane("sjvAirBam").style.zIndex = "605";
 
   watch(
     monitors,
@@ -157,21 +166,25 @@ function isVisible(monitor: Monitor): boolean {
     return false;
   }
 
-  if (monitor.data.device == 'PurpleAir') {
+  if (monitor.data.device === "PurpleAir") {
     const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
-      || monitor.data.location == 'outside';
+      || monitor.data.location === "outside";
     const visibleByNetwork = monitor.data.is_sjvair
       ? monitorMarkersVisibility.SJVAirPurple.model.value
       : monitorMarkersVisibility.PurpleAir.model.value;
 
     return  visibleByNetwork && visibleByLocation;
 
-  } else if (monitor.data.device == 'BAM1022'){
+  } else if (monitor.data.device === "BAM1022"){
     return monitorMarkersVisibility.SJVAirBAM.model.value;
 
-  }  else if (monitor.data.device == 'AirNow'){
+  }  else if (monitor.data.device === "AirNow"){
     return monitorMarkersVisibility.AirNow.model.value;
+
+  } else if (monitor.data.device === "AQview") {
+    return monitorMarkersVisibility.AQview.model.value;
   }
+
   return false;
 }
 
@@ -222,6 +235,8 @@ function getMarkerPaneName(monitor: Monitor): string {
   switch(monitor.data.device) {
     case "AirNow": 
       return "airNow";
+    case "AQview":
+      return "aqview";
     case "BAM1022":
       return "sjvAirBam";
     case "PurpleAir":
