@@ -106,11 +106,7 @@ function getSeriesConfigs(deviceType: MonitorDevice) {
 
   switch (deviceType) {
     case "AirNow":
-      return [
-        baseXSeriesConfig,
-        singleSeriesConfig
-      ];
-
+    case "AQview":
     case "BAM1022":
       return [
         baseXSeriesConfig,
