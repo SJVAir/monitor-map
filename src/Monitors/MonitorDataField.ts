@@ -35,6 +35,9 @@ export function getDataFields(data: IMonitorData) {
       case "AirNow":
         return airNowDataFields(data);
 
+      case "AQview":
+        return aqviewDataFields(data);
+
       case "BAM1022":
         return bam1022DataFields(data);
 
@@ -57,6 +60,12 @@ function airNowDataFields(data: IMonitorData) {
   return genMulti(
       ["pm25", "PM 2.5", "60m", data],
       ["pm100", "PM 10", "60M", data]
+    );
+}
+
+function aqviewDataFields(data: IMonitorData) {
+  return genMulti(
+      ["pm25_avg_60", "PM 2.5", "60m", data]
     );
 }
 
