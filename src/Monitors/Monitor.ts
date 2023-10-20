@@ -40,6 +40,7 @@ function getMarkerParams(monitorData: IMonitorData): IMarkerParams {
 
   switch(monitorData.device) {
     case "AirNow": 
+    case "AQview":
     case "BAM1022":
       params.shape = "triangle";
       break;
@@ -47,7 +48,7 @@ function getMarkerParams(monitorData: IMonitorData): IMarkerParams {
       (monitorData.is_sjvair) && (params.shape = "circle");
       break;
     default:
-      console.error(`Unknown device type for monitor ${ monitorData.id }`);
+      console.error(`Unknown device type for monitor ${ monitorData.id }: ${ monitorData.device }`, monitorData);
       params.shape = "diamond";
   }
 
@@ -61,6 +62,7 @@ function getMarkerParams(monitorData: IMonitorData): IMarkerParams {
 
       switch(monitorData.device) {
         case "AirNow": 
+        case "AQview":
         case "BAM1022":
           params.size = 14;
           break;
