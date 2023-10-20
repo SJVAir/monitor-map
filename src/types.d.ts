@@ -54,7 +54,7 @@ export type ChartDataArray = Array<Array<ChartDataPoint>>;
 export type ChartDataField = keyof typeof MonitorFieldColors;
 export type DatePickerSelection = [Date, Date] | [string, string];
 //export type ChartDataRecord = Record<ChartDataField, Array<ChartDataPoint>>;
-export type MonitorDevice = "AirNow" | "BAM1022" | "PurpleAir";
+export type MonitorDevice = "AirNow" | "AQview" | "BAM1022" | "PurpleAir";
 export type EntriesPageResponse = AxiosResponse<IEntriesPageResponse, any>;
 // Declare first element should always be default
 export type MapTilesetCollection = [Override<ILeafletTileLayer, { isDefault: true }>, ...ILeafletTileLayer[]];
