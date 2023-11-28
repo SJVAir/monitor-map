@@ -123,6 +123,14 @@
   height: 20px;
 }
 
+.crosshairs-svg {
+  background-color: bulma.$black;
+  -webkit-mask: url(./assets/crosshairs-solid.svg) center/1rem 1rem no-repeat;
+  mask: url(./assets/crosshairs-solid.svg) center/1rem 1rem no-repeat;
+  width: 30px;
+  height: 30px;
+}
+
 @keyframes spinner {
   from {
     transform: rotate(0deg);
