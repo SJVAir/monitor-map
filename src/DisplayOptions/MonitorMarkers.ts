@@ -1,16 +1,18 @@
 import { watch } from "vue";
 import { useRouter } from "vue-router";
 import { useInteractiveMap } from "../Map";
+import { useCalibratorsService } from "../Calibrators";
 import L from "../modules/Leaflet";
 import { asyncInitializer, darken, dateUtil, readableColor, toHex } from "../modules";
 import { MonitorDisplayField, MonitorDataField, useMonitorsService } from "../Monitors";
 import { Checkbox } from "../DisplayOptions";
+import { Monitor } from "../Monitors";
 import type { Ref } from "vue";
 import type { Router } from "vue-router";
+import type { Calibrator } from "../Calibrators";
 import type { DisplayOptionProps, DisplayOptionRecord } from "../DisplayOptions";
-import type { Monitor } from "../Monitors";
 
-const monitorMarkersMap: Map<string, L.ShapeMarker> = new Map();
+const monitorMarkersMap: Map<string, L.ShapeMarker | L.Marker<any>> = new Map();
 const monitorMarkersGroup: L.FeatureGroup = new L.FeatureGroup();
 const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineOptions({
   SJVAirPurple: {
@@ -53,6 +55,11 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
     model: true,
     label: "PurpleAir network"
   },
+  Calibrators: {
+    label: "Calibrators",
+    model: true,
+    svg: "crosshairs-svg"
+  },
   PurpleAirInside: {
     containerClass: "icon-border has-text-success",
     icon: {
@@ -78,7 +85,11 @@ interface MonitorMarkersModule {
 
 export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (resolve) => {
   const router = useRouter();
-  const [{ monitors }, { map }] = await Promise.all([ useMonitorsService(), useInteractiveMap() ]);
+  const { map } = await useInteractiveMap();
+  const { monitors} = await useMonitorsService();
+  const { calibrators, fetchCalibrators } = await useCalibratorsService();
+
+  await fetchCalibrators();
   const displayRefs = Object.values(monitorMarkersVisibility).map(visibility => () => visibility.model.value);
 
   monitorMarkersGroup.addTo(map);
@@ -88,10 +99,11 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
   map.createPane("aqview").style.zIndex = "603";
   map.createPane("sjvAirPurpleAir").style.zIndex = "604";
   map.createPane("sjvAirBam").style.zIndex = "605";
+  map.createPane("calibrators").style.zIndex = "606";
 
   watch(
     monitors,
-    () => rerenderMarkers(router, monitors),
+    () => rerenderMarkers(router, monitors, calibrators),
     { immediate: true }
   );
 
@@ -99,7 +111,7 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
     displayRefs,
     () => {
       monitorMarkersMap.forEach((marker, id) => {
-        if (isVisible(monitors.value[id])) {
+        if (isVisible(monitors.value[id], calibrators)) {
           monitorMarkersGroup.addLayer(marker);
 
         } else {
@@ -118,9 +130,14 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
   });
 });
 
-function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>) {
+function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>, calibrators: Ref<Array<Calibrator>>) {
+  //const _calibrators = calibrators.value.map(c => monitors.value[c.reference_id]);
+  //const _colocated = calibrators.value.map(c => monitors.value[c.colocated_id]);
+  //console.log("calibrators:", _calibrators.map(m => m.data.device));
+  //console.log("colocated:", _colocated.map(m => m.data.device));
   for (let id in monitors.value) {
     const monitor = monitors.value[id];
+    const calibrator = calibrators.value.find(c => c.reference_id === id);
 
     if (!monitor.data.latest) {
       continue;
@@ -131,31 +148,36 @@ function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>
       monitorMarkersMap.delete(id);
     }
 
-    const marker = genMonitorMapMarker(monitor);
+    const monitorMarker = genMonitorMapMarker(monitor);
 
-    marker.addEventListener('click', () => {
+    monitorMarker.addEventListener('click', () => {
       router.push({
         name: "details",
         params: {
           monitorId: monitor.data.id
         }
       });
-
     });
 
-    if (marker) {
+    if (monitorMarker) {
       // Assign/reassign marker to record
-      monitorMarkersMap.set(id, marker);
+      monitorMarkersMap.set(id, monitorMarker);
 
       
-      if (isVisible(monitor)) {
-        monitorMarkersGroup.addLayer(marker);
+      if (isVisible(monitor, calibrators)) {
+        monitorMarkersGroup.addLayer(monitorMarker);
+
+        if (calibrator) {
+          const calibratorMarker = genCalibratorMapMarker(calibrator);
+          monitorMarkersMap.set(id, calibratorMarker);
+          monitorMarkersGroup.addLayer(calibratorMarker);
+        }
       }
     }
   }
 }
 
-function isVisible(monitor: Monitor): boolean {
+function isVisible(monitor: Monitor, calibrators: Ref<Array<Calibrator>>): boolean {
   // showSJVAirPurple
   // showSJVAirBAM
   // showPurpleAir
@@ -165,6 +187,7 @@ function isVisible(monitor: Monitor): boolean {
   if(!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active){
     return false;
   }
+
 
   if (monitor.data.device === "PurpleAir") {
     const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
@@ -179,13 +202,29 @@ function isVisible(monitor: Monitor): boolean {
     return monitorMarkersVisibility.SJVAirBAM.model.value;
 
   }  else if (monitor.data.device === "AirNow"){
-    return monitorMarkersVisibility.AirNow.model.value;
+    const calibrator = calibrators.value.find(c => c.reference_id === monitor.data.id);
+
+    if (!calibrator) {
+      return monitorMarkersVisibility.AirNow.model.value;
+    } else {
+      return monitorMarkersVisibility.Calibrators.model.value;
+    }
 
   } else if (monitor.data.device === "AQview") {
     return monitorMarkersVisibility.AQview.model.value;
   }
 
   return false;
+}
+
+function genCalibratorMapMarker(calibrator: Calibrator) {
+  const [ lng, lat ] = calibrator.position.coordinates;
+  const icon = L.divIcon({
+    pane: "calibrators",
+    className: "is-flex is-justify-content-center is-align-items-center",
+    html: "<div class='crosshairs-svg' style='width: 30px; height: 30px;'></div>"
+  });
+  return L.marker(L.latLng(lat, lng), { icon });
 }
 
 function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
@@ -231,17 +270,21 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
   return marker;
 }
 
-function getMarkerPaneName(monitor: Monitor): string {
-  switch(monitor.data.device) {
-    case "AirNow": 
-      return "airNow";
-    case "AQview":
-      return "aqview";
-    case "BAM1022":
-      return "sjvAirBam";
-    case "PurpleAir":
-      return (monitor.data.is_sjvair) ? "sjvAirPurpleAir" : "purpleAir";
-    default:
-      return "marker";
+function getMarkerPaneName(monitor: Monitor | Calibrator): string {
+  if (monitor instanceof Monitor) {
+    switch(monitor.data.device) {
+      case "AirNow": 
+        return "airNow";
+      case "AQview":
+        return "aqview";
+      case "BAM1022":
+        return "sjvAirBam";
+      case "PurpleAir":
+        return (monitor.data.is_sjvair) ? "sjvAirPurpleAir" : "purpleAir";
+      default:
+        return "marker";
+    }
+  } else {
+    return "calibrators";
   }
 }
