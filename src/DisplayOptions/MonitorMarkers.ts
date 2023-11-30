@@ -1,10 +1,10 @@
 import { watch } from "vue";
 import { useRouter } from "vue-router";
 import { useInteractiveMap } from "../Map";
-import { useCalibratorsService } from "../Calibrators";
+import { isCalibrator, getCalibratorById, getCalibratorByRefId, monitorIsCalibrator, useCalibratorsService } from "../Calibrators";
 import L from "../modules/Leaflet";
 import { asyncInitializer, darken, dateUtil, readableColor, toHex } from "../modules";
-import { MonitorDisplayField, MonitorDataField, useMonitorsService } from "../Monitors";
+import { MonitorDisplayField, MonitorDataField, useMonitorsService, getMonitor } from "../Monitors";
 import { Checkbox } from "../DisplayOptions";
 import { Monitor } from "../Monitors";
 import type { Ref } from "vue";
@@ -57,7 +57,7 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
   },
   Calibrators: {
     label: "Calibrators",
-    model: true,
+    model: false,
     svg: "crosshairs-svg"
   },
   PurpleAirInside: {
@@ -87,7 +87,7 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
   const router = useRouter();
   const { map } = await useInteractiveMap();
   const { monitors} = await useMonitorsService();
-  const { calibrators, fetchCalibrators } = await useCalibratorsService();
+  const { fetchCalibrators } = await useCalibratorsService();
 
   await fetchCalibrators();
   const displayRefs = Object.values(monitorMarkersVisibility).map(visibility => () => visibility.model.value);
@@ -103,7 +103,7 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
 
   watch(
     monitors,
-    () => rerenderMarkers(router, monitors, calibrators),
+    () => rerenderMarkers(router, monitors),
     { immediate: true }
   );
 
@@ -111,7 +111,11 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
     displayRefs,
     () => {
       monitorMarkersMap.forEach((marker, id) => {
-        if (isVisible(monitors.value[id], calibrators)) {
+        const monitor = isCalibrator(id) 
+          ? getCalibratorById(id)!
+          : monitors.value[id];
+
+        if (isVisible(monitor)) {
           monitorMarkersGroup.addLayer(marker);
 
         } else {
@@ -130,14 +134,9 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
   });
 });
 
-function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>, calibrators: Ref<Array<Calibrator>>) {
-  //const _calibrators = calibrators.value.map(c => monitors.value[c.reference_id]);
-  //const _colocated = calibrators.value.map(c => monitors.value[c.colocated_id]);
-  //console.log("calibrators:", _calibrators.map(m => m.data.device));
-  //console.log("colocated:", _colocated.map(m => m.data.device));
+function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>) {
   for (let id in monitors.value) {
     const monitor = monitors.value[id];
-    const calibrator = calibrators.value.find(c => c.reference_id === id);
 
     if (!monitor.data.latest) {
       continue;
@@ -150,7 +149,7 @@ function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>
 
     const monitorMarker = genMonitorMapMarker(monitor);
 
-    monitorMarker.addEventListener('click', () => {
+    monitorMarker.addEventListener("click", () => {
       router.push({
         name: "details",
         params: {
@@ -164,12 +163,27 @@ function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>
       monitorMarkersMap.set(id, monitorMarker);
 
       
-      if (isVisible(monitor, calibrators)) {
+      if (isVisible(monitor)) {
         monitorMarkersGroup.addLayer(monitorMarker);
+      }
 
-        if (calibrator) {
-          const calibratorMarker = genCalibratorMapMarker(calibrator);
-          monitorMarkersMap.set(id, calibratorMarker);
+
+      if (monitorIsCalibrator(monitor)) {
+        const calibrator = getCalibratorByRefId(monitor.data.id)!;
+        const calibratorMarker = genCalibratorMapMarker(calibrator);
+
+        calibratorMarker.addEventListener("mouseover", () => monitorMarker.openTooltip());
+        calibratorMarker.addEventListener("mouseout", () => monitorMarker.closeTooltip());
+        calibratorMarker.addEventListener("click", () => monitorMarker.fire("click"));
+
+        if (monitorMarkersMap.has(calibrator.id)) {
+          monitorMarkersGroup.removeLayer(monitorMarkersMap.get(calibrator.id)!.remove());
+          monitorMarkersMap.delete(calibrator.id);
+        }
+
+        monitorMarkersMap.set(calibrator.id, calibratorMarker);
+
+        if (isVisible(calibrator)) {
           monitorMarkersGroup.addLayer(calibratorMarker);
         }
       }
@@ -177,41 +191,46 @@ function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>
   }
 }
 
-function isVisible(monitor: Monitor, calibrators: Ref<Array<Calibrator>>): boolean {
+function isVisible(monitor: Monitor | Calibrator): boolean {
   // showSJVAirPurple
   // showSJVAirBAM
   // showPurpleAir
   // showPurpleAirInside
   // showAirNow
 
-  if(!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active){
-    return false;
-  }
-
-
-  if (monitor.data.device === "PurpleAir") {
-    const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
-      || monitor.data.location === "outside";
-    const visibleByNetwork = monitor.data.is_sjvair
-      ? monitorMarkersVisibility.SJVAirPurple.model.value
-      : monitorMarkersVisibility.PurpleAir.model.value;
-
-    return  visibleByNetwork && visibleByLocation;
-
-  } else if (monitor.data.device === "BAM1022"){
-    return monitorMarkersVisibility.SJVAirBAM.model.value;
-
-  }  else if (monitor.data.device === "AirNow"){
-    const calibrator = calibrators.value.find(c => c.reference_id === monitor.data.id);
-
-    if (!calibrator) {
-      return monitorMarkersVisibility.AirNow.model.value;
-    } else {
-      return monitorMarkersVisibility.Calibrators.model.value;
+  if ("data" in monitor) {
+    if(!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active){
+      return false;
     }
 
-  } else if (monitor.data.device === "AQview") {
-    return monitorMarkersVisibility.AQview.model.value;
+    switch(monitor.data.device) {
+      case "PurpleAir":
+        const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
+          || monitor.data.location === "outside";
+        const visibleByNetwork = monitor.data.is_sjvair
+          ? monitorMarkersVisibility.SJVAirPurple.model.value
+          : monitorMarkersVisibility.PurpleAir.model.value;
+
+        return visibleByNetwork && visibleByLocation;
+
+      case "BAM1022":
+        return monitorMarkersVisibility.SJVAirBAM.model.value;
+
+      case "AirNow":
+        return (monitorIsCalibrator(monitor))
+          ? monitorMarkersVisibility.Calibrators.model.value || monitorMarkersVisibility.AirNow.model.value
+          : monitorMarkersVisibility.AirNow.model.value; 
+
+      case "AQview":
+        return monitorMarkersVisibility.AQview.model.value;
+    }
+  } else if ("id" in monitor && isCalibrator(monitor.id)) {
+    const ref = getMonitor(monitor.reference_id);
+
+    if(!monitorMarkersVisibility.displayInactive.model.value && !ref.data.is_active){
+      return false;
+    }
+    return monitorMarkersVisibility.Calibrators.model.value;
   }
 
   return false;
@@ -220,11 +239,14 @@ function isVisible(monitor: Monitor, calibrators: Ref<Array<Calibrator>>): boole
 function genCalibratorMapMarker(calibrator: Calibrator) {
   const [ lng, lat ] = calibrator.position.coordinates;
   const icon = L.divIcon({
-    pane: "calibrators",
     className: "is-flex is-justify-content-center is-align-items-center",
-    html: "<div class='crosshairs-svg' style='width: 30px; height: 30px;'></div>"
+    iconAnchor: new L.Point(6, 11),
+    html: "<div class='crosshairs-svg-lg is-flex-grow-0 is-flex-shrink-0'>Hello</div>"
   });
-  return L.marker(L.latLng(lat, lng), { icon });
+  return L.marker(L.latLng(lat, lng), {
+    icon,
+    pane: "calibrators",
+  });
 }
 
 function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
@@ -271,7 +293,7 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
 }
 
 function getMarkerPaneName(monitor: Monitor | Calibrator): string {
-  if (monitor instanceof Monitor) {
+  if ("data" in monitor) {
     switch(monitor.data.device) {
       case "AirNow": 
         return "airNow";
