@@ -26,7 +26,6 @@
   });
 
   function copyToClipboard() {
-    console.log("clicked")
     navigator.clipboard.writeText(iframeCode.value);
     copied.value = true;
     setTimeout(() => { copied.value = false; }, 1000 * 2);
@@ -41,13 +40,6 @@
     modalOpen.value = false;
     document.body.style.overflow = "auto";
   }
-  watch(
-    () => props.monitorId,
-    () => {
-      console.log("monitorID changed", props.monitorId)
-      console.log("other things:", iframeSrc)
-    }
-  );
 </script>
 
 <template>
