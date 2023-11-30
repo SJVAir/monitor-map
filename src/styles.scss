@@ -119,16 +119,24 @@
   background-color: bulma.$black;
   -webkit-mask: url(./assets/road.svg) center/1rem 1rem no-repeat;
   mask: url(./assets/road.svg) center/1rem 1rem no-repeat;
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
 }
 
 .crosshairs-svg {
-  background-color: bulma.$black;
+  background-color: bulma.$blue;
   -webkit-mask: url(./assets/crosshairs-solid.svg) center/1rem 1rem no-repeat;
   mask: url(./assets/crosshairs-solid.svg) center/1rem 1rem no-repeat;
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
+}
+
+.crosshairs-svg-lg {
+  background-color: bulma.$blue;
+  -webkit-mask: url(./assets/crosshairs-solid.svg) center/80px 80px no-repeat;
+  mask: url(./assets/crosshairs-solid.svg) center/80px 80px no-repeat;
+  width: 80px;
+  height: 80px;
 }
 
 @keyframes spinner {
