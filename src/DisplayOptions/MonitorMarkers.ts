@@ -1,16 +1,18 @@
 import { watch } from "vue";
 import { useRouter } from "vue-router";
 import { useInteractiveMap } from "../Map";
+import { isCalibrator, getCalibratorById, getCalibratorByRefId, monitorIsCalibrator, useCalibratorsService } from "../Calibrators";
 import L from "../modules/Leaflet";
 import { asyncInitializer, darken, dateUtil, readableColor, toHex } from "../modules";
-import { MonitorDisplayField, MonitorDataField, useMonitorsService } from "../Monitors";
+import { MonitorDisplayField, MonitorDataField, useMonitorsService, getMonitor } from "../Monitors";
 import { Checkbox } from "../DisplayOptions";
+import { Monitor } from "../Monitors";
 import type { Ref } from "vue";
 import type { Router } from "vue-router";
+import type { Calibrator } from "../Calibrators";
 import type { DisplayOptionProps, DisplayOptionRecord } from "../DisplayOptions";
-import type { Monitor } from "../Monitors";
 
-const monitorMarkersMap: Map<string, L.ShapeMarker> = new Map();
+const monitorMarkersMap: Map<string, L.ShapeMarker | L.Marker<any>> = new Map();
 const monitorMarkersGroup: L.FeatureGroup = new L.FeatureGroup();
 const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineOptions({
   SJVAirPurple: {
@@ -53,6 +55,11 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
     model: true,
     label: "PurpleAir network"
   },
+  Calibrators: {
+    label: "Calibrators",
+    model: false,
+    svg: "crosshairs-svg"
+  },
   PurpleAirInside: {
     containerClass: "icon-border has-text-success",
     icon: {
@@ -78,7 +85,11 @@ interface MonitorMarkersModule {
 
 export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (resolve) => {
   const router = useRouter();
-  const [{ monitors }, { map }] = await Promise.all([ useMonitorsService(), useInteractiveMap() ]);
+  const { map } = await useInteractiveMap();
+  const { monitors} = await useMonitorsService();
+  const { fetchCalibrators } = await useCalibratorsService();
+
+  await fetchCalibrators();
   const displayRefs = Object.values(monitorMarkersVisibility).map(visibility => () => visibility.model.value);
 
   monitorMarkersGroup.addTo(map);
@@ -88,6 +99,7 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
   map.createPane("aqview").style.zIndex = "603";
   map.createPane("sjvAirPurpleAir").style.zIndex = "604";
   map.createPane("sjvAirBam").style.zIndex = "605";
+  map.createPane("calibrators").style.zIndex = "606";
 
   watch(
     monitors,
@@ -99,7 +111,11 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
     displayRefs,
     () => {
       monitorMarkersMap.forEach((marker, id) => {
-        if (isVisible(monitors.value[id])) {
+        const monitor = isCalibrator(id) 
+          ? getCalibratorById(id)!
+          : monitors.value[id];
+
+        if (isVisible(monitor)) {
           monitorMarkersGroup.addLayer(marker);
 
         } else {
@@ -118,7 +134,7 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
   });
 });
 
-function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>) {
+function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>) {
   for (let id in monitors.value) {
     const monitor = monitors.value[id];
 
@@ -131,61 +147,106 @@ function rerenderMarkers( router: Router, monitors: Ref<Record<string, Monitor>>
       monitorMarkersMap.delete(id);
     }
 
-    const marker = genMonitorMapMarker(monitor);
+    const monitorMarker = genMonitorMapMarker(monitor);
 
-    marker.addEventListener('click', () => {
+    monitorMarker.addEventListener("click", () => {
       router.push({
         name: "details",
         params: {
           monitorId: monitor.data.id
         }
       });
-
     });
 
-    if (marker) {
+    if (monitorMarker) {
       // Assign/reassign marker to record
-      monitorMarkersMap.set(id, marker);
+      monitorMarkersMap.set(id, monitorMarker);
 
       
       if (isVisible(monitor)) {
-        monitorMarkersGroup.addLayer(marker);
+        monitorMarkersGroup.addLayer(monitorMarker);
+      }
+
+
+      if (monitorIsCalibrator(monitor)) {
+        const calibrator = getCalibratorByRefId(monitor.data.id)!;
+        const calibratorMarker = genCalibratorMapMarker(calibrator);
+
+        calibratorMarker.addEventListener("mouseover", () => monitorMarker.openTooltip());
+        calibratorMarker.addEventListener("mouseout", () => monitorMarker.closeTooltip());
+        calibratorMarker.addEventListener("click", () => monitorMarker.fire("click"));
+
+        if (monitorMarkersMap.has(calibrator.id)) {
+          monitorMarkersGroup.removeLayer(monitorMarkersMap.get(calibrator.id)!.remove());
+          monitorMarkersMap.delete(calibrator.id);
+        }
+
+        monitorMarkersMap.set(calibrator.id, calibratorMarker);
+
+        if (isVisible(calibrator)) {
+          monitorMarkersGroup.addLayer(calibratorMarker);
+        }
       }
     }
   }
 }
 
-function isVisible(monitor: Monitor): boolean {
+function isVisible(monitor: Monitor | Calibrator): boolean {
   // showSJVAirPurple
   // showSJVAirBAM
   // showPurpleAir
   // showPurpleAirInside
   // showAirNow
 
-  if(!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active){
-    return false;
-  }
+  if ("data" in monitor) {
+    if(!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active){
+      return false;
+    }
 
-  if (monitor.data.device === "PurpleAir") {
-    const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
-      || monitor.data.location === "outside";
-    const visibleByNetwork = monitor.data.is_sjvair
-      ? monitorMarkersVisibility.SJVAirPurple.model.value
-      : monitorMarkersVisibility.PurpleAir.model.value;
+    switch(monitor.data.device) {
+      case "PurpleAir":
+        const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
+          || monitor.data.location === "outside";
+        const visibleByNetwork = monitor.data.is_sjvair
+          ? monitorMarkersVisibility.SJVAirPurple.model.value
+          : monitorMarkersVisibility.PurpleAir.model.value;
 
-    return  visibleByNetwork && visibleByLocation;
+        return visibleByNetwork && visibleByLocation;
 
-  } else if (monitor.data.device === "BAM1022"){
-    return monitorMarkersVisibility.SJVAirBAM.model.value;
+      case "BAM1022":
+        return monitorMarkersVisibility.SJVAirBAM.model.value;
 
-  }  else if (monitor.data.device === "AirNow"){
-    return monitorMarkersVisibility.AirNow.model.value;
+      case "AirNow":
+        return (monitorIsCalibrator(monitor))
+          ? monitorMarkersVisibility.Calibrators.model.value || monitorMarkersVisibility.AirNow.model.value
+          : monitorMarkersVisibility.AirNow.model.value; 
 
-  } else if (monitor.data.device === "AQview") {
-    return monitorMarkersVisibility.AQview.model.value;
+      case "AQview":
+        return monitorMarkersVisibility.AQview.model.value;
+    }
+  } else if ("id" in monitor && isCalibrator(monitor.id)) {
+    const ref = getMonitor(monitor.reference_id);
+
+    if(!monitorMarkersVisibility.displayInactive.model.value && !ref.data.is_active){
+      return false;
+    }
+    return monitorMarkersVisibility.Calibrators.model.value;
   }
 
   return false;
+}
+
+function genCalibratorMapMarker(calibrator: Calibrator) {
+  const [ lng, lat ] = calibrator.position.coordinates;
+  const icon = L.divIcon({
+    className: "is-flex is-justify-content-center is-align-items-center",
+    iconAnchor: new L.Point(6, 11),
+    html: "<div class='crosshairs-svg-lg is-flex-grow-0 is-flex-shrink-0'>Hello</div>"
+  });
+  return L.marker(L.latLng(lat, lng), {
+    icon,
+    pane: "calibrators",
+  });
 }
 
 function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
@@ -231,17 +292,21 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
   return marker;
 }
 
-function getMarkerPaneName(monitor: Monitor): string {
-  switch(monitor.data.device) {
-    case "AirNow": 
-      return "airNow";
-    case "AQview":
-      return "aqview";
-    case "BAM1022":
-      return "sjvAirBam";
-    case "PurpleAir":
-      return (monitor.data.is_sjvair) ? "sjvAirPurpleAir" : "purpleAir";
-    default:
-      return "marker";
+function getMarkerPaneName(monitor: Monitor | Calibrator): string {
+  if ("data" in monitor) {
+    switch(monitor.data.device) {
+      case "AirNow": 
+        return "airNow";
+      case "AQview":
+        return "aqview";
+      case "BAM1022":
+        return "sjvAirBam";
+      case "PurpleAir":
+        return (monitor.data.is_sjvair) ? "sjvAirPurpleAir" : "purpleAir";
+      default:
+        return "marker";
+    }
+  } else {
+    return "calibrators";
   }
 }
