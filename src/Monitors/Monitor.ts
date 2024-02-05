@@ -15,6 +15,16 @@ export class Monitor implements IMonitor {
   constructor(monitorData: IMonitorData) {
     const monitorFields = getDataFields(monitorData)
 
+    if (monitorData.latest) {
+      if ("pm25" in monitorData.latest && parseInt(monitorData.latest.pm25, 10) < 0) {
+        monitorData.latest.pm25 = "0";
+      }
+
+      if ("pm25_avg_60" in monitorData.latest && parseInt(monitorData.latest.pm25_avg_60, 10) < 0) {
+        monitorData.latest.pm25_avg_60 = "0";
+      }
+    }
+
     this.data = monitorData;
     this.markerParams = getMarkerParams(monitorData);
     this.monitorFields = monitorFields;
