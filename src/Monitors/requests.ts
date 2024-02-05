@@ -9,11 +9,6 @@ export async function fetchMonitors(): Promise<MonitorsRecord> {
       const monitors: MonitorsRecord = {};
 
       for (let monitorData of res.data.data) {
-        // Skip any monitors reporting north of CA
-        // TODO: Skip ALL monitors outside of SJV/reporting area
-        if (monitorData.position.coordinates[1] > 42) {
-          continue;
-        }
         monitors[monitorData.id] = new Monitor(monitorData);
       }
 
