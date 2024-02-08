@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { onUnmounted, ref, watch } from "vue";
+  import { ref, watch } from "vue";
   import { useRouter } from "vue-router";
   import DatePickerVue from "./DatePicker.vue";
   import MonitorInfoVue from "./MonitorInfo.vue";
@@ -17,7 +17,7 @@
   const chartData = ref<uPlot.AlignedData>([]);
   const chartDataLoading = ref<boolean>(false);
   const dateRange = ref(new DateRange());
-  const { focusAssertion, recenter } = await useInteractiveMap();
+  const { focusAssertion } = await useInteractiveMap();
   const { fetchChartData } = await useDataChartService();
   const router = useRouter();
 
@@ -63,8 +63,6 @@
     },
     { immediate: true }
   );
-
-  onUnmounted(() =>  recenter());
 </script>
 
 <template>
