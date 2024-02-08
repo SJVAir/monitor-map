@@ -7,7 +7,7 @@ export class DateRange {
 
   constructor(range?: DatePickerSelection) {
     if (!range) {
-      this.start = dateUtil().subtract(3, "day").startOf("day").toISOString();
+      this.start = dateUtil().subtract(1, "day").startOf("day").toISOString();
       this.end = dateUtil().endOf("day").toISOString();
 
     } else {
