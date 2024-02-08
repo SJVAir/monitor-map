@@ -10,9 +10,9 @@ jobs:
       VITE_NREL_KEY: ${{secrets.VITE_NREL_KEY }}
       VITE_OPENWEATHERMAP_KEY: ${{ secrets.VITE_OPENWEATHERMAP_KEY }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
