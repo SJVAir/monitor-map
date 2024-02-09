@@ -26,7 +26,6 @@
   .sjvair-monitor-map {
     position: relative;
     flex: 1;
-    flex-direction: column;
     display: flex;
     justify-content: center;
     align-items: stretch;

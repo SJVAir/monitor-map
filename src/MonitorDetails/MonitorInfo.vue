@@ -15,8 +15,8 @@
 
 <template>
   <div v-if="monitor" class="monitor-header is-flex is-justify-content-space-evenly is-align-items-center is-flex-direction-column">
-    <p class="monitor-name is-flex-grow-1 is-size-5" v-html="monitor.data.name"></p>
-    <ul class="is-flex is-justify-content-space-evenly is-align-items-center">
+    <p class="monitor-name is-flex-grow-1 is-size-2" v-html="monitor.data.name"></p>
+    <ul class="is-flex is-justify-content-space-evenly is-align-items-center my-2">
       <li v-if="monitor.data.is_sjvair">
         <span class="tag is-info is-light">
           <span class="icon lungs-svg"></span>
