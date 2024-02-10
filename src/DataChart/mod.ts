@@ -38,7 +38,6 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
   }
 
   return {
-    title: "Real Time PM Readings",
     width,
     height,
     cursor: uPlotCursorConfig.get(),

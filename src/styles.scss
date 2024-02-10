@@ -123,6 +123,14 @@
   height: 25px;
 }
 
+.fullscreen-svg {
+  background-color: bulma.$black;
+  -webkit-mask: url(./assets/fullscren.svg) center/0.9rem 0.9rem no-repeat;
+  mask: url(./assets/fullscreen.svg) center/0.9rem 0.9rem no-repeat;
+  width: 25px;
+  height: 25px;
+}
+
 .crosshairs-svg {
   background-color: bulma.$blue;
   -webkit-mask: url(./assets/crosshairs-solid.svg) center/1rem 1rem no-repeat;

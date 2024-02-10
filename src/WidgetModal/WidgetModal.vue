@@ -44,7 +44,7 @@
 
 <template>
   <div class="widget-modal">
-    <button class="button is-small is-info" @click="openModal()">Get the widget!</button>
+    <button class="button is-small is-info is-size-7 has-text-weight-semibold" @click="openModal()">Get the widget!</button>
 
     <div class="modal-background" :class="{ visible: modalOpen}" @click.self="closeModal">
       <div class="my-modal">

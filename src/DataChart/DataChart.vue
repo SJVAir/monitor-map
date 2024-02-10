@@ -14,7 +14,8 @@
     dateRange: DateRange
   }>();
 
-  const sjvairDataChart = ref<HTMLInputElement | null>(null)
+  const sjvairDataChart = ref<HTMLInputElement | null>(null);
+  const chartExpanded = ref<boolean>(false);
   const noChartData = computed(() => !props.chartData.length);
   const message = computed(() => {
       return (props.chartDataLoading)
@@ -40,10 +41,18 @@
       const opts = getChartConfig(deviceType, maxDiff, width, height - ((height / 100) * 20));
 
       if (uplot && sjvairDataChart.value) {
+        console.log("removing thing")
         sjvairDataChart.value.innerHTML = "";
       }
       uplot = new uPlot(opts, chartData, sjvairDataChart.value as HTMLElement);
     }
+  }
+
+  function toggleChart() {
+    chartExpanded.value = !chartExpanded.value;;
+    setTimeout(() => {
+      buildChart(props.chartData, props.activeMonitor!.data.device);
+    }, 0)
   }
 
   function formatDate(date: string) {
@@ -77,15 +86,20 @@
 </script>
 
 <template>
-  <div class="data-chart-container">
-    <h1 :class="{ 'show': props.chartDataLoading || noChartData }">
+  <div :class="{ 'expanded': chartExpanded }" class="data-chart-container card pb-4 pt-2">
+    <span v-if="!chartExpanded" class="icon is-clickable fullscreen-svg" title="Expand Chart" @click="toggleChart"></span>
+    <span v-else class="icon is-clickable material-symbols-outlined" v-on:click="toggleChart">close</span>
+    <h1 :class="{ 'show': props.chartDataLoading || noChartData }" class="data-chart-notice">
       <span :class="{ 'spin': props.chartDataLoading }" class="material-symbols-outlined">
         {{ messageSymbol }}
       </span>
       <br/>
       {{ message }}
     </h1>
-    <div ref="sjvairDataChart" @click.shift="downloadChart" :class="{ 'hidden': props.chartDataLoading || noChartData }" class="data-chart"></div>
+    <h1 :class="{ 'hidden': props.chartDataLoading || noChartData }" class="has-text-centered is-size-5 has-text-weight-bold">
+      Real Time PM Readings
+    </h1>
+    <div ref="sjvairDataChart" @click.shift="downloadChart" :class="{ 'hidden': props.chartDataLoading || noChartData }" class="data-chart mt-2"></div>
   </div>
 </template>
 
@@ -96,37 +110,59 @@
   .data-chart-container {
     margin-top: 1rem;
     position: relative;
-    height: calc(50vh);
-    width: 100%;
-    flex-direction: column;
+    height: 375px;
+    width: 90%;
 
-    h1 {
-      position: absolute;
-      transform-origin: center;
-      transform: translate(-50%, 30%);
-      left: 50%;
-      top: 30%;
-      visibility: hidden;
-      font-weight: 700;
-      font-size: 1.5rem;
-      text-align: center;
+    &.expanded {
+      height: 68vh;
+      position: fixed;
+      right: 50%;
+      top: 50%;
+      transform: translate(50%, -50%);
+      z-index: 10000;
 
-      &.show {
-      visibility: visible;
+      h1:not(.data-chart-notice) {
+        margin-top: 2rem;
       }
 
-      span {
-        font-size: 2rem;
-      }
     }
 
-    .hidden {
-      visibility: hidden;
+    .icon {
+      position: absolute;
+      right: 2px;
+      top: 2px;
+    }
+
+    h1 {
+
+      &.data-chart-notice {
+        position: absolute;
+        transform-origin: center;
+        transform: translate(-50%, 30%);
+        left: 50%;
+        top: 30%;
+        visibility: hidden;
+        font-weight: 700;
+        font-size: 1.5rem;
+        text-align: center;
+
+        span {
+          font-size: 2rem;
+        }
+      }
+
+      &.show {
+        visibility: visible;
+      }
     }
 
     .data-chart {
       height: 100%;
       width: 100%;
+    }
+
+    .hidden {
+      visibility: hidden;
     }
   }
 </style>
