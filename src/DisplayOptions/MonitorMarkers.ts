@@ -151,9 +151,6 @@ function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>)
     const monitorMarker = genMonitorMapMarker(monitor);
 
     monitorMarker.addEventListener("click", () => {
-      clearSelectedMarker();
-      selectedMarker.value = monitorMarker;
-      monitorMarker.getElement()?.classList.add("marker-selected");
       router.push({
         name: "details",
         params: {
@@ -319,19 +316,27 @@ function getMarkerPaneName(monitor: Monitor | Calibrator): string {
   }
 }
 
-function setSelectedMarker(marker: L.ShapeMarker | L.Marker<any>) {
-  if (marker) {
-    const markerEl = marker.getElement();
+export function setSelectedMarker(marker: L.ShapeMarker | L.Marker<any> | string) {
+  const monitorMarker = (typeof marker === "string") ? monitorMarkersMap.get(marker) : marker;
 
-    if (markerEl && !markerEl.classList.contains("marker-selected")) {
-      markerEl.classList.add("marker-selected");
-      selectedMarker.value = marker;
+  if (monitorMarker) {
+    const markerEl = monitorMarker.getElement();
+
+    if (!selectedMarker.value || selectedMarker.value !== monitorMarker) {
+      if (selectedMarker.value) {
+        console.log("markers differ!")
+      }
+      clearSelectedMarker();
+
+      if (markerEl && !markerEl.classList.contains("marker-selected")) {
+        markerEl.classList.add("marker-selected");
+        selectedMarker.value = monitorMarker;
+      }
     }
   }
 }
 
 export function clearSelectedMarker() {
-  console.log
   if (selectedMarker.value) {
     selectedMarker.value.getElement()?.classList.remove("marker-selected");
     selectedMarker.value = undefined;
