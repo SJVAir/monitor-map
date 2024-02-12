@@ -1,4 +1,4 @@
-import { watch } from "vue";
+import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useInteractiveMap } from "../Map";
 import { isCalibrator, getCalibratorById, getCalibratorByRefId, monitorIsCalibrator, useCalibratorsService } from "../Calibrators";
@@ -14,6 +14,7 @@ import type { DisplayOptionProps, DisplayOptionRecord } from "../DisplayOptions"
 
 const monitorMarkersMap: Map<string, L.ShapeMarker | L.Marker<any>> = new Map();
 const monitorMarkersGroup: L.FeatureGroup = new L.FeatureGroup();
+const selectedMarker = ref<L.ShapeMarker | L.Marker<any>>();
 const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineOptions({
   SJVAirPurple: {
     containerClass: "has-text-success",
@@ -86,7 +87,7 @@ interface MonitorMarkersModule {
 export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (resolve) => {
   const router = useRouter();
   const { map } = await useInteractiveMap();
-  const { monitors} = await useMonitorsService();
+  const { monitors } = await useMonitorsService();
   const { fetchCalibrators } = await useCalibratorsService();
 
   await fetchCalibrators();
@@ -150,6 +151,9 @@ function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>)
     const monitorMarker = genMonitorMapMarker(monitor);
 
     monitorMarker.addEventListener("click", () => {
+      clearSelectedMarker();
+      selectedMarker.value = monitorMarker;
+      monitorMarker.getElement()?.classList.add("marker-selected");
       router.push({
         name: "details",
         params: {
@@ -165,6 +169,10 @@ function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>)
       
       if (isVisible(monitor)) {
         monitorMarkersGroup.addLayer(monitorMarker);
+
+        if (monitor.data.id === router.currentRoute.value.params.monitorId) {
+          setSelectedMarker(monitorMarker);
+        }
       }
 
 
@@ -308,5 +316,24 @@ function getMarkerPaneName(monitor: Monitor | Calibrator): string {
     }
   } else {
     return "calibrators";
+  }
+}
+
+function setSelectedMarker(marker: L.ShapeMarker | L.Marker<any>) {
+  if (marker) {
+    const markerEl = marker.getElement();
+
+    if (markerEl && !markerEl.classList.contains("marker-selected")) {
+      markerEl.classList.add("marker-selected");
+      selectedMarker.value = marker;
+    }
+  }
+}
+
+export function clearSelectedMarker() {
+  console.log
+  if (selectedMarker.value) {
+    selectedMarker.value.getElement()?.classList.remove("marker-selected");
+    selectedMarker.value = undefined;
   }
 }

@@ -4,6 +4,7 @@
   import DatePickerVue from "./DatePicker.vue";
   import MonitorInfoVue from "./MonitorInfo.vue";
   import WidgetModalVue from "../WidgetModal/WidgetModal.vue";
+  import { clearSelectedMarker } from "../DisplayOptions/MonitorMarkers";
   import { MonitorSubscriptionVue } from "../MonitorSubscription";
   import { HumidityDataBoxVue, PM2DataBoxVue, TempDataBoxVue } from "../MonitorDataBox";
   import { useInteractiveMap } from "../Map";
@@ -22,6 +23,7 @@
   const router = useRouter();
 
   function close() {
+    clearSelectedMarker();
     router.replace("/");
   }
 
@@ -123,6 +125,11 @@
     overflow: auto;
     overflow-x: hidden;
     gap: 1rem;
+
+    @include bulma.until(bulma.$tablet) {
+      width: 100%;
+      height: 50vh;
+    }
 
     .close-btn {
       position: absolute;

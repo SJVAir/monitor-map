@@ -125,7 +125,7 @@
 
 .fullscreen-svg {
   background-color: bulma.$black;
-  -webkit-mask: url(./assets/fullscren.svg) center/0.9rem 0.9rem no-repeat;
+  -webkit-mask: url(./assets/fullscreen.svg) center/0.9rem 0.9rem no-repeat;
   mask: url(./assets/fullscreen.svg) center/0.9rem 0.9rem no-repeat;
   width: 25px;
   height: 25px;
@@ -145,6 +145,10 @@
   mask: url(./assets/crosshairs-solid.svg) center/80px 80px no-repeat;
   width: 80px;
   height: 80px;
+}
+
+.marker-selected {
+  filter: drop-shadow(2px 2px 4px rgba($sjvair-main, .6)) drop-shadow(-2px -2px 4px rgba($sjvair-main, .6)) drop-shadow(-2px 2px 4px rgba($sjvair-main, .6)) drop-shadow(2px -2px 4px rgba($sjvair-main, .6));
 }
 
 @keyframes spinner {

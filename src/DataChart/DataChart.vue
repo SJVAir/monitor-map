@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, ref, watch } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import uPlot from "uplot";
   import { getChartConfig } from "./mod";
   import { dateUtil } from '../modules';
@@ -41,7 +41,6 @@
       const opts = getChartConfig(deviceType, maxDiff, width, height - ((height / 100) * 20));
 
       if (uplot && sjvairDataChart.value) {
-        console.log("removing thing")
         sjvairDataChart.value.innerHTML = "";
       }
       uplot = new uPlot(opts, chartData, sjvairDataChart.value as HTMLElement);
@@ -75,14 +74,17 @@
   watch(
     () => props.chartData,
     (chartData) => {
-      if (props.activeMonitor) {
+      if (props.activeMonitor && sjvairDataChart.value) {
         buildChart(chartData, props.activeMonitor.data.device);
       }
-    },
-    {
-      immediate: true
     }
   );
+
+  onMounted(() => {
+      if (props.activeMonitor) {
+        buildChart(props.chartData, props.activeMonitor.data.device);
+      }
+  });
 </script>
 
 <template>
@@ -110,7 +112,7 @@
   .data-chart-container {
     margin-top: 1rem;
     position: relative;
-    height: 375px;
+    min-height: 375px;
     width: 90%;
 
     &.expanded {

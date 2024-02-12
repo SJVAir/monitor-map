@@ -30,5 +30,9 @@
     justify-content: center;
     align-items: stretch;
     z-index: 1;
+
+    @include bulma.until(bulma.$tablet) {
+      flex-direction: column;
+    }
   }
 </style>
