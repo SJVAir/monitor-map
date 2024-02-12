@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, watch } from "vue";
+  import { onUnmounted, ref, watch } from "vue";
   import { useRouter } from "vue-router";
   import DatePickerVue from "./DatePicker.vue";
   import MonitorInfoVue from "./MonitorInfo.vue";
@@ -23,7 +23,6 @@
   const router = useRouter();
 
   function close() {
-    clearSelectedMarker();
     router.replace("/");
   }
 
@@ -66,6 +65,8 @@
     },
     { immediate: true }
   );
+
+  onUnmounted(() => clearSelectedMarker());
 </script>
 
 <template>
