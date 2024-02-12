@@ -26,10 +26,13 @@
   .sjvair-monitor-map {
     position: relative;
     flex: 1;
-    flex-direction: column;
     display: flex;
     justify-content: center;
     align-items: stretch;
     z-index: 1;
+
+    @include bulma.until(bulma.$tablet) {
+      flex-direction: column;
+    }
   }
 </style>

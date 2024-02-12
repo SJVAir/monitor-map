@@ -137,7 +137,7 @@ onMounted(async () => {
     <div class="monitor-subscription-container">
 
       <button @click="toggleDropdown" :class="[{ 'is-success': subscribed }, 'is-info']"
-        class="button is-small monitor-subscription-button">
+        class="button is-small monitor-subscription-button is-size-7 has-text-weight-semibold">
         {{ buttonText }} <span :class="{ 'rotate': active }" class="material-symbols-outlined">expand_more</span>
       </button>
 

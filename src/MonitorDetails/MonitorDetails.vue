@@ -4,6 +4,7 @@
   import DatePickerVue from "./DatePicker.vue";
   import MonitorInfoVue from "./MonitorInfo.vue";
   import WidgetModalVue from "../WidgetModal/WidgetModal.vue";
+  import { clearSelectedMarker } from "../DisplayOptions/MonitorMarkers";
   import { MonitorSubscriptionVue } from "../MonitorSubscription";
   import { HumidityDataBoxVue, PM2DataBoxVue, TempDataBoxVue } from "../MonitorDataBox";
   import { useInteractiveMap } from "../Map";
@@ -22,6 +23,7 @@
   const router = useRouter();
 
   function close() {
+    clearSelectedMarker();
     router.replace("/");
   }
 
@@ -66,24 +68,29 @@
 </script>
 
 <template>
-  <div class="monitor-details columns">
+  <div class="monitor-details is-flex is-align-items-center is-flex-direction-column mb-2">
     <span class="close-btn material-symbols-outlined" v-on:click="close">close</span>
 
-    <DataChartVue class="column is-three-fifths" :activeMonitor="activeMonitor"
-      :chartData="chartData" :dateRange="dateRange" :chartDataLoading="chartDataLoading"></DataChartVue>
+    <MonitorInfoVue :monitor="activeMonitor"></MonitorInfoVue>
 
-    <div class="column data-control">
-      <MonitorInfoVue :monitor="activeMonitor"></MonitorInfoVue>
-      <MonitorSubscriptionVue :monitorId="props.monitorId"></MonitorSubscriptionVue>
-      <WidgetModalVue :monitorId="props.monitorId"/>
-      <div class="date-control">
+    <div class="data-control">
+      <div v-if="activeMonitor" class="monitor-data-info mb-4">
+        <PM2DataBoxVue :monitor="activeMonitor"></PM2DataBoxVue>
+        <TempDataBoxVue :monitor="activeMonitor"></TempDataBoxVue>
+        <HumidityDataBoxVue :monitor="activeMonitor"></HumidityDataBoxVue>
+      </div>
+      <div class="user-options is-flex is-justify-content-space-evenly is-align-items-center">
+        <MonitorSubscriptionVue :monitorId="props.monitorId" class="is-inline-block"></MonitorSubscriptionVue>
+        <WidgetModalVue :monitorId="props.monitorId" class="is-inline-block"/>
+      </div>
+      <div class="date-control mt-2">
         <div class="control">
           <label for="startDate" class="label is-small has-text-weight-normal">Date Range</label>
           <DatePickerVue :startRange="dateRange" @selection="updateDateRange"></DatePickerVue>
         </div>
         <div class="control">
           <br />
-          <button class="button is-small is-info" v-on:click="async () => await loadChartData()">
+          <button class="button is-small is-info is-size-7 has-text-weight-semibold" v-on:click="async () => await loadChartData()">
             <span class="icon is-small">
               <span :class="{ 'spin': chartDataLoading }" class="material-symbols-outlined">
                 refresh
@@ -94,7 +101,7 @@
         </div>
         <div class="control">
           <br />
-          <button class="button is-small is-success" v-on:click="csvDownload">
+          <button class="button is-small is-success is-size-7 has-text-weight-semibold" v-on:click="csvDownload">
             <span class="icon is-small">
               <span class="material-symbols-outlined">file_download</span>
             </span>
@@ -102,26 +109,30 @@
           </button>
         </div>
       </div>
-
-      <div v-if="activeMonitor" class="monitor-data-info">
-        <PM2DataBoxVue :monitor="activeMonitor"></PM2DataBoxVue>
-        <TempDataBoxVue :monitor="activeMonitor"></TempDataBoxVue>
-        <HumidityDataBoxVue :monitor="activeMonitor"></HumidityDataBoxVue>
-      </div>
-
     </div>
+
+    <DataChartVue  :activeMonitor="activeMonitor"
+      :chartData="chartData" :dateRange="dateRange" :chartDataLoading="chartDataLoading"></DataChartVue>
+
   </div>
 </template>
 
 <style scoped lang="scss">
   .monitor-details {
     position: relative;
-    height: 50vh;
-    padding-top: 1rem;
+    width: 30%;
+    min-width: 500px;
+    overflow: auto;
+    overflow-x: hidden;
+    gap: 1rem;
+
+    @include bulma.until(bulma.$tablet) {
+      width: 100%;
+      height: 50vh;
+    }
 
     .close-btn {
       position: absolute;
-      margin-right: 1rem;
       right: 1rem;
       top: 1rem;
       border: solid 1px;
@@ -129,38 +140,39 @@
       cursor: pointer;
     }
 
+    .monitor-data-info {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      width: 80%;
+
+      @include bulma.until(bulma.$tablet) {
+        gap: 1rem;
+      }
+    }
+
     .data-control {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 1rem;
+      width: 100%;
+      gap: 1rem;
 
       @include bulma.until(bulma.$tablet) {
         margin-top: 2rem;
       }
 
+      .user-options {
+        width: 90%;
+      }
+
       .date-control {
-        width: 80%;
         display: flex;
-        flex-flow: row wrap;
         flex-direction: row;
         justify-content: space-evenly;
         align-items: center;
-      }
-
-      .monitor-data-info {
-        display: flex;
-        justify-content: space-evenly;
-        align-items: center;
-        width: 80%;
-        margin-top: 2rem;
-
-        @include bulma.until(bulma.$tablet) {
-          gap: 1rem;
-        }
+        width: 100%;
       }
     }
   }
-
-
 </style>
