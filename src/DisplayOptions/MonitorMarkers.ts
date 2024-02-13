@@ -323,9 +323,6 @@ export function setSelectedMarker(marker: L.ShapeMarker | L.Marker<any> | string
     const markerEl = monitorMarker.getElement();
 
     if (!selectedMarker.value || selectedMarker.value !== monitorMarker) {
-      if (selectedMarker.value) {
-        console.log("markers differ!")
-      }
       clearSelectedMarker();
 
       if (markerEl && !markerEl.classList.contains("marker-selected")) {
