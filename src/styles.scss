@@ -149,10 +149,12 @@
 
 .marker-selected {
   /*
+  shadow
   filter: drop-shadow(2px 2px 2px rgba($sjvair-main, .6)) drop-shadow(-2px -2px 2px rgba($sjvair-main, .6)) drop-shadow(-2px 2px 2px rgba($sjvair-main, .6)) drop-shadow(2px -2px 2px rgba($sjvair-main, .6));
-  */
+  neon border
   filter: drop-shadow(0 0 1px $sjvair-main);
   stroke: $sjvair-main;
+  */
   stroke-width: 2px;
   transform: scale(1.2);
   transform-origin: 50% 50%;
