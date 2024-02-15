@@ -14,7 +14,8 @@ import type { DisplayOptionProps, DisplayOptionRecord } from "../DisplayOptions"
 
 const monitorMarkersMap: Map<string, L.ShapeMarker | L.Marker<any>> = new Map();
 const monitorMarkersGroup: L.FeatureGroup = new L.FeatureGroup();
-const selectedMarker = ref<L.ShapeMarker | L.Marker<any>>();
+const selectedMarkerGroup: L.FeatureGroup = new L.FeatureGroup();
+
 const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineOptions({
   SJVAirPurple: {
     containerClass: "has-text-success",
@@ -101,6 +102,10 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
   map.createPane("sjvAirPurpleAir").style.zIndex = "604";
   map.createPane("sjvAirBam").style.zIndex = "605";
   map.createPane("calibrators").style.zIndex = "606";
+  map.createPane("selectedMarker").style.zIndex = "650";
+
+  selectedMarkerGroup.options.pane = "selectedMarkerGroup";
+  selectedMarkerGroup.addTo(map);
 
   watch(
     monitors,
@@ -168,7 +173,7 @@ function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>)
         monitorMarkersGroup.addLayer(monitorMarker);
 
         if (monitor.data.id === router.currentRoute.value.params.monitorId) {
-          setSelectedMarker(monitorMarker);
+          new SelectedMarker(monitorMarker);
         }
       }
 
@@ -316,26 +321,57 @@ function getMarkerPaneName(monitor: Monitor | Calibrator): string {
   }
 }
 
-export function setSelectedMarker(marker: L.ShapeMarker | L.Marker<any> | string) {
-  const monitorMarker = (typeof marker === "string") ? monitorMarkersMap.get(marker) : marker;
+export class SelectedMarker {
+  private static _current = ref<SelectedMarker>();
 
-  if (monitorMarker) {
-    const markerEl = monitorMarker.getElement();
+  static get current(): SelectedMarker | undefined {
+    return SelectedMarker._current.value
+  }
 
-    if (!selectedMarker.value || selectedMarker.value !== monitorMarker) {
-      clearSelectedMarker();
+  static set current(markerSelection: SelectedMarker | undefined) {
+    SelectedMarker._current.value = markerSelection;
+  }
 
-      if (markerEl && !markerEl.classList.contains("marker-selected")) {
-        markerEl.classList.add("marker-selected");
-        selectedMarker.value = monitorMarker;
+  el!: Element;
+  marker: L.ShapeMarker | L.Marker<any>;
+  returnPane!: string;
+
+  constructor(marker: L.ShapeMarker | L.Marker<any> | string) {
+    this.marker = (typeof marker === "string") ? monitorMarkersMap.get(marker)! : marker;
+
+    if (this.marker) {
+      this.returnPane = this.marker.options.pane!;
+
+      if (SelectedMarker.current && SelectedMarker.current.marker !== this.marker) {
+        SelectedMarker.current.clear();
+      }
+
+      if (!SelectedMarker.current) {
+        this.marker.remove();
+
+        monitorMarkersGroup.removeLayer(this.marker);
+        this.marker.options.pane = "selectedMarker";
+        selectedMarkerGroup.addLayer(this.marker);
+
+        this.el = this.marker.getElement()!;
+        this.el.classList.add("marker-selected");
+
+        SelectedMarker.current = this;
       }
     }
   }
-}
 
-export function clearSelectedMarker() {
-  if (selectedMarker.value) {
-    selectedMarker.value.getElement()?.classList.remove("marker-selected");
-    selectedMarker.value = undefined;
+  clear() {
+    if (SelectedMarker.current) {
+      SelectedMarker.current.el.classList.remove("marker-selected");
+
+      SelectedMarker.current.marker.remove();
+      selectedMarkerGroup.removeLayer(SelectedMarker.current.marker);
+
+      SelectedMarker.current.marker.options.pane = this.returnPane;
+      monitorMarkersGroup.addLayer(SelectedMarker.current.marker);
+
+      SelectedMarker.current = undefined;
+    }
   }
 }
