@@ -4,7 +4,7 @@
   "files": [
     "dist"
   ],
-  "version": "1.8.5",
+  "version": "1.8.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
