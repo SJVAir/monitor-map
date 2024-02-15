@@ -14,7 +14,7 @@
 </script>
 
 <template>
-  <div v-if="monitor" class="monitor-header is-flex is-justify-content-space-evenly is-align-items-center is-flex-direction-column box">
+  <div v-if="monitor" class="monitor-header is-flex is-justify-content-space-evenly is-align-items-center is-flex-direction-column box mb-0">
     <p class="monitor-name is-flex-grow-1 is-size-2 has-text-centered mt-3" v-html="monitor.data.name"></p>
     <ul class="is-flex is-justify-content-space-evenly is-align-items-center my-2">
       <li v-if="monitor.data.is_sjvair">
