@@ -6,7 +6,7 @@
   import { MonitorSubscriptionVue } from "../MonitorSubscription";
   import { DataChartVue } from "../DataChart";
   import { HumidityDataBoxVue, PM2DataBoxVue, TempDataBoxVue } from "../MonitorDataBox";
-  import { clearSelectedMarker, setSelectedMarker } from "../DisplayOptions/MonitorMarkers";
+  import { SelectedMarker } from "../DisplayOptions/MonitorMarkers";
   import { useMonitorsService } from "../Monitors";
 
   const props = defineProps<{ monitorId: string }>();
@@ -22,13 +22,13 @@
     (monitorId, oldMonitorID) => {
       if (monitorId !== oldMonitorID) {
         activeMonitor.value = getMonitor(monitorId);
-        setSelectedMarker(activeMonitor.value.data.id);
+        new SelectedMarker(activeMonitor.value.data.id);
       }
     },
     { immediate: true }
   );
 
-  onUnmounted(() => clearSelectedMarker());
+  onUnmounted(() => SelectedMarker.current?.clear());
 </script>
 
 <template>
