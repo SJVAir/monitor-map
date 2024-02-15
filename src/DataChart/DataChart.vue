@@ -157,10 +157,6 @@
         height: 100%;
       }
 
-      .user-options {
-        width: 90%;
-      }
-
       .download {
         margin-right: 2rem;
       }

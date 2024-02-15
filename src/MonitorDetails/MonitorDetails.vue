@@ -91,5 +91,9 @@
         gap: 1rem;
       }
     }
+
+    .user-options {
+      width: 90%;
+    }
   }
 </style>
