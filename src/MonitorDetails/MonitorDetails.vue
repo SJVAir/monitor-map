@@ -61,15 +61,17 @@
     */
     background-color: bulma.$white-bis;
     position: relative;
-    width: 30%;
-    min-width: 500px;
+    max-width: 100vw;
+    width: 100%;
+    height: 50vh;
     overflow: auto;
     overflow-x: hidden;
     gap: 2rem;
 
-    @include bulma.until(bulma.$tablet) {
-      width: 100%;
-      height: 50vh;
+    @include bulma.from(bulma.$tablet) {
+      width: 30%;
+      min-width: 500px;
+      height: 100vh;
     }
 
     .close-btn {
