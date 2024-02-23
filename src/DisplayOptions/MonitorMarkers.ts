@@ -102,7 +102,7 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
   map.createPane("sjvAirPurpleAir").style.zIndex = "604";
   map.createPane("sjvAirBam").style.zIndex = "605";
   map.createPane("calibrators").style.zIndex = "606";
-  map.createPane("selectedMarker").style.zIndex = "650";
+  map.createPane("selectedMarker").style.zIndex = "625";
 
   selectedMarkerGroup.options.pane = "selectedMarkerGroup";
   selectedMarkerGroup.addTo(map);
