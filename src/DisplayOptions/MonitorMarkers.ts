@@ -1,7 +1,7 @@
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useInteractiveMap } from "../Map";
-import { isCalibrator, getCalibratorById, getCalibratorByRefId, monitorIsCalibrator, useCalibratorsService } from "../Calibrators";
+import { isCalibratorObject, getCalibratorById, getCalibratorByRefId, monitorIsCalibrator, useCalibratorsService } from "../Calibrators";
 import L from "../modules/Leaflet";
 import { asyncInitializer, darken, dateUtil, readableColor, toHex } from "../modules";
 import { MonitorDisplayField, MonitorDataField, useMonitorsService, getMonitor } from "../Monitors";
@@ -117,9 +117,10 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
     displayRefs,
     () => {
       monitorMarkersMap.forEach((marker, id) => {
-        const monitor = isCalibrator(id) 
+        const monitor = isCalibratorObject(id) 
           ? getCalibratorById(id)!
           : monitors.value[id];
+
 
         if (isVisible(monitor)) {
           monitorMarkersGroup.addLayer(marker);
@@ -232,9 +233,11 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
           : monitorMarkersVisibility.AirNow.model.value; 
 
       case "AQview":
-        return monitorMarkersVisibility.AQview.model.value;
+        return (monitorIsCalibrator(monitor))
+          ? monitorMarkersVisibility.Calibrators.model.value || monitorMarkersVisibility.AQview.model.value
+          : monitorMarkersVisibility.AQview.model.value; 
     }
-  } else if ("id" in monitor && isCalibrator(monitor.id)) {
+  } else if ("id" in monitor && isCalibratorObject(monitor.id)) {
     const ref = getMonitor(monitor.reference_id);
 
     if(!monitorMarkersVisibility.displayInactive.model.value && !ref.data.is_active){
