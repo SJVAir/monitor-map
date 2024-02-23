@@ -30,7 +30,7 @@ export function getCalibratorByRefId(id: string): Calibrator | undefined {
   return calibrators.value.find(c => c.reference_id === id);
 }
 
-export function isCalibrator(monitor: Monitor | string): boolean {
+export function isCalibratorObject(monitor: Monitor | string): boolean {
   return (typeof monitor === "string")
     ? calibrators.value.some(c => c.id === monitor)
     : calibrators.value.some(c => c.id === monitor.data.id);
