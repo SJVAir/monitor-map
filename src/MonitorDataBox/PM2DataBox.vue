@@ -20,7 +20,7 @@
 </script>
 
 <template>
-  <MonitorDataBoxVue v-if="show" label="PM 2.5" :styles="styles" :value="value"></MonitorDataBoxVue>
+  <MonitorDataBoxVue v-if="show" :no-translate="true" label="PM 2.5" :styles="styles" :value="value"></MonitorDataBoxVue>
 </template>
 
 <style scoped>
