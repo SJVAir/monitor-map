@@ -12,7 +12,7 @@ export function genEvStationMapMarker(evStation: IEvStation, pane: string): Mark
   };
 
   const icon = L.divIcon({
-    html: '<span class="material-symbols-outlined">ev_station</span>',
+    html: '<span translate="no" class="material-symbols-outlined">ev_station</span>',
     className: "leaflet-ev-icon".concat(` ${ iconClass }`),
     iconSize: [30, 30]
   });
@@ -78,7 +78,7 @@ function evCardsAcceptedTemplate(evStation: IEvStation) {
     const cardTags = evStation.cards_accepted!.split(",")
       .map(part => `
         <span class="tag">
-          <span class="material-symbols-outlined is-size-5">
+          <span translate="no" class="material-symbols-outlined is-size-5">
             credit_card
           </span>
           ${ part.trim() }
@@ -93,7 +93,7 @@ function evConnectorTypesTemplate(evStation: IEvStation) {
   return createTemplate(evStation.ev_connector_types, () => {
     const plugTags = evStation.ev_connector_types.map(part => `
         <span class="tag is-success has-text-weight-semibold">
-          <span class="material-symbols-outlined is-size-5">
+          <span translate="no" class="material-symbols-outlined is-size-5">
             electrical_services
           </span>
           ${ part.trim() }

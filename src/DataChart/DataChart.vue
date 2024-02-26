@@ -61,7 +61,7 @@
   <div class="backdrop is-flex is-flex-direction-column is-align-items-center is-justify-content-center" :class="{ 'visible': chartExpanded }">
     <div :class="{ 'expanded': chartExpanded }" class="data-control is-flex is-flex-direction-column is-align-items-center card pb-4 pt-2 mb-6">
       <span v-if="!chartExpanded" class="expand icon is-clickable fullscreen-svg" title="Expand Chart" @click="toggleChart"></span>
-      <span v-else class="expand icon is-clickable material-symbols-outlined" v-on:click="toggleChart">close</span>
+      <span v-else translate="no" class="expand icon is-clickable material-symbols-outlined" v-on:click="toggleChart">close</span>
 
       <div class="date-control mt-2 is-flex is-align-items-center is-justify-content-space-evenly">
         <div class="control">
@@ -73,7 +73,7 @@
           <br/>
           <button class="button is-small is-info is-size-7 has-text-weight-semibold" v-on:click="async () => await loadChartData()">
             <span class="icon is-small">
-              <span :class="{ 'spin': chartDataLoading }" class="material-symbols-outlined">
+              <span translate="no" :class="{ 'spin': chartDataLoading }" class="material-symbols-outlined">
                 refresh
               </span>
             </span>
@@ -90,7 +90,7 @@
         <div class="download control is-align-self-flex-end">
           <button class="button is-small is-success is-size-7 has-text-weight-semibold" v-on:click="csvDownload">
             <span class="icon is-small">
-              <span class="material-symbols-outlined">file_download</span>
+              <span translate="no" class="material-symbols-outlined">file_download</span>
             </span>
             <span>Download</span>
           </button>

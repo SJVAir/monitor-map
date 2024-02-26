@@ -48,7 +48,7 @@
 
     <div class="modal-background" :class="{ visible: modalOpen}" @click.self="closeModal">
       <div class="my-modal">
-        <span class="close-btn material-symbols-outlined" @click.self="closeModal">close</span>
+        <span translate="no" class="close-btn material-symbols-outlined" @click.self="closeModal">close</span>
         <!--
         <iframe :src="iframeSrc" frameborder="0" allowtransparency="true" :style="widgetStyles"></iframe>
         -->
@@ -58,7 +58,7 @@
           <code>
             {{ iframeCode }}
           </code>
-          <span class="material-symbols-outlined" @click.self="copyToClipboard()">
+          <span translate="no" class="material-symbols-outlined" @click.self="copyToClipboard()">
             content_copy
           </span>
           <div class="copied-notice" :class="{ visible: copied }">

@@ -33,7 +33,7 @@
 
 <template>
   <div class="monitor-details is-flex is-align-items-center is-flex-direction-column">
-    <span class="close-btn material-symbols-outlined" v-on:click="close">close</span>
+    <span translate="no" class="close-btn material-symbols-outlined" v-on:click="close">close</span>
 
     <MonitorInfoVue class="mb-4" :monitor="activeMonitor"></MonitorInfoVue>
 

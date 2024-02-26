@@ -26,7 +26,7 @@
       <li>
         <span class="tag is-light">
           <span class="icon">
-            <span class="material-symbols-outlined has-text-grey">router</span>
+            <span translate="no" class="material-symbols-outlined has-text-grey">router</span>
           </span>
           <span>{{ monitor.data.device }}</span>
         </span>
@@ -34,7 +34,7 @@
       <li v-if="monitor.data.county">
         <span class="tag is-light">
           <span class="icon">
-            <span class="material-symbols-outlined has-text-grey">location_on</span>
+            <span translate="no" class="material-symbols-outlined has-text-grey">location_on</span>
           </span>
           <span>{{ monitor.data.county }}</span>
         </span>
@@ -42,7 +42,7 @@
       <li>
         <span class="tag is-light">
           <span class="icon">
-            <span class="material-symbols-outlined has-text-grey is-slze-7">location_searching</span>
+            <span translate="no" class="material-symbols-outlined has-text-grey is-slze-7">location_searching</span>
           </span>
           <span>{{ location }}</span>
         </span>

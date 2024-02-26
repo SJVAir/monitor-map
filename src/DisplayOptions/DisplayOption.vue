@@ -13,7 +13,7 @@
         <input v-if="option instanceof Checkbox" type="checkbox" v-model="option.model.value" />
         <input v-else-if="option instanceof RadioOption" type="radio" :value="option.value" v-model="option.model.value" />
         <span v-if="option.icon" class="icon" :class="option.icon.class">
-          <span class="material-symbols-outlined">
+          <span translate="no" class="material-symbols-outlined">
             {{ option.icon.id }}
           </span>
         </span>
