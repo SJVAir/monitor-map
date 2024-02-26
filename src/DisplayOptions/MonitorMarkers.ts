@@ -294,7 +294,7 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
 
       <div class="is-flex is-flex-direction-column">
         <p>${ dateUtil.$prettyPrint(monitor.data.latest.timestamp) }</p>
-        <p class="is-size-5 has-text-weight-bold is-underlined">${ monitor.data.name }</p>
+        <p translate="no" class="is-size-5 has-text-weight-bold is-underlined">${ monitor.data.name }</p>
         <p class="is-size-6">Last updated:</p>
         <p class="is-size-6">About ${ monitor.lastUpdated }</p>
       </div>
