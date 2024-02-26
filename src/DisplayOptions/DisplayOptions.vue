@@ -22,7 +22,7 @@
     <div class="dropdown-trigger">
       <button class="button" aria-haspopup="true" aria-controls="dropdown-display" v-on:click="toggleDisplayOptions">
         <span class="icon">
-          <span class="material-symbols-outlined">
+          <span translate="no" class="material-symbols-outlined">
             settings
           </span>
         </span>

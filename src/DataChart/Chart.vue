@@ -87,7 +87,7 @@
 <template>
   <div class="data-chart">
     <h1 :class="{ 'show': props.chartDataLoading || noChartData }" class="data-chart-notice">
-      <span :class="{ 'spin': props.chartDataLoading }" class="material-symbols-outlined">
+      <span translate="no" :class="{ 'spin': props.chartDataLoading }" class="material-symbols-outlined">
         {{ messageSymbol }}
       </span>
       <br/>

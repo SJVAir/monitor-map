@@ -285,8 +285,8 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
     <div class="is-flex is-flex-direction-row is-flex-wrap-nowrap">
       <div class="mr-2 px-1"
         style="background-color: ${ monitor.markerParams.value_color }; color: ${ readableColor(monitor.markerParams.value_color) }; border: solid ${ toHex(darken(monitor.markerParams.value_color, .1)) }; border-radius: 5px">
-        <p class="is-size-6 has-text-centered">PM 2.5</p>
-        <p class="is-size-2 has-text-centered has-text-weight-semibold is-flex-grow-1">
+        <p translate="no" class="is-size-6 has-text-centered">PM 2.5</p>
+        <p translate="no" class="is-size-2 has-text-centered has-text-weight-semibold is-flex-grow-1">
           ${ Math.round(+monitor.data.latest[MonitorDisplayField]) }
         </p>
         <p>(${ parseInt(displayField.updateDuration, 10) } min avg)</p>

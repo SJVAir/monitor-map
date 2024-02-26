@@ -48,17 +48,17 @@
 
     <div class="modal-background" :class="{ visible: modalOpen}" @click.self="closeModal">
       <div class="my-modal">
-        <span class="close-btn material-symbols-outlined" @click.self="closeModal">close</span>
+        <span translate="no" class="close-btn material-symbols-outlined" @click.self="closeModal">close</span>
         <!--
         <iframe :src="iframeSrc" frameborder="0" allowtransparency="true" :style="widgetStyles"></iframe>
         -->
-        <div class="iframe" v-html="iframeCode"></div>
+        <div translate="no" class="iframe" v-html="iframeCode"></div>
         <p class="has-text-centered">Copy the following code and paste it in your website</p>
         <div class="code">
           <code>
             {{ iframeCode }}
           </code>
-          <span class="material-symbols-outlined" @click.self="copyToClipboard()">
+          <span translate="no" class="material-symbols-outlined" @click.self="copyToClipboard()">
             content_copy
           </span>
           <div class="copied-notice" :class="{ visible: copied }">
