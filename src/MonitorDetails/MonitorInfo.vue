@@ -28,7 +28,7 @@
           <span class="icon">
             <span translate="no" class="material-symbols-outlined has-text-grey">router</span>
           </span>
-          <span translate="no">{{ monitor.data.device }}</span>
+          <span translate="no">{{ monitor.data.data_source.name }}</span>
         </span>
       </li>
       <li v-if="monitor.data.county">

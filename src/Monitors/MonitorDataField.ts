@@ -31,15 +31,16 @@ export class MonitorDataField {
 
 
 export function getDataFields(data: IMonitorData) {
-    switch (data.device) {
-      case "AirNow":
+    switch (data.data_source.name) {
+      case "AirNow.gov":
         return airNowDataFields(data);
 
       case "AQview":
         return aqviewDataFields(data);
 
-      case "BAM1022":
-        return bam1022DataFields(data);
+      // @TODO: Specify SJVAir Bams
+      //case "BAM1022":
+      //  return bam1022DataFields(data);
 
       case "PurpleAir":
         return purpleAirDataFields(data);
