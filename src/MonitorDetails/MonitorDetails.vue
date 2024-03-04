@@ -32,7 +32,7 @@
 </script>
 
 <template>
-  <div class="monitor-details is-flex is-align-items-center is-flex-direction-column">
+  <div class="monitor-details is-flex is-align-items-center is-flex-direction-column pb-6">
     <span translate="no" class="close-btn material-symbols-outlined" v-on:click="close">close</span>
 
     <MonitorInfoVue class="mb-4" :monitor="activeMonitor"></MonitorInfoVue>
@@ -48,10 +48,17 @@
       <WidgetModalVue :monitorId="props.monitorId" class="is-inline-block"/>
     </div>
 
-
     <DataChartVue></DataChartVue>
-  </div>
 
+    <div v-if="activeMonitor" class="data-providers ml-5">
+      <h3 class="has-text-weight-semibold">Data Provided Courtesy Of:</h3>
+      <ul>
+        <li v-for="provider of activeMonitor.data.data_providers">
+          <a :href="provider.url" target="_blank">{{ provider.name }}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -96,6 +103,10 @@
 
     .user-options {
       width: 90%;
+    }
+
+    .data-providers {
+      align-self: flex-start;
     }
   }
 </style>
