@@ -59,7 +59,7 @@
 
 <template>
   <div class="backdrop is-flex is-flex-direction-column is-align-items-center is-justify-content-center" :class="{ 'visible': chartExpanded }">
-    <div :class="{ 'expanded': chartExpanded }" class="data-control is-flex is-flex-direction-column is-align-items-center card pb-4 pt-2 mb-6">
+    <div :class="{ 'expanded': chartExpanded }" class="data-control is-flex is-flex-direction-column is-align-items-center card pb-4 pt-2">
       <span v-if="!chartExpanded" class="expand icon is-clickable fullscreen-svg" title="Expand Chart" @click="toggleChart"></span>
       <span v-else translate="no" class="expand icon is-clickable material-symbols-outlined" v-on:click="toggleChart">close</span>
 
