@@ -71,7 +71,7 @@
     @include bulma.from(bulma.$tablet) {
       width: 30%;
       min-width: 500px;
-      height: 100vh;
+      height: 100%;
     }
 
     .close-btn {
