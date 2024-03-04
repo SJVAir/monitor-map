@@ -28,7 +28,7 @@
           <span class="icon">
             <span translate="no" class="material-symbols-outlined has-text-grey">rss_feed</span>
           </span>
-          <span translate="no">{{ monitor.data.data_source.name }}</span>
+          <a :href="monitor.data.data_source.url" target="_blank" translate="no">{{ monitor.data.data_source.name }}</a>
         </span>
       </li>
       <li>
