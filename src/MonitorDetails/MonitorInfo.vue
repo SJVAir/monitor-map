@@ -16,11 +16,19 @@
 <template>
   <div v-if="monitor" class="monitor-header is-flex is-justify-content-space-evenly is-align-items-center is-flex-direction-column box mb-0">
     <p translate="no" class="monitor-name is-flex-grow-1 is-size-2 has-text-centered mt-3" v-html="monitor.data.name"></p>
-    <ul class="is-flex is-justify-content-space-evenly is-align-items-center my-2">
+    <ul class="is-flex is-flex-wrap-wrap is-justify-content-space-evenly is-align-items-center my-2">
       <li v-if="monitor.data.is_sjvair">
         <span class="tag is-info is-light">
           <span class="icon lungs-svg"></span>
           <span translate="no">SJVAir</span>
+        </span>
+      </li>
+      <li>
+        <span class="tag is-light">
+          <span class="icon">
+            <span translate="no" class="material-symbols-outlined has-text-grey">rss_feed</span>
+          </span>
+          <a :href="monitor.data.data_source.url" target="_blank" translate="no">{{ monitor.data.data_source.name }}</a>
         </span>
       </li>
       <li>
@@ -61,11 +69,11 @@
     }
 
     ul {
-      width: 80%;
+      width: 90%;
       margin: .2rem 0 .5rem 0;
+      gap: 1rem;
 
       li {
-        height: 20px;
 
         .tag {
           border: 1px solid bulma.$grey-light;

@@ -214,7 +214,7 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
       return false;
     }
 
-    switch(monitor.data.device) {
+    switch(monitor.data.data_source.name) {
       case "PurpleAir":
         const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
           || monitor.data.location === "outside";
@@ -224,10 +224,10 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
 
         return visibleByNetwork && visibleByLocation;
 
-      case "BAM1022":
+      case "Central California Asthma Collaborative":
         return monitorMarkersVisibility.SJVAirBAM.model.value;
 
-      case "AirNow":
+      case "AirNow.gov":
         return (monitorIsCalibrator(monitor))
           ? monitorMarkersVisibility.Calibrators.model.value || monitorMarkersVisibility.AirNow.model.value
           : monitorMarkersVisibility.AirNow.model.value; 
@@ -307,12 +307,12 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
 
 function getMarkerPaneName(monitor: Monitor | Calibrator): string {
   if ("data" in monitor) {
-    switch(monitor.data.device) {
-      case "AirNow": 
+    switch(monitor.data.data_source.name) {
+      case "AirNow.gov": 
         return "airNow";
       case "AQview":
         return "aqview";
-      case "BAM1022":
+      case "Central California Asthma Collaborative":
         return "sjvAirBam";
       case "PurpleAir":
         return (monitor.data.is_sjvair) ? "sjvAirPurpleAir" : "purpleAir";

@@ -48,17 +48,17 @@ function getMarkerParams(monitorData: IMonitorData): IMarkerParams {
     shape: 'square'
   }
 
-  switch(monitorData.device) {
-    case "AirNow": 
+  switch(monitorData.data_source.name) {
+    case "AirNow.gov": 
     case "AQview":
-    case "BAM1022":
+    case "Central California Asthma Collaborative":
       params.shape = "triangle";
       break;
     case "PurpleAir":
       (monitorData.is_sjvair) && (params.shape = "circle");
       break;
     default:
-      console.error(`Unknown device type for monitor ${ monitorData.id }: ${ monitorData.device }`, monitorData);
+      console.error(`Unknown device type for monitor ${ monitorData.id }: ${ monitorData.data_source.name }`, monitorData);
       params.shape = "diamond";
   }
 
@@ -70,10 +70,10 @@ function getMarkerParams(monitorData: IMonitorData): IMarkerParams {
       params.fill_color = valueToColor(+monitorData.latest[MonitorDisplayField], MonitorDataField.levels);
       params.border_color = toHex(darken(params.fill_color, .1));
 
-      switch(monitorData.device) {
-        case "AirNow": 
+      switch(monitorData.data_source.name) {
+        case "AirNow.gov": 
         case "AQview":
-        case "BAM1022":
+        case "Central California Asthma Collaborative":
           params.size = 14;
           break;
         case "PurpleAir":

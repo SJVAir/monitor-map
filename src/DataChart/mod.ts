@@ -1,7 +1,7 @@
 import { MonitorDataField, MonitorFieldColors } from "../Monitors";
 import { dateUtil } from "../modules";
 import { tooltipsPlugin, uPlotCursorConfig } from "./tooltip";
-import type { MonitorDevice } from "../types";
+import type { IMonitorDataSource } from "../types";
 import type uPlot from "uplot";
 
 const colors = MonitorDataField.levels.map(level => [level.min, level.color]) as Array<[number, string]>;
@@ -29,8 +29,8 @@ const pm25Avg60SeriesConfig = {
   stroke: (u: uPlot, _: number) => autograd(u, MonitorFieldColors.pm25_avg_60)
 }
 
-export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width: number, height: number): uPlot.Options {
-  const series: Array<uPlot.Series> = getSeriesConfigs(deviceType);
+export function getChartConfig(sourceName: IMonitorDataSource["name"], maxDiff: number, width: number, height: number): uPlot.Options {
+  const series: Array<uPlot.Series> = getSeriesConfigs(sourceName);
   const getStroke = (u: uPlot, sIdx: number): string => {
     const stroke = series[sIdx].stroke! as (u: uPlot, sIdx: number) => string | CanvasGradient;
     const val = stroke(u, sIdx) as string;
@@ -99,14 +99,14 @@ export function getChartConfig(deviceType: MonitorDevice, maxDiff: number, width
   };
 }
 
-function getSeriesConfigs(deviceType: MonitorDevice) {
+function getSeriesConfigs(sourceName: IMonitorDataSource["name"]) {
   let singleSeriesConfig = Object.assign({}, pm25Avg60SeriesConfig);
   singleSeriesConfig.width = 2;
 
-  switch (deviceType) {
-    case "AirNow":
+  switch (sourceName) {
+    case "AirNow.gov":
     case "AQview":
-    case "BAM1022":
+    case "Central California Asthma Collaborative":
       return [
         baseXSeriesConfig,
         singleSeriesConfig

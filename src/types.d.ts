@@ -54,7 +54,7 @@ export type ChartDataArray = Array<Array<ChartDataPoint>>;
 export type ChartDataField = keyof typeof MonitorFieldColors;
 export type DatePickerSelection = [Date, Date] | [string, string];
 //export type ChartDataRecord = Record<ChartDataField, Array<ChartDataPoint>>;
-export type MonitorDevice = "AirNow" | "AQview" | "BAM1022" | "PurpleAir";
+export type MonitorDevice = "PurpleAir" | "BAM 1022" | "AQview" | "PA-II-FLEX" | "PA-II" | "PA-II-SD";
 export type EntriesPageResponse = AxiosResponse<IEntriesPageResponse, any>;
 // Declare first element should always be default
 export type MapTilesetCollection = [Override<ILeafletTileLayer, { isDefault: true }>, ...ILeafletTileLayer[]];
@@ -162,7 +162,20 @@ export interface IMonitorData {
   location: string;
   latest: IMonitorSensorData;
   county: string;
-  purple_id: number | null;
+  purple_id?: number;
+  sensors: Array<string> | '';
+  data_source: IMonitorDataSource;
+  data_providers: Array<IMonitorDataSource>
+}
+
+export interface IMonitorDataSource {
+  name: "AirNow.gov" | "AQview" | "Central California Asthma Collaborative" | "PurpleAir";
+  url: string;
+}
+
+export interface IMonitorProvider {
+  name: string;
+  url: string;
 }
 
 export interface IMonitorEntry {
