@@ -106,8 +106,7 @@ function getSeriesConfigs(sourceName: IMonitorDataSource["name"]) {
   switch (sourceName) {
     case "AirNow.gov":
     case "AQview":
-    // @TODO: update for SJVAir BAMs
-    //case "BAM1022":
+    case "Central California Asthma Collaborative":
       return [
         baseXSeriesConfig,
         singleSeriesConfig

@@ -224,9 +224,8 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
 
         return visibleByNetwork && visibleByLocation;
 
-      // @TODO: update for SJVAir BAMs
-      //case "BAM1022":
-      //  return monitorMarkersVisibility.SJVAirBAM.model.value;
+      case "Central California Asthma Collaborative":
+        return monitorMarkersVisibility.SJVAirBAM.model.value;
 
       case "AirNow.gov":
         return (monitorIsCalibrator(monitor))
@@ -313,9 +312,8 @@ function getMarkerPaneName(monitor: Monitor | Calibrator): string {
         return "airNow";
       case "AQview":
         return "aqview";
-      // @TODO: update for SJVAir BAMs
-      //case "BAM1022":
-      //  return "sjvAirBam";
+      case "Central California Asthma Collaborative":
+        return "sjvAirBam";
       case "PurpleAir":
         return (monitor.data.is_sjvair) ? "sjvAirPurpleAir" : "purpleAir";
       default:

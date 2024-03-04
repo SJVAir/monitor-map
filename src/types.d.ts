@@ -169,7 +169,7 @@ export interface IMonitorData {
 }
 
 export interface IMonitorDataSource {
-  name: "PurpleAir" | "AirNow.gov" | "AQview";
+  name: "AirNow.gov" | "AQview" | "Central California Asthma Collaborative" | "PurpleAir";
   url: string;
 }
 

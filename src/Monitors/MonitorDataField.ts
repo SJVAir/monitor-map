@@ -38,9 +38,8 @@ export function getDataFields(data: IMonitorData) {
       case "AQview":
         return aqviewDataFields(data);
 
-      // @TODO: Specify SJVAir Bams
-      //case "BAM1022":
-      //  return bam1022DataFields(data);
+      case "Central California Asthma Collaborative":
+        return bam1022DataFields(data);
 
       case "PurpleAir":
         return purpleAirDataFields(data);

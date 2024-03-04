@@ -51,8 +51,7 @@ function getMarkerParams(monitorData: IMonitorData): IMarkerParams {
   switch(monitorData.data_source.name) {
     case "AirNow.gov": 
     case "AQview":
-    // @TODO: update for SJVAir BAMs
-    //case "BAM1022":
+    case "Central California Asthma Collaborative":
       params.shape = "triangle";
       break;
     case "PurpleAir":
@@ -74,8 +73,7 @@ function getMarkerParams(monitorData: IMonitorData): IMarkerParams {
       switch(monitorData.data_source.name) {
         case "AirNow.gov": 
         case "AQview":
-        // @TODO: update for SJVAir BAMs
-        //case "BAM1022":
+        case "Central California Asthma Collaborative":
           params.size = 14;
           break;
         case "PurpleAir":
