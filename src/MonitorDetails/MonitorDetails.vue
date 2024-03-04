@@ -50,7 +50,7 @@
 
     <DataChartVue></DataChartVue>
 
-    <div v-if="activeMonitor" class="data-providers ml-5">
+    <div v-if="activeMonitor" class="data-providers">
       <h3 class="has-text-weight-semibold">Data Provided Courtesy Of:</h3>
       <ul>
         <li v-for="provider of activeMonitor.data.data_providers">
@@ -106,7 +106,7 @@
     }
 
     .data-providers {
-      align-self: flex-start;
+      width: 90%;
     }
   }
 </style>
