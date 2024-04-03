@@ -24,7 +24,7 @@ const htmlPurgeOptions = {
     /marker-cluster*/,
     /uplot*/,
     /^u-*/,
-    /^dp__*/
+    /^dp*/
   ]
 }
 
