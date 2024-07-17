@@ -6,6 +6,8 @@ import { Checkbox, DisplayOptionProps } from "./mod";
 import type { CheckboxConfig, DisplayOptionRecord } from "./mod";
 import type { TileLayer, TileLayerOptions } from "../modules/Leaflet";
 
+// @NOTE: Cloud and wind overlays removed in 12e8887b
+
 type OverlayConfig = TileLayer & CheckboxConfig;
 export class MapOverlayOption extends Checkbox<OverlayConfig> implements TileLayer {
   options: TileLayerOptions;

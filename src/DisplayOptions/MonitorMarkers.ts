@@ -23,7 +23,7 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
       id: "circle"
     },
     model: true,
-    label: "SJVAir (PurpleAir)"
+    label: "SJVAir non-FEM"
   },
   SJVAirBAM: {
     containerClass: "has-text-success",
@@ -31,7 +31,7 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
       id: "change_history"
     },
     model: true,
-    label: "SJVAir (BAM1022)"
+    label: "SJVAir FEM"
   },
   AirNow: {
     containerClass: "has-text-success",
@@ -39,7 +39,7 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
       id: "change_history"
     },
     model: true,
-    label: "AirNow network"
+    label: "AirNow FEM"
   },
   AQview: {
     containerClass: "has-text-success",
@@ -47,7 +47,7 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
       id: "change_history"
     },
     model: true,
-    label: "AQview network"
+    label: "AQview FEM"
   },
   PurpleAir: {
     containerClass: "has-text-success",
@@ -55,10 +55,10 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
       id: "square"
     },
     model: true,
-    label: "PurpleAir network"
+    label: "Private PurpleAir"
   },
   Calibrators: {
-    label: "Calibrators",
+    label: "Collocation Sites",
     model: false,
     svg: "crosshairs-svg"
   },
@@ -117,7 +117,7 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
     displayRefs,
     () => {
       monitorMarkersMap.forEach((marker, id) => {
-        const monitor = isCalibratorObject(id) 
+        const monitor = isCalibratorObject(id)
           ? getCalibratorById(id)!
           : monitors.value[id];
 
@@ -169,7 +169,7 @@ function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>)
       // Assign/reassign marker to record
       monitorMarkersMap.set(id, monitorMarker);
 
-      
+
       if (isVisible(monitor)) {
         monitorMarkersGroup.addLayer(monitorMarker);
 
@@ -210,11 +210,11 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
   // showAirNow
 
   if ("data" in monitor) {
-    if(!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active){
+    if (!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active) {
       return false;
     }
 
-    switch(monitor.data.data_source.name) {
+    switch (monitor.data.data_source.name) {
       case "PurpleAir":
         const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
           || monitor.data.location === "outside";
@@ -230,17 +230,17 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
       case "AirNow.gov":
         return (monitorIsCalibrator(monitor))
           ? monitorMarkersVisibility.Calibrators.model.value || monitorMarkersVisibility.AirNow.model.value
-          : monitorMarkersVisibility.AirNow.model.value; 
+          : monitorMarkersVisibility.AirNow.model.value;
 
       case "AQview":
         return (monitorIsCalibrator(monitor))
           ? monitorMarkersVisibility.Calibrators.model.value || monitorMarkersVisibility.AQview.model.value
-          : monitorMarkersVisibility.AQview.model.value; 
+          : monitorMarkersVisibility.AQview.model.value;
     }
   } else if ("id" in monitor && isCalibratorObject(monitor.id)) {
     const ref = getMonitor(monitor.reference_id);
 
-    if(!monitorMarkersVisibility.displayInactive.model.value && !ref.data.is_active){
+    if (!monitorMarkersVisibility.displayInactive.model.value && !ref.data.is_active) {
       return false;
     }
     return monitorMarkersVisibility.Calibrators.model.value;
@@ -250,7 +250,7 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
 }
 
 function genCalibratorMapMarker(calibrator: Calibrator) {
-  const [ lng, lat ] = calibrator.position.coordinates;
+  const [lng, lat] = calibrator.position.coordinates;
   const icon = L.divIcon({
     className: "is-flex is-justify-content-center is-align-items-center",
     iconAnchor: new L.Point(6, 11),
@@ -264,7 +264,7 @@ function genCalibratorMapMarker(calibrator: Calibrator) {
 
 function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
   const displayField = monitor.displayField || new MonitorDataField(MonitorDisplayField, "PM 2.5", "60", monitor.data);
-  const [ lng, lat ] = monitor.data.position.coordinates;
+  const [lng, lat] = monitor.data.position.coordinates;
   const tooltipOptions = {
     offset: new L.Point(10, 0),
     opacity: 1,
@@ -284,19 +284,19 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
   marker.bindTooltip(`
     <div class="is-flex is-flex-direction-row is-flex-wrap-nowrap">
       <div class="mr-2 px-1"
-        style="background-color: ${ monitor.markerParams.value_color }; color: ${ readableColor(monitor.markerParams.value_color) }; border: solid ${ toHex(darken(monitor.markerParams.value_color, .1)) }; border-radius: 5px">
+        style="background-color: ${monitor.markerParams.value_color}; color: ${readableColor(monitor.markerParams.value_color)}; border: solid ${toHex(darken(monitor.markerParams.value_color, .1))}; border-radius: 5px">
         <p translate="no" class="is-size-6 has-text-centered">PM 2.5</p>
         <p translate="no" class="is-size-2 has-text-centered has-text-weight-semibold is-flex-grow-1">
-          ${ Math.round(+monitor.data.latest[MonitorDisplayField]) }
+          ${Math.round(+monitor.data.latest[MonitorDisplayField])}
         </p>
-        <p>(${ parseInt(displayField.updateDuration, 10) } min avg)</p>
+        <p>(${parseInt(displayField.updateDuration, 10)} min avg)</p>
       </div>
 
       <div class="is-flex is-flex-direction-column">
-        <p>${ dateUtil.$prettyPrint(monitor.data.latest.timestamp) }</p>
-        <p translate="no" class="is-size-5 has-text-weight-bold is-underlined">${ monitor.data.name }</p>
+        <p>${dateUtil.$prettyPrint(monitor.data.latest.timestamp)}</p>
+        <p translate="no" class="is-size-5 has-text-weight-bold is-underlined">${monitor.data.name}</p>
         <p class="is-size-6">Last updated:</p>
-        <p class="is-size-6">About ${ monitor.lastUpdated }</p>
+        <p class="is-size-6">About ${monitor.lastUpdated}</p>
       </div>
 
     </div>
@@ -307,8 +307,8 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
 
 function getMarkerPaneName(monitor: Monitor | Calibrator): string {
   if ("data" in monitor) {
-    switch(monitor.data.data_source.name) {
-      case "AirNow.gov": 
+    switch (monitor.data.data_source.name) {
+      case "AirNow.gov":
         return "airNow";
       case "AQview":
         return "aqview";
