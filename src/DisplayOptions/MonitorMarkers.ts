@@ -228,7 +228,9 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
         return visibleByNetwork && visibleByLocation;
 
       case "Central California Asthma Collaborative":
-        return monitorMarkersVisibility.SJVAirBAM.model.value;
+        return (monitorIsCalibrator(monitor))
+          ? monitorMarkersVisibility.Calibrators.model.value || monitorMarkersVisibility.SJVAirBAM.model.value
+          : monitorMarkersVisibility.SJVAirBAM.model.value;
 
       case "AirNow.gov":
         return (monitorIsCalibrator(monitor))
