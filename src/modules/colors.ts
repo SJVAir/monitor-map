@@ -3,16 +3,16 @@ import type { IColorLevel } from "../types";
 export { darken, mix, toHex, readableColor } from "color2k";
 
 export const Colors = {
-  white: 'ffffff',
-  gray: '969696',
-  black: '000000',
-  blue: '0000FF',
-  green: '00e400',
-  yellow: 'ffff00',
-  orange: 'ff7e00',
-  red: 'ff0000',
-  purple: '8f3f97',
-  maroon: '7e0023'
+  white: "ffffff",
+  gray: "969696",
+  black: "000000",
+  blue: "0000FF",
+  green: "00e400",
+  yellow: "ffff00",
+  orange: "ff7e00",
+  red: "ff0000",
+  purple: "8f3f97",
+  maroon: "7e0023"
 } as const;
 
 export function valueToColor(value: number, colors: Array<IColorLevel>) {
@@ -28,7 +28,7 @@ export function valueToColor(value: number, colors: Array<IColorLevel>) {
     for (let i = 0; i <= colors.length - 1; i++) {
       if (colors[i].min > value) {
         // Level for current value
-        const min = colors[i-1];
+        const min = colors[i - 1];
         // Level threshold for current value
         const max = colors[i];
         // Difference between max and min values => total steps in level
