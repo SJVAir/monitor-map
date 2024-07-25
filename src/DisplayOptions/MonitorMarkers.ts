@@ -57,10 +57,13 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
     model: true,
     label: "Private PurpleAir"
   },
-  Calibrators: {
-    label: "Collocation Sites",
+  displayInactive: {
+    containerClass: "has-text-grey-light",
+    icon: {
+      id: "square"
+    },
     model: false,
-    svg: "crosshairs-svg"
+    label: "Inactive monitors"
   },
   PurpleAirInside: {
     containerClass: "icon-border has-text-success",
@@ -70,13 +73,10 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
     model: false,
     label: "Inside monitors"
   },
-  displayInactive: {
-    containerClass: "has-text-grey-light",
-    icon: {
-      id: "square"
-    },
+  Calibrators: {
+    label: "Collocation Sites",
     model: false,
-    label: "Inactive monitors"
+    svg: "crosshairs-svg"
   },
 });
 
