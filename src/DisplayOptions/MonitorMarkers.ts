@@ -256,11 +256,12 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
 }
 
 function genCalibratorMapMarker(calibrator: Calibrator) {
+  const ref = getMonitor(calibrator.reference_id);
   const [lng, lat] = calibrator.position.coordinates;
   const icon = L.divIcon({
     className: "is-flex is-justify-content-center is-align-items-center",
     iconAnchor: new L.Point(6, 11),
-    html: "<div class='crosshairs-svg-lg is-flex-grow-0 is-flex-shrink-0'>Hello</div>"
+    html: `<div class='crosshairs-svg-lg ${ref.data.is_active ? "" : "disabled-monitor"} is-flex-grow-0 is-flex-shrink-0'>Hello</div>`
   });
   return L.marker(L.latLng(lat, lng), {
     icon,
