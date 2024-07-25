@@ -57,10 +57,13 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
     model: true,
     label: "Private PurpleAir"
   },
-  Calibrators: {
-    label: "Collocation Sites",
+  displayInactive: {
+    containerClass: "has-text-grey-light",
+    icon: {
+      id: "square"
+    },
     model: false,
-    svg: "crosshairs-svg"
+    label: "Inactive monitors"
   },
   PurpleAirInside: {
     containerClass: "icon-border has-text-success",
@@ -70,13 +73,10 @@ const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineO
     model: false,
     label: "Inside monitors"
   },
-  displayInactive: {
-    containerClass: "has-text-grey-light",
-    icon: {
-      id: "square"
-    },
+  Calibrators: {
+    label: "Collocation Sites",
     model: false,
-    label: "Inactive monitors"
+    svg: "crosshairs-svg"
   },
 });
 
@@ -210,7 +210,10 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
   // showAirNow
 
   if ("data" in monitor) {
-    if (!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active) {
+    if (monitorMarkersVisibility.Calibrators.model.value && monitorIsCalibrator(monitor)) {
+      return true;
+
+    } else if (!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active) {
       return false;
     }
 
@@ -225,7 +228,9 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
         return visibleByNetwork && visibleByLocation;
 
       case "Central California Asthma Collaborative":
-        return monitorMarkersVisibility.SJVAirBAM.model.value;
+        return (monitorIsCalibrator(monitor))
+          ? monitorMarkersVisibility.Calibrators.model.value || monitorMarkersVisibility.SJVAirBAM.model.value
+          : monitorMarkersVisibility.SJVAirBAM.model.value;
 
       case "AirNow.gov":
         return (monitorIsCalibrator(monitor))
@@ -238,11 +243,14 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
           : monitorMarkersVisibility.AQview.model.value;
     }
   } else if ("id" in monitor && isCalibratorObject(monitor.id)) {
-    const ref = getMonitor(monitor.reference_id);
+    // NOTE: This commented out block hides inactive calibrator sites if the reference_id
+    //       monitor is inactive. Feature removed by request
+    //
+    //const ref = getMonitor(monitor.reference_id);
 
-    if (!monitorMarkersVisibility.displayInactive.model.value && !ref.data.is_active) {
-      return false;
-    }
+    //if (!monitorMarkersVisibility.displayInactive.model.value && !ref.data.is_active) {
+    //  return false;
+    //}
     return monitorMarkersVisibility.Calibrators.model.value;
   }
 
@@ -250,11 +258,12 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
 }
 
 function genCalibratorMapMarker(calibrator: Calibrator) {
+  const ref = getMonitor(calibrator.reference_id);
   const [lng, lat] = calibrator.position.coordinates;
   const icon = L.divIcon({
     className: "is-flex is-justify-content-center is-align-items-center",
     iconAnchor: new L.Point(6, 11),
-    html: "<div class='crosshairs-svg-lg is-flex-grow-0 is-flex-shrink-0'>Hello</div>"
+    html: `<div class='crosshairs-svg-lg ${ref.data.is_active ? "" : "disabled-monitor"} is-flex-grow-0 is-flex-shrink-0'>Hello</div>`
   });
   return L.marker(L.latLng(lat, lng), {
     icon,
