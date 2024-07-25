@@ -210,7 +210,10 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
   // showAirNow
 
   if ("data" in monitor) {
-    if (!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active) {
+    if (monitorMarkersVisibility.Calibrators.model.value && monitorIsCalibrator(monitor)) {
+      return true;
+
+    } else if (!monitorMarkersVisibility.displayInactive.model.value && !monitor.data.is_active) {
       return false;
     }
 
@@ -238,11 +241,14 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
           : monitorMarkersVisibility.AQview.model.value;
     }
   } else if ("id" in monitor && isCalibratorObject(monitor.id)) {
-    const ref = getMonitor(monitor.reference_id);
+    // NOTE: This commented out block hides inactive calibrator sites if the reference_id
+    //       monitor is inactive. Feature removed by request
+    //
+    //const ref = getMonitor(monitor.reference_id);
 
-    if (!monitorMarkersVisibility.displayInactive.model.value && !ref.data.is_active) {
-      return false;
-    }
+    //if (!monitorMarkersVisibility.displayInactive.model.value && !ref.data.is_active) {
+    //  return false;
+    //}
     return monitorMarkersVisibility.Calibrators.model.value;
   }
 
