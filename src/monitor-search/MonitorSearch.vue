@@ -90,16 +90,15 @@ async function goToMonitor(monitor: Monitor) {
 <template>
   <div class="search-component" :class="{ collapsed, results: searchResults.length }" v-click-outside="focusOut">
     <div class="search-header" :class="{ collapsed, results: searchResults.length }">
-      <div class="search-icon" @click="openSearch">
-        <!--
-        <ion-icon @click="openSearch" :icon="searchCircleSharp" aria-hidden="true"></ion-icon>
-        -->
-        <span>circle</span>
+      <div class="search-icon-container" @click="openSearch">
+        <span class="material-symbols-outlined search-icon">
+          search
+        </span>
       </div>
-      <p lines="none" :class="{ collapsed }">
+      <span class="search-input-container" :class="{ collapsed }">
         <input ref="searchInput" type="text" v-model="searchText">
         </input>
-      </p>
+      </span>
     </div>
     <div class="search-results" :class="{ collapsed: !searchResults.length || collapsed }">
       <div class="results-list">
@@ -131,18 +130,20 @@ async function goToMonitor(monitor: Monitor) {
 
 <style scoped lang="scss">
 .search-component {
-  border-radius: 20px;
+  --size: 3rem;
+  border-radius: 26px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 85%;
+  width: 60%;
   transition: width 600ms, height 600ms;
-  max-height: 2.5rem;
+  max-height: var(--size);
   overflow: hidden;
+  background-color: bulma.$white;
+  user-select: none;
 
   &.collapsed {
-    --size: 2.5rem;
     width: var(--size);
     max-height: var(--size) !important;
     transition: width 250ms, max-height 250ms;
@@ -167,37 +168,48 @@ async function goToMonitor(monitor: Monitor) {
       border: none;
     }
 
-    .search-icon {
-      --size: 2.5rem;
+    .search-icon-container {
       display: flex;
-      align-self: flex-start;
       justify-content: center;
       align-items: center;
       border-radius: 100%;
+      background-color: $sjvair-main;
+      color: bulma.$white;
       width: var(--size);
       height: var(--size);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      padding: .5rem;
+      border: 4px solid white;
 
-      span {
-        font-size: 42px;
-        color: rgb(56, 128, 255);
+      .search-icon {
+        font-size: 36px;
+        color: bulma.$white;
+        /*
+        width: calc(var(--size) - .5rem);
+        height: calc(var(--size) - .5rem);
+        */
       }
     }
 
-    p {
-      --padding-start: .5rem;
-      --min-height: 2.5rem;
+    .search-input-container {
+      display: inline;
+      overflow: hidden;
       margin: 0;
       padding: 0;
       width: 100%;
-      height: 2.5rem;
+      height: var(--size);
+      min-height: var(--size);
 
       input {
+        border: none;
         line-height: 1;
-        height: 2.5rem;
+        height: var(--size);
+        padding-left: .5rem;
         width: 100%;
+
+        &:focus-visible {
+          border: none;
+          outline: none;
+        }
       }
     }
   }
