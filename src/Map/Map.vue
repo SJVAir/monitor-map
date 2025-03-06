@@ -29,7 +29,8 @@ onMounted(() => {
 
   .monitor-search {
     position: absolute;
-    left: 25rem;
+    left: 14rem;
+    top: .5rem;
     z-index: 500;
   }
 
