@@ -30,6 +30,11 @@ function focusOut() {
   }
 }
 
+function clearSearch(e: PointerEvent) {
+  console.log(e)
+  searchText.value = "";
+}
+
 function closeSearch() {
   collapsed.value = true;
   searchInput.value.blur();
@@ -90,7 +95,7 @@ async function goToMonitor(monitor: Monitor) {
 <template>
   <div class="search-component" :class="{ collapsed, results: searchResults.length }" v-click-outside="focusOut">
     <div class="search-header" :class="{ collapsed, results: searchResults.length }">
-      <div class="search-icon-container" @click="openSearch">
+      <div class="search-icon-container" @click.capture="openSearch">
         <span class="material-symbols-outlined search-icon">
           search
         </span>
@@ -98,6 +103,9 @@ async function goToMonitor(monitor: Monitor) {
       <span class="search-input-container" :class="{ collapsed }">
         <input ref="searchInput" type="text" v-model="searchText">
         </input>
+        <span v-if="searchText.length && !collapsed" @click="clearSearch" class="clear-btn material-symbols-outlined">
+          clear
+        </span>
       </span>
     </div>
     <div class="search-results" :class="{ collapsed: !searchResults.length || collapsed }">
@@ -204,14 +212,19 @@ async function goToMonitor(monitor: Monitor) {
         line-height: 1;
         height: var(--size);
         padding-left: .5rem;
-        width: 100%;
+        width: calc(100% - var(--size));
 
         &:focus-visible {
           border: none;
           outline: none;
         }
       }
+
+      .clear-btn {
+        vertical-align: middle;
+      }
     }
+
   }
 
   .search-results {
