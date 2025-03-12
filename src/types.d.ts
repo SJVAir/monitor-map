@@ -4,7 +4,7 @@ import type L from "./modules/Leaflet";
 import type { Monitor } from "./Monitors";
 import type { MonitorFieldColors } from "./Monitors";
 import type { MonitorDataField } from "./MonitorDataFields";
-import {Ref} from "vue";
+import { Ref } from "vue";
 
 declare module "leaflet" {
   export function shapeMarker(latLng: L.LatLngExpression, IShapeOpions): ShapeMarker;
@@ -17,12 +17,12 @@ declare module "leaflet" {
     options: ShapeMarkerOpions;
 
     setRadius(radius: number): ShapeMarker;
-    getRadius(): number; 
+    getRadius(): number;
 
     setRotation(rotation: number): ShapeMarker;
     getRotation(): number;
 
-    toGeoJSON(): InstanceType<L.GeoJSON>; 
+    toGeoJSON(): InstanceType<L.GeoJSON>;
   }
 }
 
@@ -62,7 +62,7 @@ export type MonitorDataFieldName = "pm10" | "pm25" | "pm25_avg_15" | "pm25_avg_6
 export type MonitorFieldColor = ValueOf<typeof MonitorFieldColors>;
 export type MonitorId = Monitor["data"]["id"];
 export type MonitorsRecord = Record<MonitorId, Monitor>;
-export type MonitorSerachParams = { id: string} | { name: string } | { county: string } | ((m: Monitor) => Monitor);
+export type MonitorSerachParams = { id: string } | { name: string } | { county: string } | ((m: Monitor) => Monitor);
 
 // Interfaces
 export interface IActiveMonitor {
@@ -99,28 +99,28 @@ export interface IEntriesPageResponse {
 }
 
 export interface IEvStation {
-    access_code: string
-    access_days_time: string;
-    access_detail_code: string;
-    cards_accepted: null | string;
-    date_last_confirmed: string;
-    groups_with_access_code: string;
-    id: number;
-    station_name: string;
-    station_phone: string,
-    updated_at: string,
-    facility_type: string,
-    latitude: number,
-    longitude: number,
-    city: string,
-    state: string,
-    street_address: string,
-    zip: string,
-    country: string,
-    ev_connector_types: Array<string>,
-    ev_dc_fast_num: number,
-    ev_network: string,
-    ev_pricing: string,
+  access_code: string
+  access_days_time: string;
+  access_detail_code: string;
+  cards_accepted: null | string;
+  date_last_confirmed: string;
+  groups_with_access_code: string;
+  id: number;
+  station_name: string;
+  station_phone: string,
+  updated_at: string,
+  facility_type: string,
+  latitude: number,
+  longitude: number,
+  city: string,
+  state: string,
+  street_address: string,
+  zip: string,
+  country: string,
+  ev_connector_types: Array<string>,
+  ev_dc_fast_num: number,
+  ev_network: string,
+  ev_pricing: string,
 }
 
 export interface ILeafletTileLayer {
@@ -185,13 +185,13 @@ export interface IMonitorEntry {
 }
 
 export interface IMonitorManager {
- monitors: MonitorsRecord;
- sjvAirPurple: MonitorsRecord;
- sjvAirInactive: MonitorsRecord
- sjvAirBAM: MonitorsRecord;
- purpleAir: MonitorsRecord;
- purpleAirInside: MonitorsRecord;
- airNow: MonitorsRecord;
+  monitors: MonitorsRecord;
+  sjvAirPurple: MonitorsRecord;
+  sjvAirInactive: MonitorsRecord
+  sjvAirBAM: MonitorsRecord;
+  purpleAir: MonitorsRecord;
+  purpleAirInside: MonitorsRecord;
+  airNow: MonitorsRecord;
 }
 
 export interface IMonitorPosition {
@@ -229,13 +229,13 @@ export interface IMonitorSubscription {
 }
 
 export interface IMonitorVisibility {
-  SJVAirPurple: IMonitorVisibilityOptions;
+  SJVAirPurpleAir: IMonitorVisibilityOptions;
   SJVAirBAM: IMonitorVisibilityOptions;
   PurpleAir: IMonitorVisibilityOptions;
   PurpleAirInside: IMonitorVisibilityOptions;
   AirNow: IMonitorVisibilityOptions;
   displayInactive: IMonitorVisibilityOptions;
-} 
+}
 
 export interface IMonitorVisibilityOptions {
   containerClass?: string;

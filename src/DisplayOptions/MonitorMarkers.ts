@@ -17,7 +17,7 @@ const monitorMarkersGroup: L.FeatureGroup = new L.FeatureGroup();
 const selectedMarkerGroup: L.FeatureGroup = new L.FeatureGroup();
 
 const monitorMarkersVisibility: DisplayOptionRecord<Checkbox> = Checkbox.defineOptions({
-  SJVAirPurple: {
+  SJVAirPurpleAir: {
     containerClass: "has-text-success",
     icon: {
       id: "circle"
@@ -203,7 +203,7 @@ function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>)
 }
 
 function isVisible(monitor: Monitor | Calibrator): boolean {
-  // showSJVAirPurple
+  // showSJVAirPurpleAir
   // showSJVAirBAM
   // showPurpleAir
   // showPurpleAirInside
@@ -222,7 +222,7 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
         const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
           || monitor.data.location === "outside";
         const visibleByNetwork = monitor.data.is_sjvair
-          ? monitorMarkersVisibility.SJVAirPurple.model.value
+          ? monitorMarkersVisibility.SJVAirPurpleAir.model.value
           : monitorMarkersVisibility.PurpleAir.model.value;
 
         return visibleByNetwork && visibleByLocation;
@@ -380,8 +380,13 @@ export class SelectedMarker {
       SelectedMarker.current.marker.remove();
       selectedMarkerGroup.removeLayer(SelectedMarker.current.marker);
 
-      SelectedMarker.current.marker.options.pane = this.returnPane;
-      monitorMarkersGroup.addLayer(SelectedMarker.current.marker);
+      const visibilityKey: keyof typeof monitorMarkersVisibility = Object.keys(monitorMarkersVisibility)
+        .filter(key => key.toLowerCase() === this.returnPane.toLowerCase())[0];
+
+      if (monitorMarkersVisibility[visibilityKey].model.value) {
+        SelectedMarker.current.marker.options.pane = this.returnPane;
+        monitorMarkersGroup.addLayer(SelectedMarker.current.marker);
+      }
 
       SelectedMarker.current = undefined;
     }

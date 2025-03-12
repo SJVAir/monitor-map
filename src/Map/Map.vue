@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import MarkerLegendVue from "./MarkerLegend.vue";
 import MonitorSearch from "../monitor-search/MonitorSearch.vue";
+import Geolocate from "./Geolocate.vue";
 import { useInteractiveMap } from "./InteractiveMap";
 
 const mapTarget = ref<HTMLDivElement>();
@@ -15,7 +16,10 @@ onMounted(() => {
 <template>
   <div ref="mapTarget" class="map section is-paddingless">
     <MonitorSearch class="monitor-search"></MonitorSearch>
-    <MarkerLegendVue class="marker-legend"></MarkerLegendVue>
+    <div class="map-footer">
+      <MarkerLegendVue class="marker-legend"></MarkerLegendVue>
+      <Geolocate class="geolocate"></Geolocate>
+    </div>
   </div>
 </template>
 
@@ -34,11 +38,16 @@ onMounted(() => {
     z-index: 500;
   }
 
-  .marker-legend {
+  .map-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2.5rem;
+    width: 100%;
     position: absolute;
-    left: 2.5rem;
     bottom: 3rem;
     z-index: 1000;
   }
+
 }
 </style>

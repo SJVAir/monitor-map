@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
-//import { IonCard, IonIcon, IonInput, IonItem, IonList, useIonRouter } from "@ionic/vue";
-//import { searchCircleSharp } from "ionicons/icons";
 import { geocode, MonitorSearchResult, GeocodeSearchResult, monitorSearch, type MapTilerFeature } from "./service";
 import { vClickOutside } from "../modules/clickOutside";
 import { useInteractiveMap } from "../Map";
 import { type Monitor, useMonitorsService } from "../Monitors";
 import L from "../modules/Leaflet";
 import { useRouter } from "vue-router";
+import { debounce } from "../modules/debounce";
 
 const { map, recenter } = await useInteractiveMap();
 const { activeMonitor } = await useMonitorsService();
@@ -30,9 +29,14 @@ function focusOut() {
   }
 }
 
-function clearSearch(e: PointerEvent) {
-  console.log(e)
-  searchText.value = "";
+function clearSearch() {
+  // Create macrotask to run this event handler,
+  // after the 'clickOutside' driective
+  setTimeout(() => {
+    searchText.value = "";
+    searchResults.value = [];
+    searchMarker.value?.remove();
+  }, 0);
 }
 
 function closeSearch() {
@@ -50,19 +54,17 @@ function openSearch() {
   }
 }
 
-async function search(inputEvent: CustomEvent) {
-  const { value } = inputEvent.detail;
+async function search(inputEvent: Event) {
+  const monitorResults = await monitorSearch(searchText.value);
 
-  const monitorResults = await monitorSearch(value);
-
-  if (!value.length) {
+  if (!searchText.value.length) {
     searchResults.value = [];
     if (searchMarker.value) {
       searchMarker.value.remove();
     }
 
-  } else if (!monitorResults.length && value.length > 4) {
-    searchResults.value = await geocode(value);
+  } else if (!monitorResults.length && searchText.value.length > 4) {
+    searchResults.value = await geocode(searchText.value);
 
   } else if (monitorResults.length) {
     searchResults.value = monitorResults;
@@ -90,6 +92,7 @@ async function goToMonitor(monitor: Monitor) {
   activeMonitor.value = monitor;
   router.push({ name: "details", params: { monitorId: monitor.data.id } });
 }
+const handler = debounce(search, 500);
 </script>
 
 <template>
@@ -101,7 +104,7 @@ async function goToMonitor(monitor: Monitor) {
         </span>
       </div>
       <span class="search-input-container" :class="{ collapsed }">
-        <input ref="searchInput" type="text" v-model="searchText">
+        <input ref="searchInput" type="text" v-model="searchText" @input="handler">
         </input>
         <span v-if="searchText.length && !collapsed" @click="clearSearch" class="clear-btn material-symbols-outlined">
           clear
@@ -122,11 +125,6 @@ async function goToMonitor(monitor: Monitor) {
           </div>
           <div v-else-if="result instanceof MonitorSearchResult" @click="goToMonitor(result.data)"
             class="monitor-result">
-            <!--
-            <span class="material-symbols-outlined result-icon">
-              air_purifier
-            </span>
-            -->
             <img :src="result.logo.url" :alt="result.logo.alt">
             <p>{{ result.data.data.name }}</p>
           </div>
@@ -150,6 +148,7 @@ async function goToMonitor(monitor: Monitor) {
   overflow: hidden;
   background-color: bulma.$white;
   user-select: none;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 
   &.collapsed {
     width: var(--size);
@@ -158,7 +157,7 @@ async function goToMonitor(monitor: Monitor) {
   }
 
   &.results {
-    max-height: 20rem;
+    max-height: 24rem;
   }
 
   .search-header {
@@ -221,6 +220,7 @@ async function goToMonitor(monitor: Monitor) {
       }
 
       .clear-btn {
+        cursor: pointer;
         vertical-align: middle;
       }
     }
@@ -228,7 +228,7 @@ async function goToMonitor(monitor: Monitor) {
   }
 
   .search-results {
-    max-height: 17.5rem;
+    max-height: 20rem;
     transform: scaleY(1);
     transition: transform 600ms, max-height 600ms;
     overflow: hidden;
@@ -244,7 +244,13 @@ async function goToMonitor(monitor: Monitor) {
       padding: 0;
 
       .result-item {
-        margin: 1rem;
+        padding: 1rem;
+        cursor: pointer;
+        background-color: white;
+
+        &:hover {
+          filter: brightness(0.98);
+        }
 
         &::part(native) {
           flex-direction: column;
@@ -263,6 +269,7 @@ async function goToMonitor(monitor: Monitor) {
         width: 100%;
         height: 48px;
 
+
         .result-icon {
           font-size: 24px;
           flex-shrink: 0;
@@ -274,8 +281,6 @@ async function goToMonitor(monitor: Monitor) {
 
         }
       }
-
-      .geocode-result {}
 
       .monitor-result {
         img {

@@ -12,7 +12,7 @@ export const vClickOutside = {
     binding: DirectiveBinding<ClickOutsideEventHandler>,
   ) {
     el.clickOutsideEvent = function (event: MouseEvent) {
-      if (!(el == event.target || el.contains(event.target as Node))) {
+      if (!(el === event.target || el.contains(event.target as Node))) {
         binding.value(event);
       }
     };
