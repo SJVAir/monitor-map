@@ -6,7 +6,7 @@ const baseURL = (() => {
       ? window.location.origin
       : self.location.origin
 
-    return `${ origin }/api/1.0/`
+    return `${origin}/api/1.0/`
   } else {
     return "/api/1.0/";
   }

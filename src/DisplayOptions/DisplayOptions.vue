@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Ref, ref } from "vue";
+import { vClickOutside } from "../modules/clickOutside";
 import DisplayOption from "./DisplayOption.vue";
 //import { useOverlayTilesets } from "./OverlayTilesets";
 import { useMonitorMarkers } from "./MonitorMarkers";
@@ -15,10 +16,13 @@ const mapTilesets = await useMapTilesets();
 function toggleDisplayOptions() {
   displayOptionsActive.value = !displayOptionsActive.value;
 }
+function close() {
+  displayOptionsActive.value = false;
+}
 </script>
 
 <template>
-  <div class="dropdown" :class="displayOptionsActive ? 'is-active' : ''">
+  <div class="dropdown" :class="displayOptionsActive ? 'is-active' : ''" v-click-outside="close">
     <div class="dropdown-trigger">
       <button class="button" aria-haspopup="true" aria-controls="dropdown-display" v-on:click="toggleDisplayOptions">
         <span class="icon">

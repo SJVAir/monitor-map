@@ -9,6 +9,15 @@
     overflow-y: hidden;
   }
 }
+span.location-icon.material-symbols-outlined, {
+  color: rgb(56, 128, 255);
+  font-size: 2rem;
+  font-variation-settings:
+  'FILL' 1,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
 
 #SJVAirMonitorMap {
   flex-grow: 1;
