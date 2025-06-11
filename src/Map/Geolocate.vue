@@ -21,7 +21,7 @@ async function locate() {
 
 <style scoped lang="scss">
 .locate {
-  --size: 3rem;
+  --size: 3.5rem;
   border-radius: 100%;
   width: var(--size);
   height: var(--size);
@@ -33,7 +33,7 @@ async function locate() {
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 
   .material-symbols-outlined {
-    font-size: 36px;
+    font-size: 42px;
     color: rgb(56, 128, 255);
   }
 }
