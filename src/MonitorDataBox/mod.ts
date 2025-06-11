@@ -15,20 +15,20 @@ const tempLevels = [
 ];
 
 // humidity color #198ccd
-export function rhDataboxStyles(monitor: Monitor) {
-  const rhColor = valueToColor(+monitor.data.latest.humidity, humidityColors);
-  return {
-    backgroundColor: rhColor,
-    color: readableColor(rhColor),
-    border: `solid ${ toHex(darken(rhColor, .1)) } 3px`
-  };
-};
+//export function rhDataboxStyles(monitor: Monitor) {
+//  const rhColor = valueToColor(+monitor.data.latest.humidity, humidityColors);
+//  return {
+//    backgroundColor: rhColor,
+//    color: readableColor(rhColor),
+//    border: `solid ${ toHex(darken(rhColor, .1)) } 3px`
+//  };
+//};
 
 export function tempDataboxStyles(value: number) {
   const tempColor = valueToColor(value, tempLevels);
   return {
     backgroundColor: tempColor,
     color: readableColor(tempColor),
-    border: `solid ${ toHex(darken(tempColor, .1)) } 3px`
+    border: `solid ${toHex(darken(tempColor, .1))} 3px`
   };
 };
