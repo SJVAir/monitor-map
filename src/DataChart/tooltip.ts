@@ -1,4 +1,4 @@
-import {dateUtil} from "../modules";
+import { dateUtil } from "../modules";
 import { MonitorDataField } from "../Monitors";
 
 // save/restore cursor and tooltip state across re-inits
@@ -28,7 +28,7 @@ export const uPlotCursorConfig = {
             const stop = colors[i];
 
             if (val >= stop[0]) {
-              return `#${ stop[1] }`;
+              return `#${stop[1]}`;
             }
           }
         }
@@ -119,7 +119,7 @@ export function tooltipsPlugin() {
 
     over.addEventListener("mouseleave", () => {
       if (!u.cursor.lock) {
-      //	u.setCursor({left: -10, top: -10});
+        //	u.setCursor({left: -10, top: -10});
         hideTips();
       }
     });
@@ -136,11 +136,11 @@ export function tooltipsPlugin() {
   }
 
   function setCursor(u: uPlot) {
-    const {left, top, idx} = u.cursor;
+    const { left, top, idx } = u.cursor;
 
     uPlotCursorConfig.set(left!, top!);
 
-    ttContainer.style.left = `${ left! + 15 }px`;
+    ttContainer.style.left = `${left! + 15}px`;
     ttContainer.style.top = top + "px";
 
     seriesList.forEach((tt, i) => {
@@ -158,11 +158,11 @@ export function tooltipsPlugin() {
         } else {
           tt!.style.display = "block";
 
-          let label = u.series[i].label;
+          let label = u.series[i].label as string;
           label = label?.substring(label.indexOf("(") + 1, label.indexOf(")")) || label;
 
           ttHeader.textContent = dateUtil.$prettyPrint(dateUtil.unix(xVal));
-          tt!.textContent = `${ label }: ${ yVal }`;
+          tt!.textContent = `${label}: ${yVal}`;
         }
 
       }
