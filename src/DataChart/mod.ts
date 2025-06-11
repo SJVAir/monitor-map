@@ -1,8 +1,8 @@
 import { MonitorDataField, MonitorFieldColors } from "../Monitors";
 import { dateUtil } from "../modules";
 import { tooltipsPlugin, uPlotCursorConfig } from "./tooltip";
-import type { IMonitorDataSource } from "../types";
 import type uPlot from "uplot";
+import { MonitorDataSource } from "@sjvair/sdk";
 
 const colors = MonitorDataField.levels.map(level => [level.min, level.color]) as Array<[number, string]>;
 // Append stop color value
@@ -11,9 +11,9 @@ colors.push([Infinity, "000000"]);
 const baseXSeriesConfig = {};
 
 const baseYSeriesConfig = {
-    show: true,
-    spanGaps: false,
-    width: 1,
+  show: true,
+  spanGaps: false,
+  width: 1,
 };
 
 const pm25SeriesConfig = {
@@ -29,7 +29,7 @@ const pm25Avg60SeriesConfig = {
   stroke: (u: uPlot, _: number) => autograd(u, MonitorFieldColors.pm25_avg_60)
 }
 
-export function getChartConfig(sourceName: IMonitorDataSource["name"], maxDiff: number, width: number, height: number): uPlot.Options {
+export function getChartConfig(sourceName: MonitorDataSource["name"], maxDiff: number, width: number, height: number): uPlot.Options {
   const series: Array<uPlot.Series> = getSeriesConfigs(sourceName);
   const getStroke = (u: uPlot, sIdx: number): string => {
     const stroke = series[sIdx].stroke! as (u: uPlot, sIdx: number) => string | CanvasGradient;
@@ -45,7 +45,7 @@ export function getChartConfig(sourceName: IMonitorDataSource["name"], maxDiff: 
     select: {
       show: false
     },
-    plugins: [ tooltipsPlugin()],
+    plugins: [tooltipsPlugin()],
     series,
     legend: {
       live: false,
@@ -88,7 +88,7 @@ export function getChartConfig(sourceName: IMonitorDataSource["name"], maxDiff: 
       {
         label: "PM 2.5",
         side: 3,
-        values: (_: any, ticks: any) => ticks.map((v:any) => v.toFixed((maxDiff < 5) ? 1 : 0)),
+        values: (_: any, ticks: any) => ticks.map((v: any) => v.toFixed((maxDiff < 5) ? 1 : 0)),
       }
     ],
     hooks: {
@@ -99,7 +99,7 @@ export function getChartConfig(sourceName: IMonitorDataSource["name"], maxDiff: 
   };
 }
 
-function getSeriesConfigs(sourceName: IMonitorDataSource["name"]) {
+function getSeriesConfigs(sourceName: MonitorDataSource["name"]) {
   let singleSeriesConfig = Object.assign({}, pm25Avg60SeriesConfig);
   singleSeriesConfig.width = 2;
 
@@ -112,11 +112,11 @@ function getSeriesConfigs(sourceName: IMonitorDataSource["name"]) {
         singleSeriesConfig
       ];
 
+    case "AirGradient":
     case "PurpleAir":
       return [
         baseXSeriesConfig,
         pm25SeriesConfig,
-        pm25Avg60SeriesConfig
       ];
   }
 }
@@ -200,7 +200,7 @@ function scaleGradient(u: uPlot, scaleKey: string, ori: number, scaleStops: Arra
       grd.addColorStop(pct, prevColor);
     }
 
-    grd.addColorStop(pct, prevColor = `#${ s[1] }`);
+    grd.addColorStop(pct, prevColor = `#${s[1]}`);
   }
 
   return grd;
