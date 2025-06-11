@@ -142,32 +142,6 @@ export interface IMarkerParams {
   shape: string;
 }
 
-export interface IMonitor {
-  data: IMonitorData;
-  dataFields: Array<ChartDataField>;
-  displayField: MonitorDataField;
-  lastUpdated: string;
-  markerParams: Partial<IMarkerParams>;
-  monitorFields: Record<ChartDataField, MonitorField>;
-}
-
-export interface IMonitorData {
-  id: string;
-  name: string;
-  device: MonitorDevice;
-  is_active: boolean;
-  is_sjvair: boolean;
-  position: IMonitorPosition;
-  last_active_limit: number;
-  location: string;
-  latest: IMonitorSensorData;
-  county: string;
-  purple_id?: number;
-  sensors: Array<string> | '';
-  data_source: IMonitorDataSource;
-  data_providers: Array<IMonitorDataSource>
-}
-
 export interface IMonitorDataSource {
   name: "AirNow.gov" | "AQview" | "Central California Asthma Collaborative" | "PurpleAir";
   url: string;
