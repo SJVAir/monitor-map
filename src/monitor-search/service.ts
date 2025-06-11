@@ -7,7 +7,7 @@ import AirNowLogo from "../assets/airnow-compact.jpg";
 import CarbLogo from "../assets/carb-compact.jpg";
 import PurpleairLogo from "../assets/purpleair-compact.png";
 import SJVAirLogo from "../assets/icon-128.webp";
-import { IMonitorDataSource } from "../types";
+import { MonitorDataSource } from "@sjvair/sdk";
 
 export interface MapTilerGeoJsonProperties {
   ref: string;
@@ -64,7 +64,7 @@ export interface MapTilerFeatureCollection extends FeatureCollection {
 export class MonitorSearchResult {
   logo: {
     url: string;
-    alt: IMonitorDataSource["name"];
+    alt: MonitorDataSource["name"];
   };
 
   constructor(
@@ -82,7 +82,7 @@ export class GeocodeSearchResult {
 
 function getMonitorLogo(
   m: Monitor,
-): { url: string; alt: IMonitorDataSource["name"] } {
+): { url: string; alt: MonitorDataSource["name"] } {
   switch (m.data.data_source.name) {
     case "AQview":
       return { url: CarbLogo, alt: "AQview" };
@@ -98,6 +98,10 @@ function getMonitorLogo(
         url: SJVAirLogo,
         alt: "Central California Asthma Collaborative",
       };
+
+    case "AirGradient":
+      //TODO: get correct logo
+      return { url: PurpleairLogo, alt: "PurpleAir" };
   }
 }
 
