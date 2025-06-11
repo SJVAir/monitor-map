@@ -1,17 +1,17 @@
 <script setup lang="ts">
-  import { ref, StyleValue, watch } from "vue";
-  import MonitorDataBoxVue from "./MonitorDataBox.vue";
-  import { tempDataboxStyles } from "./mod";
-  import { useMonitorsService } from "../Monitors";
-  import type { Monitor } from "../Monitors";
+import { ref, StyleValue, watch } from "vue";
+import MonitorDataBoxVue from "./MonitorDataBox.vue";
+import { tempDataboxStyles } from "./mod";
+import { useMonitorsService } from "../Monitors";
+import type { Monitor } from "../Monitors";
 
-  const props = defineProps<{ monitor: Monitor }>();
-  const { fetchTempByCoords } = await useMonitorsService();
-  const show = ref<boolean>(true);
-  const value = ref<string>("");
-  const styles = ref<StyleValue>();
+const props = defineProps<{ monitor: Monitor }>();
+const { fetchTempByCoords } = await useMonitorsService();
+const show = ref<boolean>(true);
+const value = ref<string>("");
+const styles = ref<StyleValue>();
 
-  watch(
+watch(
   () => props.monitor,
   async (monitor) => {
     try {
@@ -25,25 +25,17 @@
       const temperature = await fetchTempByCoords(coords);
       show.value = true;
       styles.value = tempDataboxStyles(temperature);
-      value.value = `${ temperature }&#176;F`;
-    } catch(err) {
-      const temperature = +monitor.data.latest?.fahrenheit;
-      if (temperature) {
-        styles.value = tempDataboxStyles(temperature);
-        value.value = `${ temperature }&#176;F`;
-      } else {
-        show.value = false;
-      }
+      value.value = `${temperature}&#176;F`;
+    } catch (err) {
+      console.error("Failed to get temperature:", err);
     }
   },
   { immediate: true }
-  );
+);
 </script>
 
 <template>
   <MonitorDataBoxVue v-if="show" label="Temperature" :styles="styles" :value="value"></MonitorDataBoxVue>
 </template>
 
-<style scoped>
-</style>
-
+<style scoped></style>
