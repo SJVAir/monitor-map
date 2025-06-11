@@ -296,7 +296,7 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
         style="background-color: ${monitor.markerParams.value_color}; color: ${readableColor(monitor.markerParams.value_color)}; border: solid ${toHex(darken(monitor.markerParams.value_color, .1))}; border-radius: 5px">
         <p translate="no" class="is-size-6 has-text-centered">PM 2.5</p>
         <p translate="no" class="is-size-2 has-text-centered has-text-weight-semibold is-flex-grow-1">
-          ${Math.round(+monitor.data.latest[MonitorDisplayField])}
+          ${Math.round(+monitor.data.latest.value)}
         </p>
         <p>(${parseInt(displayField.updateDuration, 10)} min avg)</p>
       </div>
