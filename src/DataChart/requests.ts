@@ -3,8 +3,9 @@ import { fetchEntries } from "../Monitors/requests";
 import { dateUtil } from "../modules/date";
 import type { Monitor } from "../Monitors";
 import type { DateRange } from "../models";
-import type { ChartDataField, IMonitorEntry } from "../types";
+import type { ChartDataField } from "../types";
 import type { Dayjs } from "dayjs";
+import { MonitorEntry } from "@sjvair/sdk";
 
 export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.AlignedData> {
   return fetchEntries(m, d)
@@ -12,10 +13,7 @@ export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.Al
       const xAxisData: Array<Dayjs> = [];
       const updateDuration = (m.data.data_source.name === "PurpleAir") ? 2 : 60;
 
-      const yAxisRecord: Map<ChartDataField, Array<number>> = new Map(
-        (Object.keys(MonitorFieldColors) as Array<ChartDataField>)
-          .map(dataKey => [dataKey, []])
-      );
+      const yAxisRecord: Array<number> = [];
 
       for (let i = entries.length - 1; i >= 0; i--) {
         const entry = entries[i];
@@ -35,16 +33,16 @@ export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.Al
 
       return [
         xAxisData.map(d => d.unix()),
-        ...yAxisRecord.values()
-      ].filter(collection => collection.length) as uPlot.AlignedData;
+        yAxisRecord
+      ] as uPlot.AlignedData;
     })
     .catch(err => err);
 }
 
 function fillChartDataRecords(
   xAxisData: Array<Dayjs>,
-  yAxisRecord: Map<ChartDataField, Array<number | null>>,
-  entry: IMonitorEntry,
+  yAxisRecord: Array<number | null>,
+  entry: MonitorEntry,
   timestamp?: Dayjs,
 ) {
   if (timestamp) {
@@ -53,19 +51,14 @@ function fillChartDataRecords(
     xAxisData.push(dateUtil(entry.timestamp).utc().tz('America/Los_Angeles'));
   }
 
-  for (let dataKey of yAxisRecord.keys()) {
-    if (dataKey in entry) {
-      const collection = yAxisRecord.get(dataKey)!;
-      let dataPoint: number | null;
+  let dataPoint: number | null;
 
-      if (timestamp) {
-        dataPoint = null
-      } else {
-        const value = parseFloat(entry[dataKey])
-        dataPoint = (value >= 0) ? value : 0;
-      }
-
-      collection.push(dataPoint);
-    }
+  if (timestamp) {
+    dataPoint = null
+  } else {
+    const value = parseFloat(entry.value)
+    dataPoint = (value >= 0) ? value : 0;
   }
+
+  yAxisRecord.push(dataPoint);
 }
