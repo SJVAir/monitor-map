@@ -109,7 +109,9 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
 
   watch(
     monitors,
-    () => rerenderMarkers(router, monitors),
+    () => {
+      rerenderMarkers(router, monitors);
+    },
     { immediate: true }
   );
 
@@ -142,6 +144,9 @@ export const useMonitorMarkers = asyncInitializer<MonitorMarkersModule>(async (r
 });
 
 function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>) {
+  monitorMarkersGroup.clearLayers();
+  monitorMarkersMap.clear();
+
   for (let id in monitors.value) {
     const monitor = monitors.value[id];
 
@@ -149,10 +154,11 @@ function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>)
       continue;
     }
 
-    if (monitorMarkersMap.has(id)) {
-      monitorMarkersGroup.removeLayer(monitorMarkersMap.get(id)!.remove());
-      monitorMarkersMap.delete(id);
-    }
+    // This should no longer be needed
+    //if (monitorMarkersMap.has(id)) {
+    //  monitorMarkersGroup.removeLayer(monitorMarkersMap.get(id)!.remove());
+    //  monitorMarkersMap.delete(id);
+    //}
 
     const monitorMarker = genMonitorMapMarker(monitor);
 
@@ -272,8 +278,13 @@ function genCalibratorMapMarker(calibrator: Collocation) {
 }
 
 function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
+  const isPM25 = monitor.data.latest.entry_type === "pm25";
   const displayField = monitor.displayField || new MonitorDataField(MonitorDisplayField, "PM 2.5", "60", monitor.data);
   const [lng, lat] = monitor.data.position.coordinates;
+  const label = isPM25 ? "PM 2.5" : "Ozone";
+  const footer = isPM25
+    ? `<p>(${parseInt(displayField.updateDuration, 10)} min avg)</p>`
+    : "";
   const tooltipOptions = {
     offset: new L.Point(10, 0),
     opacity: 1,
@@ -294,11 +305,11 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
     <div class="is-flex is-flex-direction-row is-flex-wrap-nowrap">
       <div class="mr-2 px-1"
         style="background-color: ${monitor.markerParams.value_color}; color: ${readableColor(monitor.markerParams.value_color)}; border: solid ${toHex(darken(monitor.markerParams.value_color, .1))}; border-radius: 5px">
-        <p translate="no" class="is-size-6 has-text-centered">PM 2.5</p>
-        <p translate="no" class="is-size-2 has-text-centered has-text-weight-semibold is-flex-grow-1">
+        <p translate="no" class="is-size-6 has-text-centered">${label}</p>
+        <p translate="no" class="is-size-2 has-text-centered has-text-weight-semibold is-flex-grow-1 px-2">
           ${Math.round(+monitor.data.latest.value)}
         </p>
-        <p>(${parseInt(displayField.updateDuration, 10)} min avg)</p>
+        ${footer}
       </div>
 
       <div class="is-flex is-flex-direction-column">
