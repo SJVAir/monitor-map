@@ -7,8 +7,8 @@ if (!import.meta.env.PROD) {
   setOrigin("http://127.0.0.1:8000");
 }
 
-export async function fetchMonitors(): Promise<MonitorsRecord> {
-  return getMonitorsLatest("pm25")
+export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsRecord> {
+  return getMonitorsLatest(pollutant)
     .then(monitors => {
       const record: MonitorsRecord = {};
 
