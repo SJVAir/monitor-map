@@ -43,8 +43,6 @@ function buildChart() {
     const { width, height } = sjvairDataChart.value!.getBoundingClientRect();
     const opts = getChartConfig(sourceName, maxDiff, width, height - ((height / 100) * 20));
 
-    console.log("chartData:", props.chartData)
-    console.log("opts:", opts)
     uplot = new uPlot(opts, props.chartData, sjvairDataChart.value as HTMLElement);
   }
 }
