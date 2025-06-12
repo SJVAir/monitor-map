@@ -1,6 +1,4 @@
 import { WorkerServiceClient } from "../Webworkers/WorkerServiceClient";
-import { Monitor } from "./Monitor";
-import type { DateRange } from "../models";
 import type { IMonitorSubscription, MonitorsRecord } from "../types";
 
 type MonitorsServiceModule = typeof import("./requests");
@@ -14,12 +12,8 @@ const worker = new MonitorsWorkerService();
 
 const monitorsWorkerService = new WorkerServiceClient<MonitorsServiceModule>(worker);
 
-export async function fetchMonitors(): Promise<MonitorsRecord> {
-  return await monitorsWorkerService.run("fetchMonitors")
-}
-
-export async function fetchEntries(m: Monitor, d: DateRange): Promise<Array<MonitorEntry>> {
-  return await monitorsWorkerService.run("fetchEntries", m, d);
+export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsRecord> {
+  return await monitorsWorkerService.run("fetchMonitors", pollutant);
 }
 
 export async function fetchSubscriptions(): Promise<Array<IMonitorSubscription>> {
