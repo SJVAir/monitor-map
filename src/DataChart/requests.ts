@@ -1,14 +1,20 @@
-import { MonitorFieldColors } from "../Monitors/mod";
-import { fetchEntries } from "../Monitors/requests";
 import { dateUtil } from "../modules/date";
 import type { Monitor } from "../Monitors";
 import type { DateRange } from "../models";
-import type { ChartDataField } from "../types";
 import type { Dayjs } from "dayjs";
-import { MonitorEntry } from "@sjvair/sdk";
+import { getMonitorEntries, setOrigin, type MonitorEntry } from "@sjvair/sdk";
+
+if (!import.meta.env.PROD) {
+  setOrigin("http://127.0.0.1:8000");
+}
 
 export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.AlignedData> {
-  return fetchEntries(m, d)
+  return getMonitorEntries({
+    field: "pm25",
+    monitorId: m.data.id,
+    timestampGte: d.start,
+    timestampLte: d.end
+  })
     .then(entries => {
       const xAxisData: Array<Dayjs> = [];
       const updateDuration = (m.data.data_source.name === "PurpleAir") ? 2 : 60;

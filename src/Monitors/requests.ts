@@ -1,7 +1,6 @@
 import { Monitor } from "./Monitor";
 import { http } from "../modules";
-import { MonitorEntry, getMonitorEntries, getMonitorsLatest, setOrigin } from "@sjvair/sdk";
-import type { DateRange } from "../models";
+import { getMonitorsLatest, setOrigin } from "@sjvair/sdk";
 import type { MonitorsRecord, IMonitorSubscription } from "../types";
 
 if (!import.meta.env.PROD) {
@@ -19,15 +18,6 @@ export async function fetchMonitors(): Promise<MonitorsRecord> {
 
       return record;
     });
-}
-
-export async function fetchEntries(m: Monitor, d: DateRange): Promise<Array<MonitorEntry>> {
-  return await getMonitorEntries({
-    field: "pm25",
-    monitorId: m.data.id,
-    timestampGte: d.start,
-    timestampLte: d.end
-  });
 }
 
 export async function fetchSubscriptions(): Promise<Array<IMonitorSubscription>> {
