@@ -1,9 +1,9 @@
 import type { MonitorLatest } from "@sjvair/sdk";
-import { Colors } from "../modules/colors";
-import type { MonitorDataFieldName, IColorLevel } from "../types";
+import { Colors, type PollutantColorMap } from "../modules/colors";
+import type { MonitorDataFieldName } from "../types";
 
 export class MonitorDataField {
-  static levels: Array<IColorLevel> = [
+  static levels: Array<PollutantColorMap> = [
     { min: -Infinity, color: Colors.green },
     { min: 12, color: Colors.yellow },
     { min: 35, color: Colors.orange },

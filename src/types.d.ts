@@ -79,11 +79,6 @@ export interface IChartDataPoint {
   yData: number;
 }
 
-export interface IColorLevel {
-  min: number;
-  color: string;
-}
-
 export interface IDateRange {
   startDate: string | typeof Dayjs;
   endDate: string | typeof Dayjs;
