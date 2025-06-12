@@ -20,6 +20,15 @@ export interface PollutantColorMap {
   color: ValueOf<typeof Colors>;
 }
 
+export const ozoneValueColors: Array<PollutantColorMap> = [
+  { min: -Infinity, color: Colors.green },
+  { min: 55, color: Colors.yellow },
+  { min: 71, color: Colors.orange },
+  { min: 86, color: Colors.red },
+  { min: 106, color: Colors.purple },
+  { min: 201, color: Colors.maroon },
+];
+
 export function valueToColor(value: number, colors: Array<PollutantColorMap>) {
   const lastLvl = colors[colors.length - 1];
 
