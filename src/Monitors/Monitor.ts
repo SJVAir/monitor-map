@@ -1,5 +1,5 @@
 import { MonitorDataField, getDataFields } from "./MonitorDataField";
-import { Colors, dateUtil, darken, toHex, valueToColor } from "../modules";
+import { Colors, dateUtil, darken, toHex, valueToColor, ozoneValueColors } from "../modules";
 import type { ChartDataField, IMarkerParams, MonitorDataFieldName } from "../types";
 import type { MonitorLatest } from "@sjvair/sdk";
 
@@ -35,6 +35,7 @@ export class Monitor {
 }
 
 function getMarkerParams(monitorData: MonitorLatest<"pm25" | "o3">): IMarkerParams {
+  const colorMap = monitorData.latest.entry_type === "pm25" ? MonitorDataField.levels : ozoneValueColors;
   const fill_color = `#${Colors.gray}`;
   const params: IMarkerParams = {
     border_color: toHex(darken(fill_color, .1)),
@@ -60,12 +61,14 @@ function getMarkerParams(monitorData: MonitorLatest<"pm25" | "o3">): IMarkerPara
   }
 
   if (monitorData.latest) {
-    const valueColor = valueToColor(+monitorData.latest.value, MonitorDataField.levels);
+    const valueColor = valueToColor(+monitorData.latest.value, colorMap);
     params.value_color = valueColor;
 
     if (monitorData.is_active) {
-      params.fill_color = valueToColor(+monitorData.latest.value, MonitorDataField.levels);
-      params.border_color = toHex(darken(params.fill_color, .1));
+      params.fill_color = valueToColor(+monitorData.latest.value, colorMap);
+      params.border_color = monitorData.latest.entry_type === "pm25"
+        ? toHex(darken(params.fill_color, .1))
+        : `#${Colors.blue}`;
 
       switch (monitorData.data_source.name) {
         case "AirNow.gov":
