@@ -9,8 +9,8 @@ import { Checkbox } from "../DisplayOptions";
 import { Monitor } from "../Monitors";
 import type { Ref } from "vue";
 import type { Router } from "vue-router";
-import type { Calibrator } from "../Calibrators";
 import type { DisplayOptionProps, DisplayOptionRecord } from "../DisplayOptions";
+import { Collocation } from "@sjvair/sdk";
 
 const monitorMarkersMap: Map<string, L.ShapeMarker | L.Marker<any>> = new Map();
 const monitorMarkersGroup: L.FeatureGroup = new L.FeatureGroup();
@@ -202,7 +202,7 @@ function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>)
   }
 }
 
-function isVisible(monitor: Monitor | Calibrator): boolean {
+function isVisible(monitor: Monitor | Collocation): boolean {
   // showSJVAirPurpleAir
   // showSJVAirBAM
   // showPurpleAir
@@ -257,7 +257,7 @@ function isVisible(monitor: Monitor | Calibrator): boolean {
   return false;
 }
 
-function genCalibratorMapMarker(calibrator: Calibrator) {
+function genCalibratorMapMarker(calibrator: Collocation) {
   const ref = getMonitor(calibrator.reference_id);
   const [lng, lat] = calibrator.position.coordinates;
   const icon = L.divIcon({
@@ -314,7 +314,7 @@ function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
   return marker;
 }
 
-function getMarkerPaneName(monitor: Monitor | Calibrator): string {
+function getMarkerPaneName(monitor: Monitor | Collocation): string {
   if ("data" in monitor) {
     switch (monitor.data.data_source.name) {
       case "AirNow.gov":
