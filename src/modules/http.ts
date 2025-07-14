@@ -1,6 +1,6 @@
 import Axios from "axios";
 
-const baseURL = (() => {
+export const baseURL = (() => {
   if (import.meta.env.PROD) {
     const origin = (typeof window !== "undefined")
       ? window.location.origin

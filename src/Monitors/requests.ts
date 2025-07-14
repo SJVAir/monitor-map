@@ -1,11 +1,15 @@
+import { getMonitorsLatest, setOrigin } from "@sjvair/sdk";
+import { baseURL } from "../modules/http";
 import { Monitor } from "./Monitor";
 import { http } from "../modules";
-import { getMonitorsLatest, setOrigin } from "@sjvair/sdk";
 import type { MonitorsRecord, IMonitorSubscription } from "../types";
 
 if (!import.meta.env.PROD) {
   setOrigin("http://127.0.0.1:8000");
+} else {
+  setOrigin(baseURL)
 }
+
 
 export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsRecord> {
   return getMonitorsLatest(pollutant)
