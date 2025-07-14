@@ -1,3 +1,4 @@
+import { fetchChartData } from "./requests";
 interface DataChartServiceConfig {
   webworker: boolean;
 }
@@ -12,5 +13,5 @@ export async function useDataChartService(config?: DataChartServiceConfig) {
     : await import("./requests");
 
 
-  return { ...service };
+  return { fetchChartData };
 }

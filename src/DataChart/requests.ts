@@ -1,5 +1,5 @@
 import { dateUtil } from "../modules/date";
-import type { Monitor } from "../Monitors";
+import { primaryPollutant, type Monitor } from "../Monitors";
 import type { DateRange } from "../models";
 import type { Dayjs } from "dayjs";
 import { getMonitorEntries, setOrigin, type MonitorEntry } from "@sjvair/sdk";
@@ -10,7 +10,7 @@ if (!import.meta.env.PROD) {
 
 export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.AlignedData> {
   return getMonitorEntries({
-    field: "pm25",
+    field: primaryPollutant.value,
     monitorId: m.data.id,
     timestampGte: d.start,
     timestampLte: d.end

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import uPlot from "uplot";
+import { primaryPollutant } from "../Monitors/service";
 import { getChartConfig } from "./mod";
 import { dateUtil } from '../modules';
 import type { DateRange } from '../models';
@@ -15,6 +16,7 @@ const props = defineProps<{
 }>();
 
 const sjvairDataChart = ref<HTMLInputElement | null>(null);
+const pollutant = computed(() => primaryPollutant.value === "pm25" ? "PM 2.5" : "Ozone")
 const noChartData = computed(() => !props.chartData.length);
 const message = computed(() => {
   return (props.chartDataLoading)
@@ -94,7 +96,7 @@ onMounted(() => {
     </h1>
     <h1 :class="{ 'hidden': props.chartDataLoading || noChartData }"
       class="has-text-centered is-size-5 has-text-weight-bold">
-      Real Time PM Readings
+      {{ pollutant }} Readings
     </h1>
     <div ref="sjvairDataChart" @click.shift="downloadChart" :class="{ 'hidden': props.chartDataLoading || noChartData }"
       class="chart mt-2"></div>

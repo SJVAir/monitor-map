@@ -1,4 +1,4 @@
-import { MonitorDataField, MonitorFieldColors } from "../Monitors";
+import { MonitorDataField, MonitorFieldColors, primaryPollutant } from "../Monitors";
 import { dateUtil } from "../modules";
 import { tooltipsPlugin, uPlotCursorConfig } from "./tooltip";
 import type uPlot from "uplot";
@@ -86,7 +86,7 @@ export function getChartConfig(sourceName: MonitorDataSource["name"], maxDiff: n
         }
       },
       {
-        label: "PM 2.5",
+        label: primaryPollutant.value === "pm25" ? "PM 2.5" : "Ozone",
         side: 3,
         values: (_: any, ticks: any) => ticks.map((v: any) => v.toFixed((maxDiff < 5) ? 1 : 0)),
       }
