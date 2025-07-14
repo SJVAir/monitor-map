@@ -12,8 +12,10 @@ export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsR
     .then(monitors => {
       const record: MonitorsRecord = {};
 
-      for (let monitorData of monitors) {
-        record[monitorData.id] = new Monitor(monitorData);
+      if (monitors && Object.keys(monitors).length) {
+        for (let monitorData of monitors) {
+          record[monitorData.id] = new Monitor(monitorData);
+        }
       }
 
       return record;
