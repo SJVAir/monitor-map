@@ -1,14 +1,15 @@
-import { Colors } from "../modules/colors";
-import type { MonitorDataFieldName, IColorLevel, IMonitorData} from "../types";
+import type { MonitorLatest } from "@sjvair/sdk";
+import { Colors, type PollutantColorMap } from "../modules/colors";
+import type { MonitorDataFieldName } from "../types";
 
 export class MonitorDataField {
-  static levels: Array<IColorLevel> = [
-    {min: -Infinity, color: Colors.green},
-    {min: 12, color: Colors.yellow},
-    {min: 35, color: Colors.orange},
-    {min: 55, color: Colors.red},
-    {min: 150, color: Colors.purple},
-    {min: 250, color: Colors.maroon}
+  static levels: Array<PollutantColorMap> = [
+    { min: -Infinity, color: Colors.green },
+    { min: 12, color: Colors.yellow },
+    { min: 35, color: Colors.orange },
+    { min: 55, color: Colors.red },
+    { min: 150, color: Colors.purple },
+    { min: 250, color: Colors.maroon }
   ];
 
   label: string;
@@ -17,33 +18,34 @@ export class MonitorDataField {
   name: MonitorDataFieldName;
   updateDuration: string;
 
-  constructor(fieldName: MonitorDataFieldName, displayLabel: string, updateDuration: string, data: IMonitorData) {
+  constructor(fieldName: MonitorDataFieldName, displayLabel: string, updateDuration: string, data: MonitorLatest<"pm25" | "o3">) {
 
     this.label = displayLabel;
     this.name = fieldName;
     this.updateDuration = updateDuration;
 
     if (data.latest && this.name in data.latest) {
-      this.latest = Math.round(parseFloat(data.latest[this.name]));
+      this.latest = Math.round(parseFloat(data.latest.value));
     }
   }
 }
 
 
-export function getDataFields(data: IMonitorData) {
-    switch (data.data_source.name) {
-      case "AirNow.gov":
-        return airNowDataFields(data);
+export function getDataFields(data: MonitorLatest<"pm25" | "o3">) {
+  switch (data.data_source.name) {
+    case "AirNow.gov":
+      return airNowDataFields(data);
 
-      case "AQview":
-        return aqviewDataFields(data);
+    case "AQview":
+      return aqviewDataFields(data);
 
-      case "Central California Asthma Collaborative":
-        return bam1022DataFields(data);
+    case "Central California Asthma Collaborative":
+      return bam1022DataFields(data);
 
-      case "PurpleAir":
-        return purpleAirDataFields(data);
-    }
+    case "PurpleAir":
+    case "AirGradient":
+      return purpleAirDataFields(data);
+  }
 }
 
 function genMulti(...fieldDefinitions: Array<ConstructorParameters<typeof MonitorDataField>>) {
@@ -56,31 +58,31 @@ function genMulti(...fieldDefinitions: Array<ConstructorParameters<typeof Monito
   return fields;
 }
 
-function airNowDataFields(data: IMonitorData) {
+function airNowDataFields(data: MonitorLatest<"pm25" | "o3">) {
   return genMulti(
-      ["pm25", "PM 2.5", "60m", data],
-      ["pm100", "PM 10", "60M", data]
-    );
+    ["pm25", "PM 2.5", "60m", data],
+    ["pm100", "PM 10", "60M", data]
+  );
 }
 
-function aqviewDataFields(data: IMonitorData) {
+function aqviewDataFields(data: MonitorLatest<"pm25" | "o3">) {
   return genMulti(
-      ["pm25_avg_60", "PM 2.5", "60m", data]
-    );
+    ["pm25_avg_60", "PM 2.5", "60m", data]
+  );
 }
 
-function bam1022DataFields(data: IMonitorData) {
+function bam1022DataFields(data: MonitorLatest<"pm25" | "o3">) {
   return genMulti(
-      ["pm25", "PM 2.5", "60m", data]
-    );
+    ["pm25", "PM 2.5", "60m", data]
+  );
 }
 
-function purpleAirDataFields(data: IMonitorData) {
+function purpleAirDataFields(data: MonitorLatest<"pm25" | "o3">) {
   return genMulti(
-      ["pm10", "PM 1.0", "2m", data],
-      ["pm25", "PM 2.5", "2m", data],
-      ["pm25_avg_15", "PM 2.5", "15m", data],
-      ["pm25_avg_60", "PM 2.5", "60m", data],
-      ["pm100", "PM 10", "", data]
-    );
+    ["pm10", "PM 1.0", "2m", data],
+    ["pm25", "PM 2.5", "2m", data],
+    ["pm25_avg_15", "PM 2.5", "15m", data],
+    ["pm25_avg_60", "PM 2.5", "60m", data],
+    ["pm100", "PM 10", "", data]
+  );
 }

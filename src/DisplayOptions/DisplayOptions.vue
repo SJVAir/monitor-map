@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Ref, ref } from "vue";
+import { computed, Ref, ref, watch } from "vue";
 import { vClickOutside } from "../modules/clickOutside";
 import DisplayOption from "./DisplayOption.vue";
 //import { useOverlayTilesets } from "./OverlayTilesets";
 import { useMonitorMarkers } from "./MonitorMarkers";
 import { useEVChargingMarkers } from "./EVChargingMarkers";
 import { useMapTilesets } from "./MapTilesets";
+import { primaryPollutant, updateMonitors } from "../Monitors";
 
 const displayOptionsActive: Ref<boolean> = ref(false);
 const { displayOptions: monitorMarkerDisplayOptions } = await useMonitorMarkers();
@@ -13,12 +14,37 @@ const evStationDisplayOptions = await useEVChargingMarkers();
 //const { displayOptions: overlayTilesetDisplayOptions } = await useOverlayTilesets();
 const mapTilesets = await useMapTilesets();
 
+const monitorOptions = computed(() => {
+  if (primaryPollutant.value === "pm25") {
+    return monitorMarkerDisplayOptions;
+  } else {
+    const {
+      label,
+      options: {
+        SJVAirPurpleAir,
+        PurpleAir,
+        displayInactive,
+        PurpleAirInside,
+        ...options
+      }
+    } = monitorMarkerDisplayOptions;
+
+    return {
+      label,
+      options
+    };
+  }
+});
+
 function toggleDisplayOptions() {
   displayOptionsActive.value = !displayOptionsActive.value;
 }
 function close() {
   displayOptionsActive.value = false;
 }
+watch(primaryPollutant, async () => {
+  await updateMonitors()
+});
 </script>
 
 <template>
@@ -40,7 +66,18 @@ function close() {
       <div class="dropdown-content">
         <div class="columns">
           <div class="column">
-            <DisplayOption :props="monitorMarkerDisplayOptions" />
+            <div class="control is-unselectable display-item is-flex is-flex-direction-column">
+              <h3 class="display-group-label">Pollutant</h3>
+              <label class="radio option-label has-text-black pollutant-label">
+                <input type="radio" name="pollutant" value="pm25" v-model="primaryPollutant" />
+                PM 2.5
+              </label>
+              <label class="radio option-label has-text-black pollutant-label">
+                <input type="radio" name="pollutant" value="o3" v-model="primaryPollutant" />
+                Ozone
+              </label>
+            </div>
+            <DisplayOption :props="monitorOptions" />
           </div>
           <div class="column">
             <DisplayOption :props="evStationDisplayOptions" />
@@ -78,6 +115,14 @@ $sjvair-comp: color.complement($sjvair-main);
       overflow-x: hidden;
       max-height: 300px;
       padding: .75rem;
+
+      .display-item {
+        label.pollutant-label {
+          font-size: 14px;
+          padding: 0.375rem 0.3rem;
+          margin-left: 0;
+        }
+      }
 
       :deep(.display-item) {
 

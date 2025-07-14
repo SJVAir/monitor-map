@@ -1,4 +1,4 @@
-import type { ChartDataField, IMonitorEntry, MonitorFieldColor } from "../types";
+import type { ChartDataField, MonitorFieldColor } from "../types";
 
 export class ChartDataPoint {
   color: MonitorFieldColor;

@@ -1,9 +1,9 @@
 import { ref } from "vue";
 import * as CalibratorsService from "./BackgroundRequests";
 import { Monitor } from "../Monitors";
-import type { Calibrator } from "./index.d";
+import type { Collocation } from "@sjvair/sdk";
 
-const calibrators = ref<Array<Calibrator>>([]);
+const calibrators = ref<Array<Collocation>>([]);
 
 export async function useCalibratorsService() {
   return {
@@ -15,18 +15,18 @@ export async function useCalibratorsService() {
 async function fetchCalibrators() {
   if (!calibrators.value.length) {
     await CalibratorsService.fetchCalibrators()
-      .then(res => {
-        calibrators.value = res.length ? res : [];
+      .then(collocations => {
+        calibrators.value = collocations.length ? collocations : [];
       })
       .catch(() => console.error("Failed to fetch Calibrators."));
   }
 }
 
-export function getCalibratorById(id: string): Calibrator | undefined {
+export function getCalibratorById(id: string): Collocation | undefined {
   return calibrators.value.find(c => c.id === id);
 }
 
-export function getCalibratorByRefId(id: string): Calibrator | undefined {
+export function getCalibratorByRefId(id: string): Collocation | undefined {
   return calibrators.value.find(c => c.reference_id === id);
 }
 

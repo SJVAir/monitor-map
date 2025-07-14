@@ -1,27 +1,30 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { computed } from "vue";
+import { primaryPollutant } from "../Monitors";
+
+const label = computed(() => {
+  return primaryPollutant.value === "pm25"
+    ? "PM 2.5"
+    : "Ozone";
+});
+const values = computed(() => {
+  return primaryPollutant.value === "pm25"
+    ? [12, 35, 55, 150, 250]
+    : [55, 71, 86, 106, 201];
+});
+</script>
 
 <template>
-  <div class="map-legend-container card columns column is-half-mobile is-half-tablet is-one-fifth-desktop is-flex is-flex-direction-column">
-    <p class="has-text-centered has-text-wrap-nowrap has-font-weight-semibold">PM 2.5 Concentration</p>
+  <div
+    class="map-legend-container card columns column is-half-mobile is-half-tablet is-one-fifth-desktop is-flex is-flex-direction-column">
+    <p class="has-text-centered has-text-wrap-nowrap has-font-weight-semibold">{{ label }} Concentration</p>
     <div class="map-legend">&nbsp;</div>
     <div class="map-legend-lines is-flex">
       <div>
         <span>0</span>
       </div>
-      <div>
-        <span>12</span>
-      </div>
-      <div>
-        <span>35</span>
-      </div>
-      <div>
-        <span>55</span>
-      </div>
-      <div>
-        <span>150</span>
-      </div>
-      <div>
-        <span>250</span>
+      <div v-for="value of values">
+        <span>{{ value }}</span>
       </div>
     </div>
   </div>
@@ -75,4 +78,3 @@
   }
 }
 </style>
-

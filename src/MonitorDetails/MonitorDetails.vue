@@ -42,7 +42,6 @@ onUnmounted(() => {
     <div v-if="activeMonitor" class="monitor-data-info">
       <PM2DataBoxVue :monitor="activeMonitor"></PM2DataBoxVue>
       <TempDataBoxVue :monitor="activeMonitor"></TempDataBoxVue>
-      <HumidityDataBoxVue :monitor="activeMonitor"></HumidityDataBoxVue>
     </div>
 
     <div class="user-options is-flex is-justify-content-space-evenly is-align-items-center">

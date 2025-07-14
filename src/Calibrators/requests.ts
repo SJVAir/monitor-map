@@ -1,10 +1,9 @@
-import { http } from "../modules";
-import type { Calibrator } from "./index.d";
+import { Collocation, getCollocations, setOrigin } from "@sjvair/sdk";
 
-export async function fetchCalibrators(): Promise<Array<Calibrator>> {
-  return http.get<{ data: Array<Calibrator> }>("/calibrations")
-    .then(res => {
-      const { data } = res.data;
-      return data.length ? data : [];
-    });
+if (!import.meta.env.PROD) {
+  setOrigin("http://127.0.0.1:8000");
+}
+
+export async function fetchCalibrators(): Promise<Array<Collocation>> {
+  return await getCollocations();
 }

@@ -1,5 +1,5 @@
 import { mix } from "color2k";
-import type { IColorLevel } from "../types";
+import { ValueOf } from "@tstk/types";
 export { darken, mix, toHex, readableColor } from "color2k";
 
 export const Colors = {
@@ -15,7 +15,21 @@ export const Colors = {
   maroon: "7e0023"
 } as const;
 
-export function valueToColor(value: number, colors: Array<IColorLevel>) {
+export interface PollutantColorMap {
+  min: number;
+  color: ValueOf<typeof Colors>;
+}
+
+export const ozoneValueColors: Array<PollutantColorMap> = [
+  { min: -Infinity, color: Colors.green },
+  { min: 55, color: Colors.yellow },
+  { min: 71, color: Colors.orange },
+  { min: 86, color: Colors.red },
+  { min: 106, color: Colors.purple },
+  { min: 201, color: Colors.maroon },
+];
+
+export function valueToColor(value: number, colors: Array<PollutantColorMap>) {
   const lastLvl = colors[colors.length - 1];
 
   if (value >= lastLvl.min) {

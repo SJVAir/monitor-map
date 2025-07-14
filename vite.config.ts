@@ -58,6 +58,7 @@ export default defineConfig({
   // Base directory compiled files will be served from
   base,
   build: {
+    target: "esnext",
     sourcemap: devMode,
     minify: "terser",
     ...build
@@ -66,6 +67,12 @@ export default defineConfig({
     htmlPurge(htmlPurgeOptions) as unknown as PluginOption,
     vue()
   ],
+  esbuild: {
+    target: "es2024"
+  },
+  worker: {
+    format: "es",
+  },
   css: {
     preprocessorOptions: {
       scss: {

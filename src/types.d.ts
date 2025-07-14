@@ -79,11 +79,6 @@ export interface IChartDataPoint {
   yData: number;
 }
 
-export interface IColorLevel {
-  min: number;
-  color: string;
-}
-
 export interface IDateRange {
   startDate: string | typeof Dayjs;
   endDate: string | typeof Dayjs;
@@ -140,32 +135,6 @@ export interface IMarkerParams {
   value_color: string;
   size: number;
   shape: string;
-}
-
-export interface IMonitor {
-  data: IMonitorData;
-  dataFields: Array<ChartDataField>;
-  displayField: MonitorDataField;
-  lastUpdated: string;
-  markerParams: Partial<IMarkerParams>;
-  monitorFields: Record<ChartDataField, MonitorField>;
-}
-
-export interface IMonitorData {
-  id: string;
-  name: string;
-  device: MonitorDevice;
-  is_active: boolean;
-  is_sjvair: boolean;
-  position: IMonitorPosition;
-  last_active_limit: number;
-  location: string;
-  latest: IMonitorSensorData;
-  county: string;
-  purple_id?: number;
-  sensors: Array<string> | '';
-  data_source: IMonitorDataSource;
-  data_providers: Array<IMonitorDataSource>
 }
 
 export interface IMonitorDataSource {
