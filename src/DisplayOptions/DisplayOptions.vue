@@ -18,11 +18,20 @@ const monitorOptions = computed(() => {
   if (primaryPollutant.value === "pm25") {
     return monitorMarkerDisplayOptions;
   } else {
-    const { label, options } = monitorMarkerDisplayOptions;
-    const { AQview, AirNow, SJVAirBAM } = options;
+    const {
+      label,
+      options: {
+        SJVAirPurpleAir,
+        PurpleAir,
+        displayInactive,
+        PurpleAirInside,
+        ...options
+      }
+    } = monitorMarkerDisplayOptions;
+
     return {
       label,
-      options: { AQview, AirNow, SJVAirBAM }
+      options
     };
   }
 });
