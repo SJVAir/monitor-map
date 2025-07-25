@@ -1,13 +1,10 @@
 import { getMonitorsLatest, setOrigin } from "@sjvair/sdk";
-import { baseURL } from "../modules/http";
 import { Monitor } from "./Monitor";
 import { http } from "../modules";
 import type { MonitorsRecord, IMonitorSubscription } from "../types";
 
 if (!import.meta.env.PROD) {
   setOrigin("http://127.0.0.1:8000");
-} else {
-  setOrigin("https://sjvair-staging.herokuapp.com")
 }
 
 
