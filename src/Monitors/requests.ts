@@ -4,9 +4,7 @@ import { http } from "../modules";
 import type { MonitorsRecord, IMonitorSubscription } from "../types";
 import { apiOrigin } from "../modules/http";
 
-if (!import.meta.env.PROD) {
-  setOrigin(apiOrigin);
-}
+setOrigin(apiOrigin);
 
 
 export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsRecord> {

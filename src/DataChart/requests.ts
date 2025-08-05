@@ -5,9 +5,7 @@ import type { DateRange } from "../models";
 import type { Dayjs } from "dayjs";
 import { apiOrigin } from "../modules/http";
 
-if (!import.meta.env.PROD) {
-  setOrigin(apiOrigin);
-}
+setOrigin(apiOrigin);
 
 export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.AlignedData> {
   return getMonitorEntries({
