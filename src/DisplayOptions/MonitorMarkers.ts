@@ -224,6 +224,7 @@ function isVisible(monitor: Monitor | Collocation): boolean {
     }
 
     switch (monitor.data.data_source.name) {
+      case "AirGradient":
       case "PurpleAir":
         const visibleByLocation = monitorMarkersVisibility.PurpleAirInside.model.value
           || monitor.data.location === "outside";
@@ -334,6 +335,7 @@ function getMarkerPaneName(monitor: Monitor | Collocation): string {
         return "aqview";
       case "Central California Asthma Collaborative":
         return "sjvAirBam";
+      case "AirGradient":
       case "PurpleAir":
         return (monitor.data.is_sjvair) ? "sjvAirPurpleAir" : "purpleAir";
       default:
