@@ -16,7 +16,10 @@ export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsR
 
       if (monitors && Object.keys(monitors).length) {
         for (let monitorData of monitors) {
-          record[monitorData.id] = new Monitor(monitorData);
+          // This if statement can be removed once the api has been tested
+          if (monitorData.position !== null) {
+            record[monitorData.id] = new Monitor(monitorData);
+          }
         }
       }
 
