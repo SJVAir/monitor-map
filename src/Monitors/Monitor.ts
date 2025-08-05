@@ -53,6 +53,7 @@ function getMarkerParams(monitorData: MonitorLatest<"pm25" | "o3">): IMarkerPara
       params.shape = "triangle";
       break;
     case "PurpleAir":
+    case "AirGradient":
       (monitorData.is_sjvair) && (params.shape = "circle");
       break;
     default:
@@ -76,6 +77,8 @@ function getMarkerParams(monitorData: MonitorLatest<"pm25" | "o3">): IMarkerPara
         case "Central California Asthma Collaborative":
           params.size = 14;
           break;
+
+        case "AirGradient":
         case "PurpleAir":
           if (monitorData.is_sjvair) {
             params.size = 12

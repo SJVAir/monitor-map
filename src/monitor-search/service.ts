@@ -3,6 +3,7 @@ import { getCurrentPosition } from "../modules/location";
 import { useMonitorsService } from "../Monitors";
 import { Monitor } from "../Monitors";
 import { Feature, FeatureCollection, Geometry } from "geojson";
+import AirGradientLogo from "../assets/airgradient-blue.svg";
 import AirNowLogo from "../assets/airnow-compact.jpg";
 import CarbLogo from "../assets/carb-compact.jpg";
 import PurpleairLogo from "../assets/purpleair-compact.png";
@@ -100,8 +101,7 @@ function getMonitorLogo(
       };
 
     case "AirGradient":
-      //TODO: get correct logo
-      return { url: PurpleairLogo, alt: "PurpleAir" };
+      return { url: AirGradientLogo, alt: "PurpleAir" };
   }
 }
 

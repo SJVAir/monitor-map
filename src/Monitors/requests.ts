@@ -2,9 +2,10 @@ import { getMonitorsLatest, setOrigin } from "@sjvair/sdk";
 import { Monitor } from "./Monitor";
 import { http } from "../modules";
 import type { MonitorsRecord, IMonitorSubscription } from "../types";
+import { apiOrigin } from "../modules/http";
 
 if (!import.meta.env.PROD) {
-  setOrigin("http://127.0.0.1:8000");
+  setOrigin(apiOrigin);
 }
 
 
@@ -15,7 +16,10 @@ export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsR
 
       if (monitors && Object.keys(monitors).length) {
         for (let monitorData of monitors) {
-          record[monitorData.id] = new Monitor(monitorData);
+          // FIXME: This if statement can be removed once the api has been tested
+          if (monitorData.position !== null) {
+            record[monitorData.id] = new Monitor(monitorData);
+          }
         }
       }
 
