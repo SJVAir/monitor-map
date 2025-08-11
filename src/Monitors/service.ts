@@ -16,7 +16,9 @@ function getPrimaryPollutant(): "pm25" | "o3" {
   const may = new Date(`05/01/${today.getUTCFullYear()}`);
   const september = new Date(`09/30/${today.getUTCFullYear()}`);
 
-  return (today > may && today < september) ? "o3" : "pm25";
+  //return (today > may && today < september) ? "o3" : "pm25";
+  // Overriding at Tim's request
+  return "pm25";
 }
 
 
