@@ -8,7 +8,6 @@ import AirNowLogo from "../assets/airnow-compact.jpg";
 import CarbLogo from "../assets/carb-compact.jpg";
 import PurpleairLogo from "../assets/purpleair-compact.png";
 import SJVAirLogo from "../assets/icon-128.webp";
-import { MonitorDataSource } from "@sjvair/sdk";
 
 export interface MapTilerGeoJsonProperties {
   ref: string;
@@ -65,7 +64,7 @@ export interface MapTilerFeatureCollection extends FeatureCollection {
 export class MonitorSearchResult {
   logo: {
     url: string;
-    alt: MonitorDataSource["name"];
+    alt: string;
   };
 
   constructor(
@@ -83,7 +82,7 @@ export class GeocodeSearchResult {
 
 function getMonitorLogo(
   m: Monitor,
-): { url: string; alt: MonitorDataSource["name"] } {
+): { url: string; alt: string } {
   switch (m.data.data_source.name) {
     case "AQview":
       return { url: CarbLogo, alt: "AQview" };
@@ -102,6 +101,9 @@ function getMonitorLogo(
 
     case "AirGradient":
       return { url: AirGradientLogo, alt: "PurpleAir" };
+
+    default:
+      return { url: "", alt: "" };
   }
 }
 

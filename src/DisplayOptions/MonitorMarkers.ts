@@ -12,6 +12,8 @@ import type { Router } from "vue-router";
 import type { DisplayOptionProps, DisplayOptionRecord } from "../DisplayOptions";
 import { Collocation } from "@sjvair/sdk";
 
+type MapableMonitor = Monitor & { data: { position: NonNullable<Monitor["data"]["position"]> } };
+
 const monitorMarkersMap: Map<string, L.ShapeMarker | L.Marker<any>> = new Map();
 const monitorMarkersGroup: L.FeatureGroup = new L.FeatureGroup();
 const selectedMarkerGroup: L.FeatureGroup = new L.FeatureGroup();
@@ -150,7 +152,7 @@ function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>)
   for (let id in monitors.value) {
     const monitor = monitors.value[id];
 
-    if (!monitor.data.latest) {
+    if (!monitor.data.latest || monitor.data.position === null) {
       continue;
     }
 
@@ -160,7 +162,7 @@ function rerenderMarkers(router: Router, monitors: Ref<Record<string, Monitor>>)
     //  monitorMarkersMap.delete(id);
     //}
 
-    const monitorMarker = genMonitorMapMarker(monitor);
+    const monitorMarker = genMonitorMapMarker(monitor as MapableMonitor);
 
     monitorMarker.addEventListener("click", () => {
       router.push({
@@ -278,7 +280,7 @@ function genCalibratorMapMarker(calibrator: Collocation) {
   });
 }
 
-function genMonitorMapMarker(monitor: Monitor): L.ShapeMarker {
+function genMonitorMapMarker(monitor: MapableMonitor): L.ShapeMarker {
   const isPM25 = monitor.data.latest.entry_type === "pm25";
   const displayField = monitor.displayField || new MonitorDataField(MonitorDisplayField, "PM 2.5", "60", monitor.data);
   const [lng, lat] = monitor.data.position.coordinates;

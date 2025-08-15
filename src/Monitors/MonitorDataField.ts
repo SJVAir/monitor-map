@@ -1,4 +1,4 @@
-import type { MonitorLatest } from "@sjvair/sdk";
+import type { MonitorLatestType } from "@sjvair/sdk";
 import { Colors, type PollutantColorMap } from "../modules/colors";
 import type { MonitorDataFieldName } from "../types";
 
@@ -18,7 +18,7 @@ export class MonitorDataField {
   name: MonitorDataFieldName;
   updateDuration: string;
 
-  constructor(fieldName: MonitorDataFieldName, displayLabel: string, updateDuration: string, data: MonitorLatest<"pm25" | "o3">) {
+  constructor(fieldName: MonitorDataFieldName, displayLabel: string, updateDuration: string, data: MonitorLatestType<"pm25" | "o3">) {
 
     this.label = displayLabel;
     this.name = fieldName;
@@ -31,19 +31,19 @@ export class MonitorDataField {
 }
 
 
-export function getDataFields(data: MonitorLatest<"pm25" | "o3">) {
-  switch (data.data_source.name) {
-    case "AirNow.gov":
+export function getDataFields(data: MonitorLatestType<"pm25" | "o3">) {
+  switch (data.type) {
+    case "airnow":
       return airNowDataFields(data);
 
-    case "AQview":
+    case "aqview":
       return aqviewDataFields(data);
 
-    case "Central California Asthma Collaborative":
+    case "bam1022":
       return bam1022DataFields(data);
 
-    case "PurpleAir":
-    case "AirGradient":
+    case "purpleair":
+    case "airgradient":
       return purpleAirDataFields(data);
   }
 }
@@ -58,26 +58,26 @@ function genMulti(...fieldDefinitions: Array<ConstructorParameters<typeof Monito
   return fields;
 }
 
-function airNowDataFields(data: MonitorLatest<"pm25" | "o3">) {
+function airNowDataFields(data: MonitorLatestType<"pm25" | "o3">) {
   return genMulti(
     ["pm25", "PM 2.5", "60m", data],
     ["pm100", "PM 10", "60M", data]
   );
 }
 
-function aqviewDataFields(data: MonitorLatest<"pm25" | "o3">) {
+function aqviewDataFields(data: MonitorLatestType<"pm25" | "o3">) {
   return genMulti(
     ["pm25_avg_60", "PM 2.5", "60m", data]
   );
 }
 
-function bam1022DataFields(data: MonitorLatest<"pm25" | "o3">) {
+function bam1022DataFields(data: MonitorLatestType<"pm25" | "o3">) {
   return genMulti(
     ["pm25", "PM 2.5", "60m", data]
   );
 }
 
-function purpleAirDataFields(data: MonitorLatest<"pm25" | "o3">) {
+function purpleAirDataFields(data: MonitorLatestType<"pm25" | "o3">) {
   return genMulti(
     ["pm10", "PM 1.0", "2m", data],
     ["pm25", "PM 2.5", "2m", data],
