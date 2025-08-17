@@ -52,7 +52,6 @@ async function loadSmoke() {
   data.forEach(d => {
     const layer = L.geoJson(d.geometry, { style: smokeStyles(d.density) });
     layer.addTo(smokeLayer);
-    //setTimeout(() => layer.setStyle(smokeStyles(d.density)), 1000);
   });
 
   return data;
@@ -73,7 +72,6 @@ function smokeStyles(density: HMSSmokeGeoJSON["density"]) {
       };
 
     case "heavy":
-      console.log("returning heavy")
       return {
         color: "#36454F",
         fillOpacity: 0.4
