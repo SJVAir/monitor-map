@@ -8,7 +8,7 @@ import { useInteractiveMap } from "./InteractiveMap";
 const mapTarget = ref<HTMLDivElement>();
 const { mapContainer } = await useInteractiveMap();
 
-onMounted(() => {
+onMounted(async () => {
   window.requestAnimationFrame(() => mapTarget.value!.appendChild(mapContainer));
 });
 </script>

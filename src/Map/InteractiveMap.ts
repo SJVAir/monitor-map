@@ -84,6 +84,9 @@ function cacheMapStateOnLeave(map: L.Map) {
 }
 
 function focusAssertion(monitor: Monitor) {
+  if (monitor.data.position == null) {
+    return;
+  }
   const [mlng, mlat] = monitor.data.position.coordinates;
   const { lng, lat } = map.getCenter();
 

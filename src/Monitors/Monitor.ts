@@ -1,19 +1,19 @@
 import { MonitorDataField, getDataFields } from "./MonitorDataField";
 import { Colors, dateUtil, darken, toHex, valueToColor, ozoneValueColors } from "../modules";
 import type { ChartDataField, IMarkerParams, MonitorDataFieldName } from "../types";
-import type { MonitorLatest } from "@sjvair/sdk";
+import type { MonitorLatestType } from "@sjvair/sdk";
 
 export const MonitorDisplayField = "pm25" as const;
 
 export class Monitor {
-  data: MonitorLatest<"pm25" | "o3">;
+  data: MonitorLatestType<"pm25" | "o3">;
   dataFields: Array<ChartDataField>;
   displayField: MonitorDataField;
   lastUpdated: string;
   markerParams: IMarkerParams;
   monitorFields!: Record<MonitorDataFieldName, MonitorDataField>;
 
-  constructor(monitorData: MonitorLatest<"pm25" | "o3">) {
+  constructor(monitorData: MonitorLatestType<"pm25" | "o3">) {
     const monitorFields = getDataFields(monitorData)
 
     if (monitorData.latest) {
@@ -34,7 +34,7 @@ export class Monitor {
   }
 }
 
-function getMarkerParams(monitorData: MonitorLatest<"pm25" | "o3">): IMarkerParams {
+function getMarkerParams(monitorData: MonitorLatestType<"pm25" | "o3">): IMarkerParams {
   const colorMap = monitorData.latest.entry_type === "pm25" ? MonitorDataField.levels : ozoneValueColors;
   const fill_color = `#${Colors.gray}`;
   const params: IMarkerParams = {

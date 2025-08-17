@@ -39,11 +39,11 @@ function buildChart() {
     if (uplot && sjvairDataChart.value) {
       sjvairDataChart.value.innerHTML = "";
     }
-    const { name: sourceName } = props.activeMonitor.data.data_source;
+    const { type: monitorType } = props.activeMonitor.data;
     const flatData = props.chartData.slice(1, props.chartData.length).flat() as Array<number>;
     const maxDiff = Math.max(...flatData) - Math.min(...flatData);
     const { width, height } = sjvairDataChart.value!.getBoundingClientRect();
-    const opts = getChartConfig(sourceName, maxDiff, width, height - ((height / 100) * 20));
+    const opts = getChartConfig(monitorType, maxDiff, width, height - ((height / 100) * 20));
 
     uplot = new uPlot(opts, props.chartData, sjvairDataChart.value as HTMLElement);
   }

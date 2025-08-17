@@ -21,6 +21,9 @@ watch(
       //const forecast = await http(gridPoint.data.properties.forecastHourly);
 
       //const temperature = forecast.data.properties.periods[0].temperature;
+      if (monitor.data.position == null) {
+        return;
+      }
       const coords = [...monitor.data.position.coordinates].reverse() as [number, number];
       const temperature = await fetchTempByCoords(coords);
       show.value = true;

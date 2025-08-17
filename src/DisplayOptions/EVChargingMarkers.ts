@@ -32,9 +32,9 @@ const evStationsVisibility = Checkbox.defineOptions({
 });
 
 export const useEVChargingMarkers = asyncInitializer<DisplayOptionProps<Checkbox>>(async (resolve) => {
-  const [{ map }, { fetchLvl2Stations, fetchLvl3Stations, lvl2EVStations, lvl3EVStations } ] = await Promise.all([ useInteractiveMap(), useEVChargingService() ]);
-  map.createPane(lvl2pane).style.zIndex = "607";
-  map.createPane(lvl3pane).style.zIndex = "608";
+  const [{ map }, { fetchLvl2Stations, fetchLvl3Stations, lvl2EVStations, lvl3EVStations }] = await Promise.all([useInteractiveMap(), useEVChargingService()]);
+  map.createPane(lvl2pane).style.zIndex = "608";
+  map.createPane(lvl3pane).style.zIndex = "609";
   lvl2MarkersGroup.addTo(map);
   lvl3MarkersGroup.addTo(map);
 

@@ -2,7 +2,7 @@ import { MonitorDataField, MonitorFieldColors, primaryPollutant } from "../Monit
 import { dateUtil } from "../modules";
 import { tooltipsPlugin, uPlotCursorConfig } from "./tooltip";
 import type uPlot from "uplot";
-import { MonitorDataSource } from "@sjvair/sdk";
+import type { MonitorType } from "@sjvair/sdk";
 
 const colors = MonitorDataField.levels.map(level => [level.min, level.color]) as Array<[number, string]>;
 // Append stop color value
@@ -29,7 +29,7 @@ const pm25Avg60SeriesConfig = {
   stroke: (u: uPlot, _: number) => autograd(u, MonitorFieldColors.pm25_avg_60)
 }
 
-export function getChartConfig(sourceName: MonitorDataSource["name"], maxDiff: number, width: number, height: number): uPlot.Options {
+export function getChartConfig(sourceName: MonitorType, maxDiff: number, width: number, height: number): uPlot.Options {
   const series: Array<uPlot.Series> = getSeriesConfigs(sourceName);
   const getStroke = (u: uPlot, sIdx: number): string => {
     const stroke = series[sIdx].stroke! as (u: uPlot, sIdx: number) => string | CanvasGradient;
@@ -99,21 +99,21 @@ export function getChartConfig(sourceName: MonitorDataSource["name"], maxDiff: n
   };
 }
 
-function getSeriesConfigs(sourceName: MonitorDataSource["name"]) {
+function getSeriesConfigs(monitorType: MonitorType) {
   let singleSeriesConfig = Object.assign({}, pm25Avg60SeriesConfig);
   singleSeriesConfig.width = 2;
 
-  switch (sourceName) {
-    case "AirNow.gov":
-    case "AQview":
-    case "Central California Asthma Collaborative":
+  switch (monitorType) {
+    case "airnow":
+    case "aqview":
+    case "bam1022":
       return [
         baseXSeriesConfig,
         singleSeriesConfig
       ];
 
-    case "AirGradient":
-    case "PurpleAir":
+    case "airgradient":
+    case "purpleair":
       return [
         baseXSeriesConfig,
         pm25SeriesConfig,

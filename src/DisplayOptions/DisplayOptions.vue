@@ -4,6 +4,7 @@ import { vClickOutside } from "../modules/clickOutside";
 import DisplayOption from "./DisplayOption.vue";
 //import { useOverlayTilesets } from "./OverlayTilesets";
 import { useMonitorMarkers } from "./MonitorMarkers";
+import { useHMSSmoke } from "./HMSSmoke";
 import { useEVChargingMarkers } from "./EVChargingMarkers";
 import { useMapTilesets } from "./MapTilesets";
 import { primaryPollutant, updateMonitors } from "../Monitors";
@@ -11,6 +12,7 @@ import { primaryPollutant, updateMonitors } from "../Monitors";
 const displayOptionsActive: Ref<boolean> = ref(false);
 const { displayOptions: monitorMarkerDisplayOptions } = await useMonitorMarkers();
 const evStationDisplayOptions = await useEVChargingMarkers();
+const hmsSmoke = await useHMSSmoke();
 //const { displayOptions: overlayTilesetDisplayOptions } = await useOverlayTilesets();
 const mapTilesets = await useMapTilesets();
 
@@ -81,6 +83,7 @@ watch(primaryPollutant, async () => {
           </div>
           <div class="column">
             <DisplayOption :props="evStationDisplayOptions" />
+            <DisplayOption :props="hmsSmoke" />
             <DisplayOption :props="mapTilesets" />
           </div>
         </div>

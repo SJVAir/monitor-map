@@ -35,7 +35,7 @@ const overlayTilesets: DisplayOptionRecord<MapOverlayOption> = MapOverlayOption.
       attribution: 'Map data &copy; <a href="http://openweathermap.org">OpenWeatherMap</a>',
       apiKey: import.meta.env.VITE_OPENWEATHERMAP_KEY,
       opacity: 0.3,
-      zIndex: 11
+      zIndex: 12
     }
   },
   clouds: {
@@ -51,7 +51,7 @@ const overlayTilesets: DisplayOptionRecord<MapOverlayOption> = MapOverlayOption.
       attribution: 'Map data &copy; <a href="http://openweathermap.org">OpenWeatherMap</a>',
       apiKey: import.meta.env.VITE_OPENWEATHERMAP_KEY,
       opacity: 0.5,
-      zIndex: 12
+      zIndex: 13
     }
   }
 });
