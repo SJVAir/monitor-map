@@ -41,7 +41,7 @@ export const useHMSSmoke = asyncInitializer<DisplayOptionProps<Checkbox>>(async 
   );
 
   resolve({
-    label: "EV Stations",
+    label: "Map Layers",
     options: hmsSmokeVisibility
   });
 });
