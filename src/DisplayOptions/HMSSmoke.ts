@@ -3,7 +3,7 @@ import { watch } from "vue";
 import { useInteractiveMap } from "../Map";
 import { asyncInitializer } from "../modules";
 import { Checkbox, DisplayOptionProps } from "../DisplayOptions";
-import { getHMSSmoke, type HMSSmokeGeoJSON } from "@sjvair/sdk";
+import { getHMSSmokeOngoing, type HMSSmokeGeoJSON } from "@sjvair/sdk";
 
 const hmsSmokePane = "hmssmoke";
 const smokeLayer: L.FeatureGroup = new L.FeatureGroup();
@@ -47,7 +47,7 @@ export const useHMSSmoke = asyncInitializer<DisplayOptionProps<Checkbox>>(async 
 });
 
 async function loadSmoke() {
-  const data = await getHMSSmoke();
+  const data = await getHMSSmokeOngoing();
 
   data.forEach(d => {
     const layer = L.geoJson(d.geometry, { style: smokeStyles(d.density) });
