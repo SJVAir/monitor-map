@@ -61,19 +61,19 @@ function smokeStyles(density: HMSSmokeGeoJSON["density"]) {
   switch (density) {
     case "light":
       return {
-        color: "#B2BEB5",
+        color: "#bfc8c3",
         fillOpacity: 0.2
       };
 
     case "medium":
       return {
-        color: "#7393B3",
+        color: "#757b78",
         fillOpacity: 0.3
       };
 
     case "heavy":
       return {
-        color: "#36454F",
+        color: "#333634",
         fillOpacity: 0.4
       };
   }
