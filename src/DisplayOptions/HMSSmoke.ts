@@ -11,7 +11,7 @@ const smokeLayer: L.FeatureGroup = new L.FeatureGroup();
 const hmsSmokeVisibility = Checkbox.defineOptions({
   smoke: {
     label: "HMS Smoke",
-    model: false,
+    model: true,
     icon: {
       id: "heat",
     }
@@ -22,6 +22,9 @@ export const useHMSSmoke = asyncInitializer<DisplayOptionProps<Checkbox>>(async 
   const { map } = await useInteractiveMap();
   let smokeData = [];
   map.createPane(hmsSmokePane).style.zIndex = "601";
+
+  smokeData = await loadSmoke();
+  smokeLayer.addTo(map);
 
   watch(
     () => hmsSmokeVisibility.smoke.model.value,
