@@ -6,6 +6,7 @@ import * as MonitorsService from "./BackgroundRequests";
 import type { Ref } from "vue";
 import type { Monitor } from "./Monitor";
 import type { MonitorId } from "../types";
+import { getMonitorEntriesCSVUrl } from "@sjvair/sdk";
 
 const monitorsLoadedEvent = new Event("MonitorsLoaded");
 export const primaryPollutant = ref<"pm25" | "o3">(getPrimaryPollutant());
@@ -51,16 +52,14 @@ export const useMonitorsService = asyncInitializer<MonitorsServiceModule>(async 
 });
 
 function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
-  const path = import.meta.env.DEV
-    ? `${http.defaults.baseURL}monitors/${monitor.data.id}/entries/csv`
-    : `${http.defaults.baseURL}monitors/${monitor.data.id}/entries/csv`;
-  const params = new URLSearchParams({
-    fields: monitor.dataFields.join(','),
-    timestamp__gte: dateUtil.$defaultFormat(dateRange.start),
-    timestamp__lte: dateUtil.$defaultFormat(dateRange.end),
-  }).toString();
-
-  window.open(`${path}/?${params}`);
+  const { start, end } = dateRange;
+  const url = getMonitorEntriesCSVUrl({
+    field: "pm25",
+    monitorId: monitor.data.id,
+    timestampGte: start,
+    timestampLte: end,
+  });
+  window.open(url);
 }
 
 export async function updateMonitors(): Promise<void> {
