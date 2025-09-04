@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import { useRoute } from "vue-router";
-import { http, dateUtil, asyncInitializer } from "../modules";
+import { asyncInitializer } from "../modules";
 import { DateRange } from "../models";
 import * as MonitorsService from "./BackgroundRequests";
 import type { Ref } from "vue";
@@ -54,7 +54,7 @@ export const useMonitorsService = asyncInitializer<MonitorsServiceModule>(async 
 function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
   const { start, end } = dateRange;
   const url = getMonitorEntriesCSVUrl({
-    field: "pm25",
+    field: primaryPollutant.value,
     monitorId: monitor.data.id,
     timestampGte: start,
     timestampLte: end,
