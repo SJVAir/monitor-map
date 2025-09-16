@@ -1,4 +1,3 @@
-import type { AxiosResponse } from "axios";
 import type { Dayjs } from "dayjs";
 import type L from "./modules/Leaflet";
 import type { Monitor } from "./Monitors";
@@ -55,7 +54,6 @@ export type ChartDataField = keyof typeof MonitorFieldColors;
 export type DatePickerSelection = [Date, Date] | [string, string];
 //export type ChartDataRecord = Record<ChartDataField, Array<ChartDataPoint>>;
 export type MonitorDevice = "PurpleAir" | "BAM 1022" | "AQview" | "PA-II-FLEX" | "PA-II" | "PA-II-SD";
-export type EntriesPageResponse = AxiosResponse<IEntriesPageResponse, any>;
 // Declare first element should always be default
 export type MapTilesetCollection = [Override<ILeafletTileLayer, { isDefault: true }>, ...ILeafletTileLayer[]];
 export type MonitorDataFieldName = "pm10" | "pm25" | "pm25_avg_15" | "pm25_avg_60" | "pm100";
@@ -84,16 +82,7 @@ export interface IDateRange {
   endDate: string | typeof Dayjs;
 }
 
-export interface IEntriesPageResponse {
-  count: number;
-  data: Array<any>;
-  has_next_page: boolean;
-  has_previous_page: boolean;
-  page: number;
-  pages: number;
-}
-
-export interface IEvStation {
+export interface EvStation {
   access_code: string
   access_days_time: string;
   access_detail_code: string;
@@ -190,11 +179,6 @@ export interface IMonitorSensorData {
   pressure: string | null;
   sensor: string;
   timestamp: string;
-}
-
-export interface IMonitorSubscription {
-  level: "unhealthy_sensitive" | "unhealthy" | "very_unhealthy" | "hazardous";
-  monitor: IMonitorSensorData["id"];
 }
 
 export interface IMonitorVisibility {

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, Ref, ref, watch } from "vue";
+import { subscribe as _subscribe, unsubscribe as _unsubscribe, type MonitorSubscription } from "../modules/api";
 import { useMonitorsService } from "../Monitors";
 import { SubscriptionLevel } from "./SubscriptionLevel";
-import { http } from "../modules"
-import type { IMonitorSubscription } from "../types";
 
 const props = defineProps<{ monitorId: string }>();
 const { fetchSubscriptions } = await useMonitorsService();
@@ -83,21 +82,27 @@ function showUnsubscribe(target: HTMLElement, selectedLevel: SubscriptionLevel) 
   }
 }
 
-function subscribe(level: IMonitorSubscription["level"]) {
-  http.post(`monitors/${ props.monitorId }/alerts/subscribe/`, { level })
-    .catch(err => console.error("Failed to subscribe", err));
+function subscribe(level: MonitorSubscription["level"]) {
+  _subscribe({
+    level,
+    monitorId: props.monitorId,
+    apiToken: ""
+  });
 }
 
 function toggleDropdown() {
   active.value = !active.value;
 }
 
-function unsubscribe(level: IMonitorSubscription["level"]) {
-  http.post(`monitors/${ props.monitorId }/alerts/unsubscribe/`, { level })
-    .catch(err => console.error("Failed to unsubscribe", err));
+function unsubscribe(level: MonitorSubscription["level"]) {
+  _unsubscribe({
+    level,
+    monitorId: props.monitorId,
+    apiToken: ""
+  });
 }
 
-function update(level: IMonitorSubscription["level"] | null) {
+function update(level: MonitorSubscription["level"] | null) {
   subscriptionLevels = subscriptionLevels.map(sub => {
     if (sub.levelName === level) {
       sub.subscribed = !sub.subscribed;
@@ -126,7 +131,7 @@ onMounted(async () => {
   // the dropdown options, but it's 2am;
   if (subscriptionOptions.value) {
     const buttonRect = (subscriptionOptions.value.previousSibling! as HTMLElement).getBoundingClientRect();
-    subscriptionOptions.value.style.width = `${ buttonRect.width }px`
+    subscriptionOptions.value.style.width = `${buttonRect.width}px`
   }
   await loadSubscriptions();
 });
@@ -145,8 +150,7 @@ onMounted(async () => {
         <p v-for="(level, index) of subscriptionLevels" :key="index"
           @click="e => selectOption(e.target as HTMLElement, level)"
           @mouseover="e => showUnsubscribe(e.target as HTMLElement, level)"
-          @mouseleave="e => hideUnsubscribe(e.target as HTMLElement, level)"
-          :style="{ backgroundColor: level.bgColor }"
+          @mouseleave="e => hideUnsubscribe(e.target as HTMLElement, level)" :style="{ backgroundColor: level.bgColor }"
           :class="{ subscribed: level.subscribed }" class="monitor-subscription-option">
           {{ level.display }}
         </p>
@@ -160,9 +164,11 @@ onMounted(async () => {
 .rotate {
   transform: rotate(180deg);
 }
+
 .material-symbols-outlined {
   transition: transform .5s;
 }
+
 .monitor-subscription-container {
   border-radius: 1em;
 }
@@ -212,4 +218,3 @@ onMounted(async () => {
   border: 4px solid black;
 }
 </style>
-

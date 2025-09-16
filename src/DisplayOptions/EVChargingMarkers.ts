@@ -5,7 +5,7 @@ import { useInteractiveMap } from "../Map";
 import { asyncInitializer } from "../modules";
 import { Checkbox, DisplayOptionProps } from "../DisplayOptions";
 import type { Ref } from "vue";
-import type { IEvStation } from "../types";
+import type { EvStation } from "../types";
 
 const lvl2pane = "lvl2evStations";
 const lvl3pane = "lvl3evStations";
@@ -60,7 +60,7 @@ export const useEVChargingMarkers = asyncInitializer<DisplayOptionProps<Checkbox
 
 async function updateEvStations(
   isChecked: boolean,
-  collection: Ref<Array<IEvStation>>,
+  collection: Ref<Array<EvStation>>,
   group: L.MarkerClusterGroup,
   pane: string,
   request: () => Promise<void>

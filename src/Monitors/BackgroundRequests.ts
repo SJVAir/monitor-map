@@ -1,14 +1,14 @@
 import { WorkerServiceClient } from "../Webworkers/WorkerServiceClient";
-import type { IMonitorSubscription, MonitorsRecord } from "../types";
+import type { MonitorSubscription } from "../modules/api";
+import type { MonitorsRecord } from "../types";
 
 type MonitorsServiceModule = typeof import("./requests");
 
 import MonitorsWorkerService from "./MonitorsWorker?worker";
-import { MonitorEntry } from "@sjvair/sdk";
 const worker = new MonitorsWorkerService();
 // FIXME: https://github.com/vitejs/vite/issues/9566
-//import MonitorsWorkerServiceURL from "./MonitorsWorker?url";
-//const worker = new Worker(MonitorsWorkerServiceURL, { type: 'module' })
+// import MonitorsWorkerServiceURL from "./MonitorsWorker?url";
+// const worker = new Worker(MonitorsWorkerServiceURL, { type: 'module' })
 
 const monitorsWorkerService = new WorkerServiceClient<MonitorsServiceModule>(worker);
 
@@ -16,7 +16,7 @@ export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsR
   return await monitorsWorkerService.run("fetchMonitors", pollutant);
 }
 
-export async function fetchSubscriptions(): Promise<Array<IMonitorSubscription>> {
+export async function fetchSubscriptions(): Promise<Array<MonitorSubscription>> {
   return await monitorsWorkerService.run("fetchSubscriptions");
 }
 

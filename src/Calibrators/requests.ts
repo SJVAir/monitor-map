@@ -1,8 +1,5 @@
-import { Collocation, getCollocations, setOrigin } from "@sjvair/sdk";
-import { apiOrigin } from "../modules/http";
+import { CollocationSite, getCollocationSites } from "../modules/api";
 
-setOrigin(apiOrigin);
-
-export async function fetchCalibrators(): Promise<Array<Collocation>> {
-  return await getCollocations();
+export async function fetchCalibrators(): Promise<Array<CollocationSite>> {
+  return await getCollocationSites();
 }

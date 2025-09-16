@@ -1,4 +1,3 @@
-import { http } from "../modules";
 import { getCurrentPosition } from "../modules/location";
 import { useMonitorsService } from "../Monitors";
 import { Monitor } from "../Monitors";
@@ -109,23 +108,22 @@ function getMonitorLogo(
 
 export async function geocode(query: string) {
   const { coords: { latitude, longitude } } = await getCurrentPosition();
-  return http.get<MapTilerFeatureCollection>(
-    `https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json?`,
-    {
-      params: {
-        country: "us",
-        fuzzyMatch: "true",
-        key: import.meta.env.VITE_MAPTILER_KEY,
-        limit: "4",
-        proximity: `${longitude},${latitude}`,
-      },
-    },
-  ).then((res) => {
-    if (res.data.features.length) {
-      return res.data.features.map((f) => new GeocodeSearchResult(f));
-    }
-    return [];
-  })
+  const url = new URL(`https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json`)
+  url.searchParams.append("country", "us");
+  url.searchParams.append("fuzzyMatch", "true");
+  url.searchParams.append("key", import.meta.env.VITE_MAPTILER_KEY);
+  url.searchParams.append("limit", "4");
+  url.searchParams.append("proximity", `${longitude},${latitude}`);
+
+  return await fetch(url)
+    .then(async res => await res.json())
+    .then(data => {
+      if (data.features.length) {
+        return data.features.map((f: any) => new GeocodeSearchResult(f));
+      }
+      return [];
+
+    })
     .catch((err: unknown) => {
       console.error("Failed to geocode location:", err);
       return [];

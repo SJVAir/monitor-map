@@ -1,9 +1,9 @@
 import { ref } from "vue";
 import * as CalibratorsService from "./BackgroundRequests";
 import { Monitor } from "../Monitors";
-import type { Collocation } from "@sjvair/sdk";
+import type { CollocationSite } from "../modules/api";
 
-const calibrators = ref<Array<Collocation>>([]);
+const calibrators = ref<Array<CollocationSite>>([]);
 
 export async function useCalibratorsService() {
   return {
@@ -22,11 +22,11 @@ async function fetchCalibrators() {
   }
 }
 
-export function getCalibratorById(id: string): Collocation | undefined {
+export function getCalibratorById(id: string): CollocationSite | undefined {
   return calibrators.value.find(c => c.id === id);
 }
 
-export function getCalibratorByRefId(id: string): Collocation | undefined {
+export function getCalibratorByRefId(id: string): CollocationSite | undefined {
   return calibrators.value.find(c => c.reference_id === id);
 }
 

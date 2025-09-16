@@ -1,11 +1,6 @@
-import { getMonitorsLatest, setOrigin } from "@sjvair/sdk";
+import { getMonitorsLatest, getSubscriptions } from "../modules/api";
 import { Monitor } from "./Monitor";
-import { http } from "../modules";
-import type { MonitorsRecord, IMonitorSubscription } from "../types";
-import { apiOrigin } from "../modules/http";
-
-setOrigin(apiOrigin);
-
+import type { MonitorsRecord } from "../types";
 
 export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsRecord> {
   return getMonitorsLatest(pollutant)
@@ -22,21 +17,20 @@ export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsR
     });
 }
 
-export async function fetchSubscriptions(): Promise<Array<IMonitorSubscription>> {
-  return http.get("alerts/subscriptions")
-    .then(res => res.data.data);
+export async function fetchSubscriptions(): Promise<Array<any>> {
+  return await getSubscriptions("");
 }
 
 export async function fetchTempByCoords(coords: [number, number]): Promise<number> {
   const url = `https://api.weather.gov/points/${coords.join(",")}`;
-  return await http(url)
-    .then(async res => {
+  return await fetch(url)
+    .then(async res => await res.json())
+    .then(async data => {
       try {
-        const forecast = await http(res.data.properties.forecastHourly)
-        return forecast.data.properties.periods[0].temperature;
+        const forecast = await fetch(data.properties.forecastHourly).then(async res => await res.json())
+        return forecast.properties.periods[0].temperature;
       } catch (err) {
         throw err
       }
     });
-
 }

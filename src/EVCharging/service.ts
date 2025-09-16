@@ -1,13 +1,13 @@
 import { ref } from "vue";
-import type { IEvStation } from "../types";
+import type { EvStation } from "../types";
 import type { Ref } from "vue";
 
 interface EVChargingServiceConfig {
   webworker: boolean;
 }
 
-const lvl2EVStations = ref<Array<IEvStation>>([]);
-const lvl3EVStations = ref<Array<IEvStation>>([]);
+const lvl2EVStations = ref<Array<EvStation>>([]);
+const lvl3EVStations = ref<Array<EvStation>>([]);
 let service: typeof import("./requests") | typeof import("./BackgroundRequests");
 
 export async function useEVChargingService(config?: Partial<EVChargingServiceConfig>) {
@@ -38,7 +38,7 @@ export async function useEVChargingService(config?: Partial<EVChargingServiceCon
   };
 }
 
-async function fetchEvStations(collection: Ref<Array<IEvStation>>, request: () => Promise<Array<IEvStation>>) {
+async function fetchEvStations(collection: Ref<Array<EvStation>>, request: () => Promise<Array<EvStation>>) {
   if (!collection.value.length) {
     await request()
       .then(stations => {
