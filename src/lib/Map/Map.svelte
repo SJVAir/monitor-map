@@ -1,25 +1,22 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
-	import { config, Map, MapStyle } from "@maptiler/sdk";
 	import "@maptiler/sdk/dist/maptiler-sdk.css";
+	import { MapController } from "./map";
 
-	config.apiKey = import.meta.env.VITE_MAPTILER_KEY;
-
-	let map: Map;
+	const map = new MapController();
 	let container: HTMLDivElement;
 
 	onMount(() => {
-		map = new Map({
-			container: container,
-			style: MapStyle.STREETS
-		});
+		map.init(container);
 	});
 
-	onDestroy(() => map?.remove());
+	onDestroy(() => map.remove());
 </script>
 
 <div bind:this={container} style="width: 100%; height: 100%;"></div>
 
 <style>
-	/* your styles go here */
+	div {
+		background: url(https://images.wallpaperscraft.com/image/single/stars_milky_way_space_116893_1920x1080.jpg);
+	}
 </style>
