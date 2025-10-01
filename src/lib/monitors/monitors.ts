@@ -1,51 +1,20 @@
 import { Singleton } from "@tstk/decorators";
-import { type MonitorsMeta } from "@sjvair/sdk";
-
-export function _ThrowIfUnset<V, T = unknown>(thing: V) {
-  console.log("thing", thing);
-  let cached: V;
-
-  return function (
-    _target: ClassAccessorDecoratorTarget<T, V>,
-    ctx: ClassAccessorDecoratorContext,
-  ): ClassAccessorDecoratorResult<T, V> {
-    console.log("target", _target);
-    console.log("ctx", ctx)
-    return {
-      get() {
-        console.log(`Getting value for property "${ctx.name.toString()}"`);
-        if (cached === undefined) {
-          throw new Error(`${ctx.name.toString()} is not initialized. Call init() first.`);
-        }
-
-        return cached;
-      },
-      set(newValue) {
-        console.log(`Setting new value for property "${ctx.name.toString()}" to "${newValue}"`);
-        cached = newValue;
-      },
-    };
-  };
-}
+import { getMonitors, getMonitorsLatest, getMonitorsMeta, type MonitorData, type MonitorLatest, type MonitorLatestType, type MonitorsMeta } from "@sjvair/sdk";
 
 function ThrowIfUnset<V, T = unknown>(
   _target: ClassAccessorDecoratorTarget<T, V>,
   ctx: ClassAccessorDecoratorContext,
 ): ClassAccessorDecoratorResult<T, V> {
-  console.log("target", _target);
-  console.log("ctx", ctx)
   let cached: V;
+
   return {
     get() {
-      console.log(`Getting value for property "${ctx.name.toString()}"`);
       if (cached === undefined) {
-        throw new Error(`${ctx.name.toString()} is not initialized. Call init() first.`);
+        throw new Error(`"${ctx.name.toString()}" is not initialized. Call init() first.`);
       }
-
       return cached;
     },
     set(newValue) {
-      console.log(`Setting new value for property "${ctx.name.toString()}" to "${newValue}"`);
       cached = newValue;
     },
   };
@@ -53,8 +22,15 @@ function ThrowIfUnset<V, T = unknown>(
 
 @Singleton
 export class MonitorsController {
-  meta!: string;
+  meta!: MonitorsMeta;
+  list!: Array<MonitorData>;
+  active!: Array<MonitorLatestType<"pm25" | "o3">>;
 
-  @ThrowIfUnset
-  accessor otherThing: any;
+  async init() {
+    [this.meta, this.list] = await Promise.all([
+      getMonitorsMeta(),
+      getMonitors(),
+    ])
+    this.active = await getMonitorsLatest(this.meta.default_pollutant);
+  }
 }
