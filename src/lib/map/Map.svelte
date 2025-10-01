@@ -17,6 +17,6 @@
 
 <style>
 	div {
-		background: url(https://images.wallpaperscraft.com/image/single/stars_milky_way_space_116893_1920x1080.jpg);
+		background: url(/stars_milky_way_space.jpg);
 	}
 </style>

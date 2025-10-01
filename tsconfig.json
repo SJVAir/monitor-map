@@ -10,6 +10,9 @@
     "sourceMap": true,
     "strict": true,
     "module": "esnext",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "experimentalDecorators": false,
+    "useDefineForClassFields": true,
+    "allowImportingTsExtensions": true
   }
 }

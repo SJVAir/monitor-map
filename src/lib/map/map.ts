@@ -1,5 +1,6 @@
 import { config, Map, MapStyle } from "@maptiler/sdk";
 import { Singleton } from "@tstk/decorators";
+import { MonitorsController } from "../monitors/monitors.ts";
 
 @Singleton
 export class MapController {
@@ -18,12 +19,18 @@ export class MapController {
   }
 
   init(container: string | HTMLElement) {
+    const mc = new MonitorsController();
+    mc.meta = "goodbye";
     this._map = new Map({
       container,
       center: [-119.7987626619462, 36.76272050981146],
       zoom: 6,
       style: MapStyle.STREETS,
       projection: "globe",
+    });
+
+    this.map.on("load", () => {
+
     });
   }
 
