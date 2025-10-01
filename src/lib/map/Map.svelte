@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
 	import "@maptiler/sdk/dist/maptiler-sdk.css";
-	import { MapController } from "./map";
+	import { MapController } from "./map.svelte.ts";
+	import { MonitorsController } from "$lib/monitors/monitors.svelte.ts";
 
 	const map = new MapController();
+	const monitors = new MonitorsController();
 	let container: HTMLDivElement;
 
-	onMount(() => {
+	onMount(async () => {
+		await monitors.init();
 		map.init(container);
 	});
 
