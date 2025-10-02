@@ -17,9 +17,3 @@
 </script>
 
 <div bind:this={container} style="width: 100%; height: 100%;"></div>
-
-<style>
-	div {
-		background: url(/stars_milky_way_space.jpg);
-	}
-</style>
