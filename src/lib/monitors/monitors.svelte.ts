@@ -15,9 +15,13 @@ export class MonitorsController {
   @Reactive(true)
   accessor latest!: Array<MonitorLatestType<"pm25" | "o3">>;
 
+  @Reactive()
+  accessor pollutant!: "pm25" | "o3";
+
   @Initializer
   async init(): Promise<void> {
     await this.update();
+    this.pollutant = this.meta.default_pollutant;
   }
 
   @TriggerLoadingScreen
@@ -26,6 +30,6 @@ export class MonitorsController {
       getMonitorsMeta(),
       getMonitors(),
     ])
-    this.latest = await getMonitorsLatest(this.meta.default_pollutant);
+    this.latest = await getMonitorsLatest(this.pollutant ?? this.meta.default_pollutant);
   }
 }

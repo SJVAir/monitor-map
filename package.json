@@ -38,6 +38,7 @@
     "@eslint/js": "^9.36.0",
     "@deno/vite-plugin": "^1.0.5",
     "@maptiler/sdk": "^3.8.0",
+    "@maptiler/weather": "^3.1.1",
     "@sjvair/sdk": "npm:@jsr/sjvair__sdk@^2.0.3",
     "@sveltejs/adapter-auto": "^6.1.0",
     "@sveltejs/adapter-static": "^3.0.9",
