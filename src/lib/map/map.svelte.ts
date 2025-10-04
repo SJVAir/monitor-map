@@ -1,11 +1,9 @@
 import { config, Map, MapStyle } from "@maptiler/sdk";
 import { Singleton } from "@tstk/decorators";
 import type { Feature, Geometry } from "geojson";
-//import { darken } from "color2k";
 import { MonitorsController } from "$lib/monitors/monitors.svelte";
 import { LoadingQueue } from "$lib/load-screen/load-screen.svelte.ts";
 import { Initializer } from "$lib/decorators/initializer.ts";
-import { Icons } from "./icons";
 import type { MonitorData, SJVAirEntryLevel } from "@sjvair/sdk";
 //import { WindLayer } from "@maptiler/weather";
 
@@ -32,38 +30,6 @@ function getIcon<T extends MonitorData>(monitor: T): string {
     default:
       throw new Error(`Map icon for ${monitor.device} has not been set`);
   }
-}
-
-function buildIcons(levels: Array<SJVAirEntryLevel> | null) {
-  const borderWidth = 2;
-  const icons: Record<string, HTMLImageElement> = {};
-
-  const greySquareIcon = new Image();
-  greySquareIcon.src = Icons.square(defaultColor, 2);
-  greySquareIcon.width = 24;
-  greySquareIcon.height = 24;
-
-  icons["default"] = greySquareIcon;
-
-  if (levels) {
-    for (const level of levels) {
-      for (const [shape, svg] of Object.entries(Icons)) {
-        shape
-        const icon = new Image();
-        icon.src = svg(level.color, borderWidth);
-        icon.width = 24;
-        icon.height = 24;
-        icons[`${level.name}-${shape}`] = icon;
-      }
-      //const icon = new Image();
-      //icon.src = Icons.square(level.color);
-      //icon.width = 24;
-      //icon.height = 24;
-      //icons[`${level.name}-square`] = icon;
-    }
-  }
-
-  return icons;
 }
 
 function getOrder<T extends MonitorData>(monitor: T): number {
@@ -108,7 +74,7 @@ export class MapController {
     this.map = new Map({
       container,
       center: [-119.7987626619462, 36.76272050981146],
-      zoom: 6,
+      zoom: 7,
       style: MapStyle.STREETS,
       projection: "globe",
       space: {
@@ -117,10 +83,10 @@ export class MapController {
     });
 
     const levels = mc.meta.entryType(mc.pollutant).asIter.levels;
-    const icons = buildIcons(levels);
 
     this.map.on("load", async () => {
-      for (const [id, image] of Object.entries(icons)) {
+      for (const [id, image] of Object.entries(mc.icons)) {
+        console.log("adding:", id, image)
         this.map!.addImage(id, image);
       }
 
@@ -128,6 +94,8 @@ export class MapController {
       //  opacity: 0.5,
       //}); // using default settings
       //this.map!.addLayer(layer);
+
+
       //for (const monitorMeta of mc.meta.asIter.monitors) {
       //  const monitors = mc.latest.filter(m => m.type === monitorMeta.type)
 
