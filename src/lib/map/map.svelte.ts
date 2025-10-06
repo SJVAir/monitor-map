@@ -1,10 +1,10 @@
-import { config, Map, MapStyle } from "@maptiler/sdk";
+import { config, Map, Popup, MapStyle } from "@maptiler/sdk";
 import { Singleton } from "@tstk/decorators";
 import type { Feature, Geometry } from "geojson";
 import { MonitorsController } from "$lib/monitors/monitors.svelte";
 import { LoadingQueue } from "$lib/load-screen/load-screen.svelte.ts";
 import { Initializer } from "$lib/decorators/initializer.ts";
-import type { MonitorData, SJVAirEntryLevel } from "@sjvair/sdk";
+import type { MonitorData, MonitorLatestType, SJVAirEntryLevel } from "@sjvair/sdk";
 //import { WindLayer } from "@maptiler/weather";
 
 interface MonitorMarkerProperties {
@@ -12,6 +12,8 @@ interface MonitorMarkerProperties {
   //borderColor: string;
   order: number;
   icon: string;
+  name: string;
+  value: string;
 }
 
 function getIcon<T extends MonitorData>(monitor: T): string {
@@ -86,7 +88,6 @@ export class MapController {
 
     this.map.on("load", async () => {
       for (const [id, image] of Object.entries(mc.icons)) {
-        console.log("adding:", id, image)
         this.map!.addImage(id, image);
       }
 
@@ -171,7 +172,9 @@ export class MapController {
             //borderColor: darken(defaultColor, 0.1),
             //icon: getIcon(m)
             order: getOrder(m),
-            icon: "default"
+            icon: "default",
+            name: m.name,
+            value: m.latest.value
           },
           geometry: m.position! as Geometry
         };
@@ -224,6 +227,30 @@ export class MapController {
           //"circle-stroke-width": 2,
           //"circle-stroke-color": ["get", "borderColor"]
         },
+      });
+
+      // Popup on hover
+      let popup: any;
+      this.map!.on("mousemove", "monitors", (e: any) => {
+        const feature = e.features && e.features[0];
+        if (!feature) return;
+
+        // Remove previous popup
+        if (popup) popup.remove();
+
+        popup = new Popup({ closeButton: false, closeOnClick: false })
+          .setLngLat(e.lngLat)
+          .setHTML(`<div>
+            <strong>${feature.properties.name}</strong>
+            <br/>
+            Value: ${feature.properties.value}PM2.5
+          </div>`)
+          .addTo(this.map!);
+      });
+
+      this.map!.on("mouseleave", "monitors", () => {
+        if (popup) popup.remove();
+        popup = null;
       });
 
       lq.remove(mapLoading);
