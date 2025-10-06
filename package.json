@@ -49,6 +49,7 @@
     "@tailwindcss/vite": "^4.1.14",
     "@tstk/decorators": "npm:@jsr/tstk__decorators@^1.0.4",
     "@tstk/types": "npm:@jsr/tstk__types@^1.1.0",
+    "@tstk/utils": "npm:@jsr/tstk__utils@^1.1.1",
     "@types/geojson": "^7946.0.16",
     "color2k": "^2.0.3",
     "eslint": "^9.36.0",
