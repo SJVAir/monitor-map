@@ -59,12 +59,12 @@ export class MonitorsController {
   accessor icons!: Record<string, HTMLImageElement>;
 
   @Initializer
+  @TriggerLoadingScreen
   async init(): Promise<void> {
     await this.update();
     this.pollutant = this.meta.default_pollutant;
   }
 
-  @TriggerLoadingScreen
   async update(): Promise<void> {
     [this.meta, this.list] = await Promise.all([
       getMonitorsMeta(),
