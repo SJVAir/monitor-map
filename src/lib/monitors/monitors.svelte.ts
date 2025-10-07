@@ -120,7 +120,7 @@ export class MonitorsController {
     if (mc.displayOptions.sjvairPurpleair) monitorFilters.push(filters.sjvPurpleair());
     if (mc.displayOptions.inside) locationFilters.push(["==", ["get", "location"], "inside"]);
 
-    return ["all", monitorFilters, locationFilters];
+    return ["all", monitorFilters, locationFilters, ["==", ["get", "is_active"], true]];
   })
   accessor filters!: FilterSpecification;
 
