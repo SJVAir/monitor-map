@@ -149,7 +149,7 @@ export class MapController {
         id: "monitors",
         type: "symbol",
         source: "monitors",
-        filter: ["all", ["==", ["get", "is_active"], true], ["!=", ["get", "location"], "outside"]],
+        filter: ["all", ["==", ["get", "is_active"], true], ["==", ["get", "location"], "outside"]],
         layout: {
           "symbol-sort-key": ["get", "order"],
           "icon-allow-overlap": true,
