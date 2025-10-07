@@ -1,11 +1,9 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { Interval } from "@tstk/utils";
 	import { LoadingQueue } from "$lib/load-screen/load-screen.svelte.ts";
 
-	//const interval = new Interval();
 	const lq = new LoadingQueue();
-	let entered = false;
+	let entered = $state(false);
 
 	onMount(() => {
 		// Trigger animation after mount
