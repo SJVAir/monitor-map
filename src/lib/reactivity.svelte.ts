@@ -73,6 +73,10 @@ export function Reactive(shallow?: boolean) {
       set(newValue): void {
         ref.value = newValue;
       },
+      init(initialValue: V): V {
+        ref.value = initialValue;
+        return ref.value as V;
+      }
     };
   };
 }

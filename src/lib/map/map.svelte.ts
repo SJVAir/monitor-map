@@ -2,9 +2,10 @@ import { config, Map, Popup, MapStyle } from "@maptiler/sdk";
 import { Singleton } from "@tstk/decorators";
 import type { Feature, Geometry } from "geojson";
 import { MonitorsController } from "$lib/monitors/monitors.svelte";
-import { LoadingQueue } from "$lib/load-screen/load-screen.svelte.ts";
 import { Initializer } from "$lib/decorators/initializer.ts";
 import type { MonitorData, MonitorLatestType, SJVAirEntryLevel } from "@sjvair/sdk";
+import { LoadingScreen } from "$lib/loading/screen/load-screen.svelte.ts";
+import { Reactive } from "$lib/reactivity.svelte";
 //import { WindLayer } from "@maptiler/weather";
 
 interface MonitorMarkerProperties {
@@ -60,14 +61,30 @@ function getOrder<T extends MonitorData>(monitor: T): number {
   }
 }
 
+async function loadImage(icon: [string, HTMLImageElement], map: Map): Promise<Map> {
+  const [id, image] = icon;
+
+  return new Promise((resolve, reject) => {
+    image.onload = () => {
+      resolve(map.addImage(id, image));
+    };
+    image.onerror = (err) => {
+      throw new Error(`Failed to load image ${id}: ${err}`, { cause: err });
+    }
+  });
+}
+
 const mapLoading = Symbol();
-const lq = new LoadingQueue();
 const mc = new MonitorsController();
 const defaultColor = "#969696" // light gray
 
 @Singleton
 export class MapController {
-  map?: Map;
+  map!: Map;
+
+  @Reactive()
+  accessor initialized: boolean = false;
+
 
   constructor() {
     config.apiKey = import.meta.env.VITE_MAPTILER_KEY;
@@ -75,7 +92,6 @@ export class MapController {
 
   @Initializer
   init(container: string | HTMLElement) {
-    lq.add(mapLoading);
 
     this.map = new Map({
       container,
@@ -91,8 +107,8 @@ export class MapController {
     const levels = mc.meta.entryType(mc.pollutant).asIter.levels;
 
     this.map.on("load", async () => {
-      for (const [id, image] of Object.entries(mc.icons)) {
-        this.map!.addImage(id, image);
+      for (const icon of Object.entries(mc.icons)) {
+        await loadImage(icon, this.map!);
       }
 
       //const layer = new WindLayer({
@@ -129,7 +145,7 @@ export class MapController {
           if (level) {
             //feature.properties.valueColor = level.color;
             //feature.properties.borderColor = darken(level.color, 0.1);
-            feature.properties.icon = `${level.name}-${getIcon(m)}`;
+            feature.properties.icon = `${m.location}-${level.name}-${getIcon(m)}`;
             //feature.properties.icon = getIcon(m);
           }
         }
@@ -145,6 +161,8 @@ export class MapController {
         }
       });
 
+      console.log(mc.filters)
+      this.initialized = true;
       this.map!.addLayer({
         id: "monitors",
         type: "symbol",
@@ -196,8 +214,13 @@ export class MapController {
         popup = null;
       });
 
-      lq.remove(mapLoading);
+      this.map!.on("zoom", (e: any) => {
+        if (popup) popup.remove();
+      });
+
+      new LoadingScreen().disable();
     });
+
   }
 
   remove() {

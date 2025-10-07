@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { LoadingQueue } from "$lib/load-screen/load-screen.svelte.ts";
+	import { LoadingScreen } from "$lib/loading/screen/load-screen.svelte.ts";
 
-	const lq = new LoadingQueue();
+	const ls = new LoadingScreen();
 	let entered = $state(false);
 
 	onMount(() => {
 		// Trigger animation after mount
 		setTimeout(() => {
 			entered = true;
-		}, 100); // slight delay for effect
+		}, 10); // slight delay for effect
 	});
 </script>
 
-{#if lq.loading}
+{#if ls.enabled}
 	<div
 		class="absolute top-0 left-0 z-50 flex h-full w-full flex-col items-center justify-center gap-4 overflow-hidden bg-white"
 	>
