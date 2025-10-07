@@ -10,9 +10,13 @@ import type { MonitorData, MonitorLatestType, SJVAirEntryLevel } from "@sjvair/s
 interface MonitorMarkerProperties {
   //valueColor: string;
   //borderColor: string;
-  order: number;
   icon: string;
+  is_sjvair?: boolean;
+  is_active: boolean;
+  location: string;
   name: string;
+  order: number;
+  type: string;
   value: string;
 }
 
@@ -96,73 +100,6 @@ export class MapController {
       //}); // using default settings
       //this.map!.addLayer(layer);
 
-
-      //for (const monitorMeta of mc.meta.asIter.monitors) {
-      //  const monitors = mc.latest.filter(m => m.type === monitorMeta.type)
-
-      //  // NOTE: Cast to "any" to avoid type conflicts with MapLibre and Zod types
-      //  const features: Array<Feature<Geometry, MonitorMarkerProperties>> = monitors.map(m => {
-      //    const feature: Feature<Geometry, MonitorMarkerProperties> = {
-      //      type: "Feature",
-      //      properties: {
-      //        valueColor: defaultColor,
-      //        borderColor: darken(defaultColor, 0.1),
-      //        //icon: getIcon(m)
-      //        icon: "default"
-      //      },
-      //      geometry: m.position! as Geometry
-      //    };
-
-      //    if (levels) {
-      //      const level = levels.find(lvl => {
-      //        const value = parseInt(m.latest.value, 10);
-      //        return value >= lvl.range[0] && value <= lvl.range[1];
-      //      });
-
-      //      if (level) {
-      //        feature.properties.valueColor = level.color;
-      //        feature.properties.borderColor = darken(level.color, 0.1);
-      //        feature.properties.icon = `${level.name}-${getIcon(m)}`;
-      //        //feature.properties.icon = getIcon(m);
-      //      }
-      //    }
-
-
-      //    return feature;
-      //  });
-
-      //  this.map!.addSource(monitorMeta.type, {
-      //    type: "geojson",
-      //    data: {
-      //      type: "FeatureCollection",
-      //      features
-      //    }
-      //  });
-
-      //  this.map!.addLayer({
-      //    id: monitorMeta.type,
-      //    type: "symbol",
-      //    source: monitorMeta.type,
-      //    layout: {
-      //      "icon-allow-overlap": true,
-      //      "icon-ignore-placement": true,
-      //      "icon-image": ["get", "icon"],
-      //      "icon-size": 1
-      //      //"icon-size": 1.5
-      //    },
-      //    paint: {
-      //      //"icon-color": ["get", "valueColor"],
-      //      //"icon-halo-color": ["get", "borderColor"],
-      //      //"icon-halo-width": 2.2,
-
-      //      //"circle-radius": 10,
-      //      //"circle-color": ["get", "valueColor"],
-      //      //"circle-stroke-width": 2,
-      //      //"circle-stroke-color": ["get", "borderColor"]
-      //    },
-      //  });
-      //}
-
       // NOTE: Cast to "any" to avoid type conflicts with MapLibre and Zod types
       const features: Array<Feature<Geometry, MonitorMarkerProperties>> = mc.latest.map(m => {
         const feature: Feature<Geometry, MonitorMarkerProperties> = {
@@ -173,8 +110,12 @@ export class MapController {
             //icon: getIcon(m)
             order: getOrder(m),
             icon: "default",
+            location: m.location,
             name: m.name,
-            value: m.latest.value
+            value: m.latest.value,
+            type: m.type,
+            is_sjvair: m.is_sjvair,
+            is_active: m.is_active
           },
           geometry: m.position! as Geometry
         };
@@ -193,7 +134,6 @@ export class MapController {
           }
         }
 
-
         return feature;
       });
 
@@ -209,12 +149,13 @@ export class MapController {
         id: "monitors",
         type: "symbol",
         source: "monitors",
+        filter: ["all", ["==", ["get", "is_active"], true], ["!=", ["get", "location"], "outside"]],
         layout: {
           "symbol-sort-key": ["get", "order"],
           "icon-allow-overlap": true,
           "icon-ignore-placement": true,
           "icon-image": ["get", "icon"],
-          "icon-size": 1
+          "icon-size": 1,
           //"icon-size": 1.5
         },
         paint: {
@@ -244,6 +185,8 @@ export class MapController {
             <strong>${feature.properties.name}</strong>
             <br/>
             Value: ${feature.properties.value}PM2.5
+            <br/>
+            location: ${feature.properties.location}
           </div>`)
           .addTo(this.map!);
       });
