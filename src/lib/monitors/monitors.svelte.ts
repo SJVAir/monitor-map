@@ -8,7 +8,6 @@ import {
   type MonitorsMeta,
   type MonitorType,
   type SJVAirEntryLevel,
-  type SJVAirMonitorDeviceMeta
 } from "@sjvair/sdk";
 import { Derived, Reactive } from "$lib/reactivity.svelte.ts";
 import { Initializer } from "$lib/decorators/initializer.ts";
@@ -29,18 +28,31 @@ function buildIcons(levels: Array<SJVAirEntryLevel> | null) {
   const icons: Record<string, HTMLImageElement> = {};
   //const icons: Record<string, Blob> = {};
 
-  const greySquareIcon = new Image();
-  greySquareIcon.src = asDataURI(square(defaultColor, MONITOR_ICON_BORDER_WIDTH));
-  greySquareIcon.width = 24;
-  greySquareIcon.height = 24;
-  //const greySquareIcon = new Blob([square(defaultColor, MONITOR_ICON_BORDER_WIDTH)], { type: "image/svg+xml" });
+  //const greySquareIcon = new Image();
+  //greySquareIcon.src = asDataURI(square(defaultColor, MONITOR_ICON_BORDER_WIDTH));
+  //greySquareIcon.width = 24;
+  //greySquareIcon.height = 24;
+  ////const greySquareIcon = new Blob([square(defaultColor, MONITOR_ICON_BORDER_WIDTH)], { type: "image/svg+xml" });
 
-  icons["default"] = greySquareIcon;
+  //icons["default"] = greySquareIcon;
 
   if (levels) {
     for (const location of ["inside", "outside"]) {
-      for (const level of levels) {
-        for (const [shapeName, shape] of Object.entries(MONITOR_ICONS)) {
+      for (const [shapeName, shape] of Object.entries(MONITOR_ICONS)) {
+        const defaultIcon = new Image();
+        //greySquareIcon.src = asDataURI(square(defaultColor, MONITOR_ICON_BORDER_WIDTH));
+        defaultIcon.src = asDataURI(shape(
+          defaultColor,
+          MONITOR_ICON_BORDER_WIDTH,
+          (location === "inside") ? "#000000" : undefined
+        ));
+        defaultIcon.width = 24;
+        defaultIcon.height = 24;
+        //const greySquareIcon = new Blob([square(defaultColor, MONITOR_ICON_BORDER_WIDTH)], { type: "image/svg+xml" });
+
+        icons[`${location}-default-${shapeName}`] = defaultIcon;
+
+        for (const level of levels) {
           const icon = new Image();
           icon.src = asDataURI(shape(
             level.color,
@@ -109,9 +121,11 @@ export class MonitorsController {
   //accessor icons!: Record<string, Blob>;
 
   @Derived(() => {
+    const mc = new MonitorsController();
     const monitorFilters: Array<any> = ["any"];
     const locationFilters: Array<any> = ["any", ["==", ["get", "location"], "outside"]];
-    const mc = new MonitorsController();
+    const statusFilters: Array<any> = ["any", ["==", ["get", "is_active"], true]];
+
     if (mc.displayOptions.airgradient) monitorFilters.push(filters.monitor("airgradient"));
     if (mc.displayOptions.purpleair) monitorFilters.push(filters.purpleair());
     if (mc.displayOptions.aqview) monitorFilters.push(filters.monitor("aqview"));
@@ -119,14 +133,14 @@ export class MonitorsController {
     if (mc.displayOptions.airnow) monitorFilters.push(filters.monitor("airnow"));
     if (mc.displayOptions.sjvairPurpleair) monitorFilters.push(filters.sjvPurpleair());
     if (mc.displayOptions.inside) locationFilters.push(["==", ["get", "location"], "inside"]);
+    if (mc.displayOptions.inactive) statusFilters.push(["==", ["get", "is_active"], false]);
 
-    return ["all", monitorFilters, locationFilters, ["==", ["get", "is_active"], true]];
+    return ["all", monitorFilters, locationFilters, statusFilters];
   })
   accessor filters!: FilterSpecification;
 
   @Initializer
   async init(): Promise<void> {
-    console.log(this.displayOptions);
     await this.update();
     this.pollutant = this.meta.default_pollutant;
   }

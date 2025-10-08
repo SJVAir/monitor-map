@@ -3,14 +3,12 @@ import { Singleton } from "@tstk/decorators";
 import type { Feature, Geometry } from "geojson";
 import { MonitorsController } from "$lib/monitors/monitors.svelte";
 import { Initializer } from "$lib/decorators/initializer.ts";
-import type { MonitorData, MonitorLatestType, SJVAirEntryLevel } from "@sjvair/sdk";
+import type { MonitorData } from "@sjvair/sdk";
 import { LoadingScreen } from "$lib/loading/screen/load-screen.svelte.ts";
 import { Reactive } from "$lib/reactivity.svelte";
-//import { WindLayer } from "@maptiler/weather";
+import { WindLayer } from "@maptiler/weather";
 
 interface MonitorMarkerProperties {
-  //valueColor: string;
-  //borderColor: string;
   icon: string;
   is_sjvair?: boolean;
   is_active: boolean;
@@ -74,9 +72,7 @@ async function loadImage(icon: [string, HTMLImageElement], map: Map): Promise<Ma
   });
 }
 
-const mapLoading = Symbol();
 const mc = new MonitorsController();
-const defaultColor = "#969696" // light gray
 
 @Singleton
 export class MapController {
@@ -113,7 +109,7 @@ export class MapController {
 
       //const layer = new WindLayer({
       //  opacity: 0.5,
-      //}); // using default settings
+      //}); // id is "MapTiler Wind"
       //this.map!.addLayer(layer);
 
       // NOTE: Cast to "any" to avoid type conflicts with MapLibre and Zod types
@@ -121,11 +117,8 @@ export class MapController {
         const feature: Feature<Geometry, MonitorMarkerProperties> = {
           type: "Feature",
           properties: {
-            //valueColor: defaultColor,
-            //borderColor: darken(defaultColor, 0.1),
-            //icon: getIcon(m)
             order: getOrder(m),
-            icon: "default",
+            icon: "outside-default-square",
             location: m.location,
             name: m.name,
             value: m.latest.value,
@@ -143,10 +136,7 @@ export class MapController {
           });
 
           if (level) {
-            //feature.properties.valueColor = level.color;
-            //feature.properties.borderColor = darken(level.color, 0.1);
-            feature.properties.icon = `${m.location}-${level.name}-${getIcon(m)}`;
-            //feature.properties.icon = getIcon(m);
+            feature.properties.icon = `${m.location}-${m.is_active ? level.name : "default"}-${getIcon(m)}`;
           }
         }
 
@@ -161,7 +151,6 @@ export class MapController {
         }
       });
 
-      console.log(mc.filters)
       this.initialized = true;
       this.map!.addLayer({
         id: "monitors",
@@ -174,18 +163,8 @@ export class MapController {
           "icon-ignore-placement": true,
           "icon-image": ["get", "icon"],
           "icon-size": 1,
-          //"icon-size": 1.5
         },
-        paint: {
-          //"icon-color": ["get", "valueColor"],
-          //"icon-halo-color": ["get", "borderColor"],
-          //"icon-halo-width": 2.2,
-
-          //"circle-radius": 10,
-          //"circle-color": ["get", "valueColor"],
-          //"circle-stroke-width": 2,
-          //"circle-stroke-color": ["get", "borderColor"]
-        },
+        paint: {},
       });
 
       // Popup on hover

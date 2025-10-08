@@ -9,9 +9,7 @@
 	let container: HTMLDivElement;
 
 	$effect(() => {
-		console.log("running effect");
 		if (map.initialized) {
-			console.log("setting filters");
 			map.map.setFilter("monitors", monitors.filters);
 		}
 	});
