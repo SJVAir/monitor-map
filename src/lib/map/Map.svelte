@@ -4,21 +4,25 @@
 	import { MonitorsController } from "$lib/monitors/monitors.svelte.ts";
 	import { MapController } from "./map.svelte.ts";
 
-	const map = new MapController();
+	const mapCtrl = new MapController();
 	const monitors = new MonitorsController();
 	let container: HTMLDivElement;
 
 	$effect(() => {
-		if (map.initialized) {
-			map.map.setFilter("monitors", monitors.filters);
+		if (mapCtrl.initialized) {
+			for (const integration of mapCtrl.integrations) {
+				if (integration.filters) {
+					mapCtrl.map.setFilter(integration.referenceId, integration.filters);
+				}
+			}
 		}
 	});
 	onMount(async () => {
 		await monitors.init();
-		map.init(container);
+		mapCtrl.init(container);
 	});
 
-	onDestroy(() => map.remove());
+	onDestroy(() => mapCtrl.remove());
 </script>
 
 <div bind:this={container} style="width: 100%; height: 100%;"></div>
