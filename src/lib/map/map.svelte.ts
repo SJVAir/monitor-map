@@ -67,6 +67,7 @@ export class MapController {
       }
 
       this.map!.on("zoom", () => {
+        console.log("Zoom level:", this.map!.getZoom());
         if (this.tooltipPopup) this.tooltipPopup.remove();
         this.tooltipPopup = null;
       });

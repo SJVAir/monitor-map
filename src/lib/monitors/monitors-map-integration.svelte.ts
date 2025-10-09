@@ -222,6 +222,13 @@ export class MonitorsMapIntegration implements MapIntegration<MonitorMarkerPrope
   get mapSource(): Parameters<MaptilerMap["addSource"]> {
     return [this.referenceId, {
       type: "geojson",
+      cluster: true,
+      clusterRadius: 25,
+      clusterMaxZoom: 9,
+      clusterMinPoints: 2,
+      //clusterProperties: {
+      //  "sum": ["+", ["get", "order"]]
+      //},
       data: {
         type: "FeatureCollection",
         features: this.features

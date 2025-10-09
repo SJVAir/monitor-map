@@ -4,6 +4,7 @@
 	import { MonitorsController } from "$lib/monitors/monitors.svelte.ts";
 	import { MapController } from "./map.svelte.ts";
 	import type { GeoJSONSource } from "@maptiler/sdk";
+	import type { GeoJSON } from "geojson";
 
 	const mapCtrl = new MapController();
 	const monitors = new MonitorsController();
@@ -14,8 +15,9 @@
 			for (const integration of mapCtrl.integrations) {
 				const source = mapCtrl.map.getSource(integration.referenceId);
 				if (source && source.type === "geojson") {
-					console.log("calling update from effect", integration.mapSource[1]);
-					(source as GeoJSONSource).setData(integration.features);
+					if (integration.mapSource[1].type === "geojson") {
+						(source as GeoJSONSource).setData(integration.mapSource[1].data);
+					}
 				}
 				if (integration.filters) {
 					mapCtrl.map.setFilter(integration.referenceId, integration.filters);
