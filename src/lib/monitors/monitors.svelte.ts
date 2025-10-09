@@ -49,7 +49,7 @@ export class MonitorsController {
   })
   accessor levels!: Array<SJVAirEntryLevel> | null;
 
-  autoUpdate = new Interval(async () => this.update(), 5000)//1000 * 60 * 2)
+  autoUpdate = new Interval(async () => await this.update(), 20000)//1000 * 60 * 2)
 
   get displayOptions(): Record<keyof MonitorDisplayToggles, any> {
     return {
@@ -71,13 +71,13 @@ export class MonitorsController {
     ])
     this.pollutant = this.meta.default_pollutant;
     this.latest = await getMonitorsLatest(this.pollutant ?? this.meta.default_pollutant);
-    //this.autoUpdate.start();
+    this.autoUpdate.start();
   }
 
   async update(): Promise<void> {
     [this.list, this.latest] = await Promise.all([
       getMonitors(),
-      getMonitorsLatest(this.pollutant ?? this.meta.default_pollutant)
+      getMonitorsLatest(this.pollutant ?? this.meta.default_pollutant).then(res => res.map(m => { m.latest.value = "999"; return m }))
     ])
   }
 }
