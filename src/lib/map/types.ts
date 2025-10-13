@@ -7,13 +7,16 @@ interface TooltipController {
 }
 export type TooltipPopup = <T extends TooltipController>(mapCtrl: T) => (evt: MapLayerEventType["mousemove"] & Object) => void;
 
-export interface MapIntegration<T extends Record<string, any>> {
-  referenceId: string;
-  icons: Record<string, HTMLImageElement>;
-  features: Array<Feature<Geometry, T>>;
-  mapLayer: Parameters<MaptilerMap["addLayer"]>;
-  mapSource: Parameters<MaptilerMap["addSource"]>;
-  filters?: FilterSpecification;
-  tooltip?: TooltipPopup;
-
-}
+//export interface MapIntegration {
+//  referenceId: string;
+//  beforeLayer?: string;
+//  mapLayer: Parameters<MaptilerMap["addLayer"]>[0];
+//}
+//
+//export interface MapGeoJSONIntegration<T extends Record<string, any>> extends MapIntegration {
+//  icons: Record<string, HTMLImageElement>;
+//  features: Array<Feature<Geometry, T>>;
+//  mapSource: Parameters<MaptilerMap["addSource"]>[1];
+//  filters?: FilterSpecification;
+//  tooltip?: TooltipPopup;
+//}

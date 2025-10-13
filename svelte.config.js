@@ -11,6 +11,12 @@ const config = {
     adapter: adapter({
       fallback: "index.html"
     })
+  },
+
+  compilerOptions: {
+    experimental: {
+      async: true
+    }
   }
 };
 

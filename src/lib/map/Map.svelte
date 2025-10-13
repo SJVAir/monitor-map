@@ -1,33 +1,51 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
-	import "@maptiler/sdk/dist/maptiler-sdk.css";
-	import { MonitorsController } from "$lib/monitors/monitors.svelte.ts";
-	import { MapController } from "./map.svelte.ts";
 	import type { GeoJSONSource } from "@maptiler/sdk";
-	import type { GeoJSON } from "geojson";
+	import "@maptiler/sdk/dist/maptiler-sdk.css";
+	import { MapGeoJSONIntegration } from "./integrations.svelte.ts";
+	import { MapController, type MapConfig } from "./map.svelte.ts";
+
+	const { integrations }: Pick<MapConfig, "integrations"> = $props();
 
 	const mapCtrl = new MapController();
-	const monitors = new MonitorsController();
 	let container: HTMLDivElement;
 
 	$effect(() => {
 		if (mapCtrl.initialized) {
 			for (const integration of mapCtrl.integrations) {
-				const source = mapCtrl.map.getSource(integration.referenceId);
-				if (source && source.type === "geojson") {
-					if (integration.mapSource[1].type === "geojson") {
-						(source as GeoJSONSource).setData(integration.mapSource[1].data);
+				const isVisible = mapCtrl.map.getLayoutProperty(integration.referenceId, "visibility");
+
+				if (integration.enabled) {
+					if (isVisible !== "visible") {
+						mapCtrl.map.setLayoutProperty(integration.referenceId, "visibility", "visible");
+					}
+				} else {
+					if (isVisible === "visible") {
+						mapCtrl.map.setLayoutProperty(integration.referenceId, "visibility", "none");
 					}
 				}
-				if (integration.filters) {
-					mapCtrl.map.setFilter(integration.referenceId, integration.filters);
+
+				if (integration instanceof MapGeoJSONIntegration) {
+					const source = mapCtrl.map.getSource(integration.referenceId) as GeoJSONSource;
+
+					if (integration.mapSource.type === "geojson") {
+						source.setData(integration.mapSource.data);
+					}
+
+					if (integration.filters) {
+						mapCtrl.map.setFilter(integration.referenceId, integration.filters);
+					}
 				}
 			}
 		}
 	});
+
 	onMount(async () => {
-		await monitors.init();
-		mapCtrl.init(container);
+		console.log("initializing map");
+		mapCtrl.init({
+			container,
+			integrations
+		});
 	});
 
 	onDestroy(() => mapCtrl.remove());

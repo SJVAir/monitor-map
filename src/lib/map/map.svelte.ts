@@ -1,18 +1,23 @@
-import { config, Map as MaptilerMap, Popup, MapStyle } from "@maptiler/sdk";
-//import { WindLayer } from "@maptiler/weather";
+import { config, Map as MaptilerMap, Popup, MapStyle, } from "@maptiler/sdk";
 import { Singleton, SingleUse } from "@tstk/decorators";
 import { LoadingScreen } from "$lib/loading/screen/load-screen.svelte.ts";
-import type { MapIntegration } from "$lib/map/types";
-import { MonitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte.ts";
 import { Reactive } from "$lib/reactivity.svelte.ts";
+import { MapGeoJSONIntegration, type MapIntegration } from "./integrations.svelte";
+import { BaseLayerSeperator } from "./base-layer-seperator.ts";
+import { WindMapIntegration } from "./wind.svelte.ts";
+
+export interface MapConfig {
+  container: string | HTMLElement;
+  integrations?: Array<MapIntegration>;
+}
 
 @Singleton
 export class MapController {
   map!: MaptilerMap;
   tooltipPopup: Popup | null = null;
 
-  integrations: Array<MapIntegration<any>> = [
-    new MonitorsMapIntegration()
+  integrations: Array<MapIntegration> = [
+    new WindMapIntegration()
   ];
 
   @Reactive()
@@ -24,9 +29,11 @@ export class MapController {
   }
 
   @SingleUse
-  init(container: string | HTMLElement) {
+  init(config: MapConfig) {
+    this.integrations = this.integrations.concat(config.integrations ?? []);
+
     this.map = new MaptilerMap({
-      container,
+      container: config.container,
       center: [-119.7987626619462, 36.76272050981146],
       zoom: 7,
       style: MapStyle.STREETS,
@@ -37,41 +44,43 @@ export class MapController {
     });
 
     this.map.on("load", async () => {
-
-      //const layer = new WindLayer({
-      //  opacity: 0.5,
-      //}); // id is "MapTiler Wind"
-      //this.map!.addLayer(layer);
+      this.map!.addLayer(new BaseLayerSeperator().mapLayer);
 
       for (const integration of this.integrations) {
-        for (const icon of Object.entries(integration.icons)) {
-          await this.loadImage(icon, this.map!);
+        console.log(integration)
+        if (integration instanceof MapGeoJSONIntegration) {
+          console.log("geojson integration", integration);
+          for (const icon of Object.entries(integration.icons)) {
+            await this.loadImage(icon, this.map!);
+          }
+          this.map!.addSource(integration.referenceId, integration.mapSource);
         }
-        this.map!.addSource(...integration.mapSource);
-      }
 
-      this.initialized = true;
+        this.map!.addLayer(integration.mapLayer, integration.beforeLayer);
 
-      for (const integration of this.integrations) {
-        this.map!.addLayer(...integration.mapLayer);
+        if (!integration.enabled) {
+          this.map!.setLayoutProperty(integration.referenceId, "visibility", "none");
+        }
 
-        if (integration.tooltip) {
-          const popup = integration.tooltip(this);
+        if (integration instanceof MapGeoJSONIntegration) {
+          if (integration.tooltip) {
+            const tooltip = integration.tooltip(this);
 
-          this.map!.on("mousemove", integration.referenceId, popup);
-          this.map!.on("mouseleave", integration.referenceId, () => {
-            if (this.tooltipPopup) this.tooltipPopup.remove();
-            this.tooltipPopup = null;
-          });
+            this.map!.on("mousemove", integration.referenceId, tooltip);
+            this.map!.on("mouseleave", integration.referenceId, () => {
+              if (this.tooltipPopup) this.tooltipPopup.remove();
+              this.tooltipPopup = null;
+            });
+          }
         }
       }
 
       this.map!.on("zoom", () => {
-        console.log("Zoom level:", this.map!.getZoom());
         if (this.tooltipPopup) this.tooltipPopup.remove();
         this.tooltipPopup = null;
       });
 
+      this.initialized = true;
       new LoadingScreen().disable();
     });
 

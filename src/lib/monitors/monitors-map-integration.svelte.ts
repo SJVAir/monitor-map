@@ -1,12 +1,13 @@
 import { Popup, type ExpressionSpecification, type FilterSpecification, type Map as MaptilerMap } from "@maptiler/sdk";
+import type { MonitorData, MonitorType } from "@sjvair/sdk";
 import { Singleton } from "@tstk/decorators";
 import { cast } from "@tstk/utils";
 import type { Feature, Geometry } from "geojson";
-import { Derived } from "$lib/reactivity.svelte.ts";
+import { Derived, Reactive } from "$lib/reactivity.svelte.ts";
 import { asDataURI, circle, square, triangle } from "$lib/map/icons.ts";
-import type { MapIntegration, TooltipPopup } from "$lib/map/types";
+import type { TooltipPopup } from "$lib/map/types";
 import { MonitorsController } from "./monitors.svelte";
-import type { MonitorData, MonitorType } from "@sjvair/sdk";
+import { MapGeoJSONIntegration } from "$lib/map/integrations.svelte";
 
 export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
 
@@ -78,8 +79,10 @@ const filters = {
 };
 
 @Singleton
-export class MonitorsMapIntegration implements MapIntegration<MonitorMarkerProperties> {
+export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
   referenceId: string = "monitors";
+
+  enabled: boolean = true;
 
   tooltip: TooltipPopup = (mapCtrl) => (evt) => {
     if (!evt.features) return;
@@ -202,8 +205,8 @@ export class MonitorsMapIntegration implements MapIntegration<MonitorMarkerPrope
   })
   accessor features!: Array<MonitorMapFeature>
 
-  get mapLayer(): Parameters<MaptilerMap["addLayer"]> {
-    return [{
+  get mapLayer(): Parameters<MaptilerMap["addLayer"]>[0] {
+    return {
       id: this.referenceId,
       type: "symbol",
       source: this.referenceId,
@@ -216,16 +219,16 @@ export class MonitorsMapIntegration implements MapIntegration<MonitorMarkerPrope
         "icon-size": 1,
       },
       paint: {},
-    }];
+    };
   }
 
-  get mapSource(): Parameters<MaptilerMap["addSource"]> {
-    return [this.referenceId, {
+  get mapSource(): Parameters<MaptilerMap["addSource"]>[1] {
+    return {
       type: "geojson",
-      cluster: true,
-      clusterRadius: 25,
-      clusterMaxZoom: 9,
-      clusterMinPoints: 2,
+      //cluster: true,
+      //clusterRadius: 25,
+      //clusterMaxZoom: 9,
+      //clusterMinPoints: 2,
       //clusterProperties: {
       //  "sum": ["+", ["get", "order"]]
       //},
@@ -233,6 +236,6 @@ export class MonitorsMapIntegration implements MapIntegration<MonitorMarkerPrope
         type: "FeatureCollection",
         features: this.features
       }
-    }];
+    };
   }
 }
