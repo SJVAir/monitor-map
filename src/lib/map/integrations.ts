@@ -14,8 +14,16 @@ export interface MapImageIcon {
   image: HTMLImageElement;
 }
 
-export abstract class MapIconManager {
+export class MapIconManager {
   protected icons: XMap<string, MapImageIcon> = new XMap();
+
+  get(id: string): MapImageIcon | undefined {
+    return this.icons.get(id);
+  }
+
+  has(id: string): boolean {
+    return this.icons.has(id);
+  }
 
   async loadIcons(map: MaptilerMap) {
     return await Promise.all(this.icons.values().map(icon => this.loadImage(icon, map)));
