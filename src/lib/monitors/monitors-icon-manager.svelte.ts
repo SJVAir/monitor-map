@@ -1,8 +1,8 @@
 import { asDataURI, circle, square, triangle } from "$lib/map/icons.ts";
-import { MonitorsController } from "./monitors.svelte.ts";
-import { Singleton } from "@tstk/decorators";
-import { MapIconManager } from "$lib/map/integrations.svelte";
 import type { MonitorData, SJVAirEntryLevel } from "@sjvair/sdk";
+import { Singleton } from "@tstk/decorators";
+import { MapIconManager } from "$lib/map/integrations.ts";
+import { MonitorsController } from "./monitors.svelte.ts";
 
 const MONITOR_ICONS = { circle, square, triangle };
 const MONITOR_ICON_WIDTH = 24;
@@ -16,6 +16,7 @@ const mc = new MonitorsController();
 export class MonitorsIconManager extends MapIconManager {
   constructor() {
     super();
+
     $effect(() => {
       if (mc.levels) {
         const levels = [...mc.levels, { name: "default", color: MONITOR_ICON_DEFAULT_COLOR }];

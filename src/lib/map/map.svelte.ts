@@ -2,7 +2,7 @@ import { config, Map as MaptilerMap, Popup, MapStyle, type GeoJSONSource, } from
 import { Singleton, SingleUse } from "@tstk/decorators";
 import { LoadingScreen } from "$lib/loading/screen/load-screen.svelte.ts";
 import { Reactive } from "$lib/reactivity.svelte.ts";
-import { MapGeoJSONIntegration, type MapImageIcon, type MapIntegration } from "./integrations.svelte";
+import { MapGeoJSONIntegration, type MapIntegration } from "./integrations.ts";
 import { BaseLayerSeperator } from "./base-layer-seperator.ts";
 import { WindMapIntegration } from "./wind.svelte.ts";
 
@@ -88,9 +88,10 @@ export class MapController {
 
       for (const integration of this.integrations) {
         if (integration instanceof MapGeoJSONIntegration) {
-          for (const icon of Object.entries(integration.icons)) {
-            await this.loadImage(icon, this.map);
-          }
+          await integration.icons.loadIcons(this.map);
+          //for (const icon of Object.entries(integration.icons)) {
+          //  await this.loadImage(icon, this.map);
+          //}
           this.map.addSource(integration.referenceId, integration.mapSource);
         }
 
@@ -161,20 +162,20 @@ export class MapController {
     return this.map?.remove();
   }
 
-  private async loadImage(mapIcon: [string, MapImageIcon], map: MaptilerMap): Promise<MaptilerMap> {
-    const [id, { icon, loaded }] = mapIcon;
+  //private async loadImage(mapIcon: [string, MapImageIcon], map: MaptilerMap): Promise<MaptilerMap> {
+  //  const [id, { icon, loaded }] = mapIcon;
 
-    if (!icon.complete) {
-      return new Promise((resolve, reject) => {
-        icon.onload = () => {
-          resolve(map.addImage(id, icon));
-        };
-        icon.onerror = (err) => {
-          reject(new Error(`Failed to load image ${id}: ${err}`, { cause: err }));
-        }
-      });
-    } else {
-      return Promise.resolve(map.addImage(id, icon))
-    }
-  }
+  //  if (!icon.complete) {
+  //    return new Promise((resolve, reject) => {
+  //      icon.onload = () => {
+  //        resolve(map.addImage(id, icon));
+  //      };
+  //      icon.onerror = (err) => {
+  //        reject(new Error(`Failed to load image ${id}: ${err}`, { cause: err }));
+  //      }
+  //    });
+  //  } else {
+  //    return Promise.resolve(map.addImage(id, icon))
+  //  }
+  //}
 }

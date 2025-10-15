@@ -3,7 +3,7 @@ import type { MonitorData, MonitorType } from "@sjvair/sdk";
 import { Singleton } from "@tstk/decorators";
 import { cast } from "@tstk/utils";
 import type { Feature, Geometry } from "geojson";
-import { MapGeoJSONIntegration } from "$lib/map/integrations.svelte.ts";
+import { MapGeoJSONIntegration } from "$lib/map/integrations.ts";
 import { Derived } from "$lib/reactivity.svelte.ts";
 import type { TooltipPopup } from "$lib/map/types.ts";
 import { MonitorsController } from "./monitors.svelte.ts";
@@ -92,6 +92,9 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
       .addTo(mapCtrl.map);
   }
 
+  constructor() {
+    super();
+  }
 
   @Derived((): FilterSpecification => {
     const mc = new MonitorsController();
