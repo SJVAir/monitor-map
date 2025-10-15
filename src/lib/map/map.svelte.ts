@@ -4,7 +4,6 @@ import { LoadingScreen } from "$lib/loading/screen/load-screen.svelte.ts";
 import { Reactive } from "$lib/reactivity.svelte.ts";
 import { MapGeoJSONIntegration, type MapIntegration } from "./integrations.ts";
 import { BaseLayerSeperator } from "./base-layer-seperator.ts";
-import { WindMapIntegration } from "./wind.svelte.ts";
 
 export interface MapConfig {
   container: string | HTMLElement;
@@ -16,7 +15,8 @@ const excludeLayers = [
   "Tourism",
   "Culture",
   "Shopping",
-  "Food"
+  "Food",
+  "Transport",
 ]
 
 @Singleton
@@ -24,9 +24,7 @@ export class MapController {
   map!: MaptilerMap;
   tooltipPopup: Popup | null = null;
 
-  integrations: Array<MapIntegration> = [
-    new WindMapIntegration()
-  ];
+  integrations: Array<MapIntegration> = [];
 
   @Reactive()
   accessor initialized: boolean = false;
@@ -37,7 +35,6 @@ export class MapController {
 
     $effect(() => {
       if (this.initialized) {
-        console.log("initialized")
         for (const integration of this.integrations) {
           const isVisible = this.map.getLayoutProperty(integration.referenceId, "visibility");
 
@@ -52,7 +49,6 @@ export class MapController {
           }
 
           if (integration instanceof MapGeoJSONIntegration) {
-            console.log("Updating source")
             const source = this.map.getSource(integration.referenceId) as GeoJSONSource;
 
             if (integration.mapSource.type === "geojson") {
@@ -84,22 +80,10 @@ export class MapController {
     });
 
     this.map.on("load", async () => {
-      this.map.addLayer(new BaseLayerSeperator().mapLayer);
+      this.prepareMap();
 
       for (const integration of this.integrations) {
-        if (integration instanceof MapGeoJSONIntegration) {
-          await integration.icons.loadIcons(this.map);
-          //for (const icon of Object.entries(integration.icons)) {
-          //  await this.loadImage(icon, this.map);
-          //}
-          this.map.addSource(integration.referenceId, integration.mapSource);
-        }
-
-        this.map.addLayer(integration.mapLayer, integration.beforeLayer);
-
-        if (!integration.enabled) {
-          this.map.setLayoutProperty(integration.referenceId, "visibility", "none");
-        }
+        await this.applyIntegration(integration);
 
         if (integration instanceof MapGeoJSONIntegration) {
           if (integration.tooltip) {
@@ -127,55 +111,55 @@ export class MapController {
 
   async updateMapStyle(style: keyof typeof MapStyle) {
     this.map.once("style.load", async () => {
-      console.log(this.integrations)
-
-      this.map.addLayer(new BaseLayerSeperator().mapLayer);
+      this.prepareMap();
 
       for (const integration of this.integrations) {
-        if (integration instanceof MapGeoJSONIntegration) {
-          for (const icon of Object.entries(integration.icons)) {
-            this.map.addImage(...icon);
-          }
-          this.map.addSource(integration.referenceId, integration.mapSource);
-        }
-
-        this.map.addLayer(integration.mapLayer, integration.beforeLayer);
-
-        const isVisible = this.map.getLayoutProperty(integration.referenceId, "visibility");
-
-        if (integration.enabled) {
-          if (isVisible !== "visible" || !isVisible) {
-            this.map.setLayoutProperty(integration.referenceId, "visibility", "visible");
-          }
-        } else {
-          if (isVisible === "visible" || !isVisible) {
-            this.map.setLayoutProperty(integration.referenceId, "visibility", "none");
-          }
-        }
+        await this.applyIntegration(integration);
       }
     });
 
     this.map.setStyle(MapStyle[style]);
   }
 
-  remove() {
+  remove(): void {
     return this.map?.remove();
   }
 
-  //private async loadImage(mapIcon: [string, MapImageIcon], map: MaptilerMap): Promise<MaptilerMap> {
-  //  const [id, { icon, loaded }] = mapIcon;
+  private removeExcludedLayers(): void {
+    for (const toExclude of excludeLayers) {
+      const layer = this.map.getLayer(toExclude);
 
-  //  if (!icon.complete) {
-  //    return new Promise((resolve, reject) => {
-  //      icon.onload = () => {
-  //        resolve(map.addImage(id, icon));
-  //      };
-  //      icon.onerror = (err) => {
-  //        reject(new Error(`Failed to load image ${id}: ${err}`, { cause: err }));
-  //      }
-  //    });
-  //  } else {
-  //    return Promise.resolve(map.addImage(id, icon))
-  //  }
-  //}
+      if (layer) {
+        this.map.removeLayer(toExclude);
+      }
+    }
+  }
+
+  private prepareMap(): void {
+    this.removeExcludedLayers();
+
+    this.map.addLayer(new BaseLayerSeperator().mapLayer);
+  }
+
+  private async applyIntegration(integration: MapIntegration): Promise<void> {
+    if (integration instanceof MapGeoJSONIntegration) {
+      await integration.icons.loadIcons(this.map);
+
+      this.map.addSource(integration.referenceId, integration.mapSource);
+    }
+
+    this.map.addLayer(integration.mapLayer, integration.beforeLayer);
+
+    const isVisible = this.map.getLayoutProperty(integration.referenceId, "visibility");
+
+    if (integration.enabled) {
+      if (!isVisible || isVisible !== "visible") {
+        this.map.setLayoutProperty(integration.referenceId, "visibility", "visible");
+      }
+    } else {
+      if (!isVisible || isVisible === "visible") {
+        this.map.setLayoutProperty(integration.referenceId, "visibility", "none");
+      }
+    }
+  }
 }
