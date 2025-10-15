@@ -12,27 +12,23 @@
 
 	$effect(() => {
 		if (mapCtrl.initialized) {
-			console.log("sources:", mapCtrl.map.getStyle().sources);
 			for (const integration of mapCtrl.integrations) {
 				const isVisible = mapCtrl.map.getLayoutProperty(integration.referenceId, "visibility");
 
 				if (integration.enabled) {
-					if (isVisible !== "visible") {
+					if (isVisible !== "visible" || !isVisible) {
 						mapCtrl.map.setLayoutProperty(integration.referenceId, "visibility", "visible");
 					}
 				} else {
-					if (isVisible === "visible") {
+					if (isVisible === "visible" || !isVisible) {
 						mapCtrl.map.setLayoutProperty(integration.referenceId, "visibility", "none");
 					}
 				}
 
 				if (integration instanceof MapGeoJSONIntegration) {
-					console.log("checking integration:", integration);
 					const source = mapCtrl.map.getSource(integration.referenceId) as GeoJSONSource;
-					console.log("source found:", source);
 
 					if (integration.mapSource.type === "geojson") {
-						console.log("should update data");
 						source.setData(integration.mapSource.data);
 					}
 
@@ -45,11 +41,13 @@
 	});
 
 	onMount(async () => {
-		console.log("initializing map");
 		mapCtrl.init({
 			container,
 			integrations
 		});
+		setTimeout(async () => {
+			await mapCtrl.updateMapStyle("OPENSTREETMAP");
+		}, 1000 * 8);
 	});
 
 	onDestroy(() => mapCtrl.remove());
