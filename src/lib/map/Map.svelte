@@ -10,36 +10,6 @@
 	const mapCtrl = new MapController();
 	let container: HTMLDivElement;
 
-	$effect(() => {
-		if (mapCtrl.initialized) {
-			for (const integration of mapCtrl.integrations) {
-				const isVisible = mapCtrl.map.getLayoutProperty(integration.referenceId, "visibility");
-
-				if (integration.enabled) {
-					if (isVisible !== "visible" || !isVisible) {
-						mapCtrl.map.setLayoutProperty(integration.referenceId, "visibility", "visible");
-					}
-				} else {
-					if (isVisible === "visible" || !isVisible) {
-						mapCtrl.map.setLayoutProperty(integration.referenceId, "visibility", "none");
-					}
-				}
-
-				if (integration instanceof MapGeoJSONIntegration) {
-					const source = mapCtrl.map.getSource(integration.referenceId) as GeoJSONSource;
-
-					if (integration.mapSource.type === "geojson") {
-						source.setData(integration.mapSource.data);
-					}
-
-					if (integration.filters) {
-						mapCtrl.map.setFilter(integration.referenceId, integration.filters);
-					}
-				}
-			}
-		}
-	});
-
 	onMount(async () => {
 		mapCtrl.init({
 			container,

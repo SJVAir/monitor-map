@@ -3,11 +3,11 @@ import type { MonitorData, MonitorType } from "@sjvair/sdk";
 import { Singleton } from "@tstk/decorators";
 import { cast } from "@tstk/utils";
 import type { Feature, Geometry } from "geojson";
-import { Derived, Reactive } from "$lib/reactivity.svelte.ts";
-import { asDataURI, circle, square, triangle } from "$lib/map/icons.ts";
-import type { TooltipPopup } from "$lib/map/types";
-import { MonitorsController } from "./monitors.svelte";
-import { MapGeoJSONIntegration } from "$lib/map/integrations.svelte";
+import { MapGeoJSONIntegration } from "$lib/map/integrations.svelte.ts";
+import { Derived } from "$lib/reactivity.svelte.ts";
+import type { TooltipPopup } from "$lib/map/types.ts";
+import { MonitorsController } from "./monitors.svelte.ts";
+import { MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 
 export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
 
@@ -20,28 +20,6 @@ export interface MonitorMarkerProperties {
   order: number;
   type: string;
   value: string;
-}
-
-const MONITOR_ICONS = { circle, square, triangle };
-const MONITOR_ICON_BORDER_WIDTH = 2;
-const MONITOR_ICON_DEFAULT_COLOR = "#969696"; // light gray
-
-function getIcon<T extends MonitorData>(monitor: T): string {
-  switch (monitor.type) {
-    case "airgradient":
-      return "circle";
-
-    case "airnow":
-    case "aqview":
-    case "bam1022":
-      return "triangle";
-
-    case "purpleair":
-      return monitor.is_sjvair ? "circle" : "square";
-
-    default:
-      throw new Error(`Map icon for ${monitor.device} has not been set`);
-  }
 }
 
 function getOrder<T extends MonitorData>(monitor: T): number {
@@ -84,6 +62,8 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
   enabled: boolean = true;
 
+  icons: MonitorsIconManager = new MonitorsIconManager();
+
   tooltip: TooltipPopup = (mapCtrl) => (evt) => {
     if (!evt.features) return;
 
@@ -113,44 +93,6 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
   }
 
 
-  @Derived(() => {
-    const levels = new MonitorsController().levels;
-    const icons: Record<string, HTMLImageElement> = {};
-
-    if (levels) {
-      for (const location of ["inside", "outside"]) {
-        for (const [shapeName, shape] of Object.entries(MONITOR_ICONS)) {
-          const defaultIcon = new Image();
-
-          defaultIcon.src = asDataURI(shape(
-            MONITOR_ICON_DEFAULT_COLOR,
-            MONITOR_ICON_BORDER_WIDTH,
-            (location === "inside") ? "#000000" : undefined
-          ));
-          defaultIcon.width = 24;
-          defaultIcon.height = 24;
-
-          icons[`${location}-default-${shapeName}`] = defaultIcon;
-
-          for (const level of levels) {
-            const icon = new Image();
-            icon.src = asDataURI(shape(
-              level.color,
-              MONITOR_ICON_BORDER_WIDTH,
-              (location === "inside") ? "#000000" : undefined
-            ));
-            icon.width = 24;
-            icon.height = 24;
-            icons[`${location}-${level.name}-${shapeName}`] = icon;
-          }
-        }
-      }
-    }
-
-    return icons;
-  })
-  accessor icons!: Record<string, HTMLImageElement>;
-
   @Derived((): FilterSpecification => {
     const mc = new MonitorsController();
     const monitorFilters: ExpressionSpecification = ["any"];
@@ -171,6 +113,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
   @Derived(() => {
     const mc = new MonitorsController();
+    const im = new MonitorsIconManager();
     const levels = mc.meta.entryType(mc.pollutant).asIter.levels;
 
     return mc.latest.map(m => {
@@ -196,7 +139,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         });
 
         if (level) {
-          feature.properties.icon = `${m.location}-${m.is_active ? level.name : "default"}-${getIcon(m)}`;
+          feature.properties.icon = im.getIconId(m, level);
         }
       }
 

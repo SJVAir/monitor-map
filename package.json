@@ -47,6 +47,7 @@
     "@sveltejs/package": "^2.5.4",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "@tailwindcss/vite": "^4.1.14",
+    "@tstk/builtin-extensions": "npm:@jsr/tstk__builtin-extensions@^1.0.8",
     "@tstk/decorators": "npm:@jsr/tstk__decorators@^1.0.5",
     "@tstk/types": "npm:@jsr/tstk__types@^1.1.0",
     "@tstk/utils": "npm:@jsr/tstk__utils@^1.1.2",

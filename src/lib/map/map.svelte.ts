@@ -1,8 +1,8 @@
-import { config, Map as MaptilerMap, Popup, MapStyle, } from "@maptiler/sdk";
+import { config, Map as MaptilerMap, Popup, MapStyle, type GeoJSONSource, } from "@maptiler/sdk";
 import { Singleton, SingleUse } from "@tstk/decorators";
 import { LoadingScreen } from "$lib/loading/screen/load-screen.svelte.ts";
 import { Reactive } from "$lib/reactivity.svelte.ts";
-import { MapGeoJSONIntegration, type MapIntegration } from "./integrations.svelte";
+import { MapGeoJSONIntegration, type MapImageIcon, type MapIntegration } from "./integrations.svelte";
 import { BaseLayerSeperator } from "./base-layer-seperator.ts";
 import { WindMapIntegration } from "./wind.svelte.ts";
 
@@ -10,6 +10,14 @@ export interface MapConfig {
   container: string | HTMLElement;
   integrations?: Array<MapIntegration>;
 }
+
+const excludeLayers = [
+  "Sport",
+  "Tourism",
+  "Culture",
+  "Shopping",
+  "Food"
+]
 
 @Singleton
 export class MapController {
@@ -26,6 +34,38 @@ export class MapController {
 
   constructor() {
     config.apiKey = import.meta.env.VITE_MAPTILER_KEY;
+
+    $effect(() => {
+      if (this.initialized) {
+        console.log("initialized")
+        for (const integration of this.integrations) {
+          const isVisible = this.map.getLayoutProperty(integration.referenceId, "visibility");
+
+          if (integration.enabled) {
+            if (isVisible !== "visible" || !isVisible) {
+              this.map.setLayoutProperty(integration.referenceId, "visibility", "visible");
+            }
+          } else {
+            if (isVisible === "visible" || !isVisible) {
+              this.map.setLayoutProperty(integration.referenceId, "visibility", "none");
+            }
+          }
+
+          if (integration instanceof MapGeoJSONIntegration) {
+            console.log("Updating source")
+            const source = this.map.getSource(integration.referenceId) as GeoJSONSource;
+
+            if (integration.mapSource.type === "geojson") {
+              source.setData(integration.mapSource.data);
+            }
+
+            if (integration.filters) {
+              this.map.setFilter(integration.referenceId, integration.filters);
+            }
+          }
+        }
+      }
+    });
   }
 
   @SingleUse
@@ -103,7 +143,6 @@ export class MapController {
         const isVisible = this.map.getLayoutProperty(integration.referenceId, "visibility");
 
         if (integration.enabled) {
-          console.log("integration:", integration);
           if (isVisible !== "visible" || !isVisible) {
             this.map.setLayoutProperty(integration.referenceId, "visibility", "visible");
           }
@@ -122,16 +161,20 @@ export class MapController {
     return this.map?.remove();
   }
 
-  private async loadImage(icon: [string, HTMLImageElement], map: MaptilerMap): Promise<MaptilerMap> {
-    const [id, image] = icon;
+  private async loadImage(mapIcon: [string, MapImageIcon], map: MaptilerMap): Promise<MaptilerMap> {
+    const [id, { icon, loaded }] = mapIcon;
 
-    return new Promise((resolve, reject) => {
-      image.onload = () => {
-        resolve(map.addImage(id, image));
-      };
-      image.onerror = (err) => {
-        reject(new Error(`Failed to load image ${id}: ${err}`, { cause: err }));
-      }
-    });
+    if (!icon.complete) {
+      return new Promise((resolve, reject) => {
+        icon.onload = () => {
+          resolve(map.addImage(id, icon));
+        };
+        icon.onerror = (err) => {
+          reject(new Error(`Failed to load image ${id}: ${err}`, { cause: err }));
+        }
+      });
+    } else {
+      return Promise.resolve(map.addImage(id, icon))
+    }
   }
 }

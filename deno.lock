@@ -5,6 +5,7 @@
     "npm:@eslint/compat@^1.4.0": "1.4.0_eslint@9.37.0",
     "npm:@eslint/js@^9.37.0": "9.37.0",
     "npm:@jsr/sjvair__sdk@^2.0.5": "2.0.5",
+    "npm:@jsr/tstk__builtin-extensions@^1.0.8": "1.0.8",
     "npm:@jsr/tstk__decorators@^1.0.5": "1.0.5",
     "npm:@jsr/tstk__types@^1.1.0": "1.1.0",
     "npm:@jsr/tstk__utils@^1.1.2": "1.1.2",
@@ -441,6 +442,13 @@
         "zod"
       ],
       "tarball": "https://npm.jsr.io/~/11/@jsr/sjvair__sdk/2.0.5.tgz"
+    },
+    "@jsr/tstk__builtin-extensions@1.0.8": {
+      "integrity": "sha512-+Wg/EJbGIC3tRZESJ6Oj12OhUHXuglSvkhsw5h9YKqCw/NEC9J6ikhaVM8jP97AUVewT6MeQJ9Vv9N7syNOjDg==",
+      "dependencies": [
+        "@jsr/tstk__utils"
+      ],
+      "tarball": "https://npm.jsr.io/~/11/@jsr/tstk__builtin-extensions/1.0.8.tgz"
     },
     "@jsr/tstk__decorators@1.0.5": {
       "integrity": "sha512-wuXeEWKu2hwq63Q3Lkz9Lcqu1lX6akxVMt9yXepzo++PtC9p1aTbJj8xExbEk+RKxoPfkAOlb9e1XAEQkDh0eg==",
@@ -2004,6 +2012,7 @@
         "npm:@eslint/compat@^1.4.0",
         "npm:@eslint/js@^9.37.0",
         "npm:@jsr/sjvair__sdk@^2.0.5",
+        "npm:@jsr/tstk__builtin-extensions@^1.0.8",
         "npm:@jsr/tstk__decorators@^1.0.5",
         "npm:@jsr/tstk__types@^1.1.0",
         "npm:@jsr/tstk__utils@^1.1.2",
