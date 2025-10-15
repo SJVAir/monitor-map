@@ -1,6 +1,6 @@
-import { asDataURI, circle, square, triangle } from "$lib/map/icons.ts";
 import type { MonitorData, SJVAirEntryLevel } from "@sjvair/sdk";
 import { Singleton } from "@tstk/decorators";
+import { asDataURI, circle, square, triangle } from "$lib/map/icons.ts";
 import { MapIconManager } from "$lib/map/integrations.ts";
 import { MonitorsController } from "./monitors.svelte.ts";
 
@@ -12,8 +12,29 @@ const MONITOR_ICON_DEFAULT_COLOR = "#969696"; // light gray
 
 const mc = new MonitorsController();
 
-@Singleton
-export class MonitorsIconManager extends MapIconManager {
+export function getIconId<T extends MonitorData>(monitor: T, level: SJVAirEntryLevel): string {
+  const id = `${monitor.location}-${monitor.is_active ? level.name : "default"}`;
+
+  switch (monitor.type) {
+    case "airgradient":
+      return `${id}-circle`;
+
+    case "airnow":
+    case "aqview":
+    case "bam1022":
+      return `${id}-triangle`;
+
+    case "purpleair":
+      return `${id}-${monitor.is_sjvair ? "circle" : "square"}`;
+
+    default:
+      throw new Error(`Map icon for ${monitor.device} has not been set`);
+  }
+}
+
+
+// NOTE: Singleton used as mixing because an error is thrown when used as decorator
+export class MonitorsIconManager extends Singleton(MapIconManager) {
   constructor() {
     super();
 
@@ -49,25 +70,5 @@ export class MonitorsIconManager extends MapIconManager {
         }
       }
     });
-  }
-  getIconId<T extends MonitorData>(monitor: T, level: SJVAirEntryLevel): string {
-    const id = `${monitor.location}-${monitor.is_active ? level.name : "default"}-`;
-
-    //feature.properties.icon = `${m.location}-${m.is_active ? level.name : "default"}-${getIcon(m)}`;
-    switch (monitor.type) {
-      case "airgradient":
-        return id + "circle";
-
-      case "airnow":
-      case "aqview":
-      case "bam1022":
-        return id + "triangle";
-
-      case "purpleair":
-        return id + monitor.is_sjvair ? "circle" : "square";
-
-      default:
-        throw new Error(`Map icon for ${monitor.device} has not been set`);
-    }
   }
 }

@@ -7,7 +7,7 @@ import { MapGeoJSONIntegration } from "$lib/map/integrations.ts";
 import { Derived } from "$lib/reactivity.svelte.ts";
 import type { TooltipPopup } from "$lib/map/types.ts";
 import { MonitorsController } from "./monitors.svelte.ts";
-import { MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
+import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 
 export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
 
@@ -92,10 +92,6 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
       .addTo(mapCtrl.map);
   }
 
-  constructor() {
-    super();
-  }
-
   @Derived((): FilterSpecification => {
     const mc = new MonitorsController();
     const monitorFilters: ExpressionSpecification = ["any"];
@@ -116,7 +112,6 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
   @Derived(() => {
     const mc = new MonitorsController();
-    const im = new MonitorsIconManager();
     const levels = mc.meta.entryType(mc.pollutant).asIter.levels;
 
     return mc.latest.map(m => {
@@ -142,7 +137,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         });
 
         if (level) {
-          feature.properties.icon = im.getIconId(m, level);
+          feature.properties.icon = getIconId(m, level);
         }
       }
 
