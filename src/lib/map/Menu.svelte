@@ -8,7 +8,7 @@
 
 {#if mc.meta}
 	<div
-		class="absolute top-0 left-0 flex w-fit items-center justify-center rounded bg-white p-2 shadow"
+		class="absolute top-0 left-0 flex w-fit items-start justify-center gap-2 rounded bg-white p-2 shadow"
 	>
 		<div class="flex-col items-center justify-center">
 			<p class="text-lg font-bold underline">Air Monitors</p>

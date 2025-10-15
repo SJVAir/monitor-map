@@ -43,31 +43,63 @@ export class MapController {
       }
     });
 
+    setTimeout(async () => {
+      this.map.once("style.load", async () => {
+
+        this.map.addLayer(new BaseLayerSeperator().mapLayer);
+
+        for (const integration of this.integrations) {
+          console.log("working with:", integration)
+          if (integration instanceof MapGeoJSONIntegration) {
+            console.log("source before register:", this.map.getSource(integration.referenceId));
+            console.log("geojson integration", integration);
+            for (const icon of Object.entries(integration.icons)) {
+              console.log("loading icon:", icon)
+              await this.loadImage(icon, this.map);
+            }
+            console.log("images loaded")
+            this.map.addSource(integration.referenceId, integration.mapSource);
+            console.log("source after register:", this.map.getSource(integration.referenceId));
+          }
+
+          console.log("testing")
+          console.log("re-adding layer for:", integration)
+          this.map.addLayer(integration.mapLayer, integration.beforeLayer);
+
+          if (!integration.enabled) {
+            this.map.setLayoutProperty(integration.referenceId, "visibility", "none");
+          }
+        }
+      });
+
+      this.map.setStyle(MapStyle.OPENSTREETMAP);
+    }, 1000 * 10)
+
     this.map.on("load", async () => {
-      this.map!.addLayer(new BaseLayerSeperator().mapLayer);
+      this.map.addLayer(new BaseLayerSeperator().mapLayer);
 
       for (const integration of this.integrations) {
         console.log(integration)
         if (integration instanceof MapGeoJSONIntegration) {
           console.log("geojson integration", integration);
           for (const icon of Object.entries(integration.icons)) {
-            await this.loadImage(icon, this.map!);
+            await this.loadImage(icon, this.map);
           }
-          this.map!.addSource(integration.referenceId, integration.mapSource);
+          this.map.addSource(integration.referenceId, integration.mapSource);
         }
 
-        this.map!.addLayer(integration.mapLayer, integration.beforeLayer);
+        this.map.addLayer(integration.mapLayer, integration.beforeLayer);
 
         if (!integration.enabled) {
-          this.map!.setLayoutProperty(integration.referenceId, "visibility", "none");
+          this.map.setLayoutProperty(integration.referenceId, "visibility", "none");
         }
 
         if (integration instanceof MapGeoJSONIntegration) {
           if (integration.tooltip) {
             const tooltip = integration.tooltip(this);
 
-            this.map!.on("mousemove", integration.referenceId, tooltip);
-            this.map!.on("mouseleave", integration.referenceId, () => {
+            this.map.on("mousemove", integration.referenceId, tooltip);
+            this.map.on("mouseleave", integration.referenceId, () => {
               if (this.tooltipPopup) this.tooltipPopup.remove();
               this.tooltipPopup = null;
             });
@@ -75,7 +107,7 @@ export class MapController {
         }
       }
 
-      this.map!.on("zoom", () => {
+      this.map.on("zoom", () => {
         if (this.tooltipPopup) this.tooltipPopup.remove();
         this.tooltipPopup = null;
       });
