@@ -4,7 +4,7 @@ import { Singleton } from "@tstk/decorators";
 import { cast } from "@tstk/utils";
 import type { Feature, Geometry } from "geojson";
 import { MapGeoJSONIntegration } from "$lib/map/integrations.ts";
-import type { TooltipPopup } from "$lib/map/types.ts";
+import type { TooltipPopup } from "$lib/map/integrations.ts";
 import { Derived } from "$lib/reactivity.svelte.ts";
 import { MonitorsController } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
@@ -62,10 +62,12 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
   enabled: boolean = true;
 
+  cursorPointer: boolean = true;
+
   icons: MonitorsIconManager = new MonitorsIconManager();
 
   tooltip: TooltipPopup = (mapCtrl) => (evt) => {
-    if (!evt.features) return;
+    if (!evt.features || !mapCtrl.map) return;
 
     const feature = cast<MonitorMapFeature, Array<MonitorMapFeature>>(
       evt.features,
