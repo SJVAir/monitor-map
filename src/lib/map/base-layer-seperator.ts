@@ -1,9 +1,9 @@
 import { Map as MaptilerMap } from "@maptiler/sdk";
 import { Singleton } from "@tstk/decorators";
-import type { MapIntegration } from "./integrations.ts";
+import { MapIntegration } from "./integrations.ts";
 
 @Singleton
-export class BaseLayerSeperator implements MapIntegration {
+export class BaseLayerSeperator extends MapIntegration {
   referenceId: string = "Base Layer Seperator"
 
   enabled: boolean = true;
