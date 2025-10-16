@@ -1,21 +1,19 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import type { Attachment } from "svelte/attachments";
 	import { LoadingScreen } from "$lib/loading/screen/load-screen.svelte.ts";
 
 	const ls = new LoadingScreen();
 	let entered = $state(false);
 
-	onMount(() => {
-		// Trigger animation after mount
-		setTimeout(() => {
-			entered = true;
-		}, 10); // slight delay for effect
-	});
+	const animationTrigger: Attachment<HTMLDivElement> = (_target: HTMLDivElement) => {
+		entered = true;
+	};
 </script>
 
 {#if ls.enabled}
 	<div
 		class="absolute top-0 left-0 z-50 flex h-full w-full flex-col items-center justify-center gap-4 overflow-hidden bg-white"
+		{@attach animationTrigger}
 	>
 		<div>
 			<enhanced:img
@@ -46,33 +44,6 @@
 				class:opacity-0={!entered}
 			/>
 		</div>
-		<!--
-		<enhanced:img
-			src="$lib/assets/sjvair-icon.webp"
-			alt="SJVAir Icon"
-			class={`icon inline-block transition-opacity transition-transform duration-700 ease-out
-    ${entered ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"}`}
-		/>
-		<enhanced:img
-			src="$lib/assets/sjvair-sjv.webp"
-			alt="SJV"
-			class={`sjv inline-block transition-opacity transition-transform duration-700 ease-out
-    ${entered ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}`}
-		/>
-		<enhanced:img
-			src="$lib/assets/sjvair-air.webp"
-			alt="Air"
-			class={`air inline-block transition-opacity transition-transform duration-700 ease-out
-    ${entered ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"}`}
-		/>
-		<enhanced:img src="$lib/assets/sjvair-icon.webp" alt="SJVAir Icon" class="icon inline-block" />
-		<enhanced:img src="$lib/assets/sjvair-sjv.webp" alt="SJV" class="sjv inline-block" />
-		<enhanced:img src="$lib/assets/sjvair-air.webp" alt="Air" class="air inline-block" />
-		<h1 class="text-lg">A cooler loading screen awaits....</h1>
-		<div
-			class="h-16 w-16 animate-spin rounded-full border-8 border-blue-500 border-t-transparent"
-		></div>
-    -->
 	</div>
 {/if}
 
