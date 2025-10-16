@@ -2,12 +2,12 @@ import { config, Map as MaptilerMap, Popup, MapStyle, type GeoJSONSource, } from
 import { Singleton, SingleUse } from "@tstk/decorators";
 import { LoadingScreen } from "$lib/loading/screen/load-screen.svelte.ts";
 import { Reactive } from "$lib/reactivity.svelte.ts";
-import { MapGeoJSONIntegration, type MapIntegration } from "./integrations.ts";
+import { MapGeoJSONIntegration, type MapIntegration, type SomeMapIntegration } from "./integrations.ts";
 import { BaseLayerSeperator } from "./base-layer-seperator.ts";
 
 export interface MapConfig {
   container: string | HTMLElement;
-  integrations?: Array<MapIntegration>;
+  integrations?: Array<SomeMapIntegration>;
 }
 
 const excludeLayers = [
@@ -21,7 +21,7 @@ const excludeLayers = [
 
 @Singleton
 export class MapController {
-  map!: MaptilerMap;
+  map?: MaptilerMap;
   tooltipPopup: Popup | null = null;
 
   integrations: Array<MapIntegration> = [];
@@ -34,7 +34,7 @@ export class MapController {
     config.apiKey = import.meta.env.VITE_MAPTILER_KEY;
 
     $effect(() => {
-      if (this.initialized) {
+      if (this.initialized && this.map) {
         for (const integration of this.integrations) {
           const isVisible = this.map.getLayoutProperty(integration.referenceId, "visibility");
 
@@ -51,7 +51,7 @@ export class MapController {
           if (integration instanceof MapGeoJSONIntegration) {
             const source = this.map.getSource(integration.referenceId) as GeoJSONSource;
 
-            if (integration.mapSource.type === "geojson") {
+            if (source && integration.mapSource.type === "geojson") {
               source.setData(integration.mapSource.data);
             }
 
@@ -80,22 +80,12 @@ export class MapController {
     });
 
     this.map.on("load", async () => {
+      if (!this.map) return;
+
       this.prepareMap();
 
       for (const integration of this.integrations) {
-        await this.applyIntegration(integration);
-
-        if (integration instanceof MapGeoJSONIntegration) {
-          if (integration.tooltip) {
-            const tooltip = integration.tooltip(this);
-
-            this.map.on("mousemove", integration.referenceId, tooltip);
-            this.map.on("mouseleave", integration.referenceId, () => {
-              if (this.tooltipPopup) this.tooltipPopup.remove();
-              this.tooltipPopup = null;
-            });
-          }
-        }
+        integration.register(this);
       }
 
       this.map.on("zoom", () => {
@@ -110,17 +100,16 @@ export class MapController {
   }
 
   async updateMapStyle(style: keyof typeof MapStyle) {
-    if (this.map) {
-      this.map.once("style.load", async () => {
-        this.prepareMap();
+    if (!this.map) return;
+    this.map.once("style.load", async () => {
+      this.prepareMap();
 
-        for (const integration of this.integrations) {
-          await this.applyIntegration(integration);
-        }
-      });
+      for (const integration of this.integrations) {
+        await this.applyIntegration(integration);
+      }
+    });
 
-      this.map.setStyle(MapStyle[style]);
-    }
+    this.map.setStyle(MapStyle[style]);
   }
 
   remove(): void {
@@ -128,6 +117,7 @@ export class MapController {
   }
 
   private removeExcludedLayers(): void {
+    if (!this.map) return;
     for (const toExclude of excludeLayers) {
       const layer = this.map.getLayer(toExclude);
 
@@ -138,30 +128,17 @@ export class MapController {
   }
 
   private prepareMap(): void {
+    if (!this.map) return;
     this.removeExcludedLayers();
 
     this.map.addLayer(new BaseLayerSeperator().mapLayer);
   }
 
-  private async applyIntegration(integration: MapIntegration): Promise<void> {
-    if (integration instanceof MapGeoJSONIntegration) {
-      await integration.icons.loadIcons(this.map);
+  private async applyIntegration(integration: SomeMapIntegration): Promise<void> {
+    const result = integration.applyTo(this);
 
-      this.map.addSource(integration.referenceId, integration.mapSource);
-    }
-
-    this.map.addLayer(integration.mapLayer, integration.beforeLayer);
-
-    const isVisible = this.map.getLayoutProperty(integration.referenceId, "visibility");
-
-    if (integration.enabled) {
-      if (!isVisible || isVisible !== "visible") {
-        this.map.setLayoutProperty(integration.referenceId, "visibility", "visible");
-      }
-    } else {
-      if (!isVisible || isVisible === "visible") {
-        this.map.setLayoutProperty(integration.referenceId, "visibility", "none");
-      }
+    if (result instanceof Promise) {
+      await result;
     }
   }
 }

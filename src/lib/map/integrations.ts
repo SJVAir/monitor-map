@@ -1,13 +1,15 @@
 import type { FilterSpecification, MapLayerEventType, Map as MaptilerMap, Popup } from "@maptiler/sdk";
 import type { Feature, Geometry } from "geojson";
 import { XMap } from "@tstk/builtin-extensions";
+import type { MapController } from "./map.svelte";
 
 interface TooltipController {
   tooltipPopup: Popup | null;
-  map: MaptilerMap;
+  map?: MaptilerMap;
 }
 
 export type TooltipPopup = <T extends TooltipController>(mapCtrl: T) => (evt: MapLayerEventType["mousemove"] & Object) => void;
+export type SomeMapIntegration = MapIntegration | MapGeoJSONIntegration<any>;
 
 export interface MapImageIcon {
   id: string;
@@ -54,6 +56,27 @@ export abstract class MapIntegration {
   abstract mapLayer: Parameters<MaptilerMap["addLayer"]>[0];
   abstract enabled: boolean;
   beforeLayer?: string;
+
+  applyTo(mc: MapController) {
+    if (!mc.map) return;
+    mc.map.addLayer(this.mapLayer, this.beforeLayer);
+
+    const isVisible = mc.map.getLayoutProperty(this.referenceId, "visibility");
+
+    if (this.enabled) {
+      if (!isVisible || isVisible !== "visible") {
+        mc.map.setLayoutProperty(this.referenceId, "visibility", "visible");
+      }
+    } else {
+      if (!isVisible || isVisible === "visible") {
+        mc.map.setLayoutProperty(this.referenceId, "visibility", "none");
+      }
+    }
+  }
+
+  register(mc: MapController) {
+    this.applyTo(mc);
+  }
 }
 
 export abstract class MapGeoJSONIntegration<T extends Record<string, any>> extends MapIntegration {
@@ -62,4 +85,38 @@ export abstract class MapGeoJSONIntegration<T extends Record<string, any>> exten
   abstract mapSource: Parameters<MaptilerMap["addSource"]>[1];
   abstract filters?: FilterSpecification;
   abstract tooltip?: TooltipPopup;
+  cursorPointer?: boolean;
+
+  async applyTo(mc: MapController) {
+    if (!mc.map) return;
+
+    await this.icons.loadIcons(mc.map);
+
+    mc.map.addSource(this.referenceId, this.mapSource);
+
+    super.applyTo(mc);
+  }
+
+  register(mc: MapController) {
+    if (!mc.map) return;
+    this.applyTo(mc);
+
+    if (this.cursorPointer) {
+      mc.map.on("mousemove", this.referenceId, () => {
+        mc.map!.getCanvas().style.cursor = "pointer";
+      });
+      mc.map.on("mouseleave", this.referenceId, () => {
+        mc.map!.getCanvas().style.cursor = "";
+      });
+    }
+    if (this.tooltip) {
+      const tooltip = this.tooltip(mc);
+
+      mc.map.on("mousemove", this.referenceId, tooltip);
+      mc.map.on("mouseleave", this.referenceId, () => {
+        if (mc.tooltipPopup) mc.tooltipPopup.remove();
+        mc.tooltipPopup = null;
+      });
+    }
+  }
 }
