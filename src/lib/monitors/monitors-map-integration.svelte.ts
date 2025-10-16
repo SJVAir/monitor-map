@@ -4,8 +4,8 @@ import { Singleton } from "@tstk/decorators";
 import { cast } from "@tstk/utils";
 import type { Feature, Geometry } from "geojson";
 import { MapGeoJSONIntegration } from "$lib/map/integrations.ts";
-import { Derived } from "$lib/reactivity.svelte.ts";
 import type { TooltipPopup } from "$lib/map/types.ts";
+import { Derived } from "$lib/reactivity.svelte.ts";
 import { MonitorsController } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 

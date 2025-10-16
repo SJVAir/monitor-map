@@ -110,15 +110,17 @@ export class MapController {
   }
 
   async updateMapStyle(style: keyof typeof MapStyle) {
-    this.map.once("style.load", async () => {
-      this.prepareMap();
+    if (this.map) {
+      this.map.once("style.load", async () => {
+        this.prepareMap();
 
-      for (const integration of this.integrations) {
-        await this.applyIntegration(integration);
-      }
-    });
+        for (const integration of this.integrations) {
+          await this.applyIntegration(integration);
+        }
+      });
 
-    this.map.setStyle(MapStyle[style]);
+      this.map.setStyle(MapStyle[style]);
+    }
   }
 
   remove(): void {
