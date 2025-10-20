@@ -70,14 +70,14 @@ export class MonitorsController {
       getMonitors(),
     ])
     this.pollutant = this.meta.default_pollutant;
-    this.latest = await getMonitorsLatest(this.pollutant ?? this.meta.default_pollutant);
+    this.latest = await getMonitorsLatest(this.pollutant);
     this.autoUpdate.start();
   }
 
   async update(): Promise<void> {
     [this.list, this.latest] = await Promise.all([
       getMonitors(),
-      getMonitorsLatest(this.pollutant ?? this.meta.default_pollutant)
+      getMonitorsLatest(this.pollutant)
     ])
 
   }

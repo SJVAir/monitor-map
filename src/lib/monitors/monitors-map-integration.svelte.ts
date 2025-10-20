@@ -8,6 +8,7 @@ import type { TooltipPopup } from "$lib/map/integrations.ts";
 import { Derived } from "$lib/reactivity.svelte.ts";
 import { MonitorsController } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
+import type { MapController } from "$lib/map/map.svelte.ts";
 
 export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
 
@@ -168,17 +169,170 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
   get mapSource(): Parameters<MaptilerMap["addSource"]>[1] {
     return {
       type: "geojson",
-      //cluster: true,
-      //clusterRadius: 25,
-      //clusterMaxZoom: 9,
-      //clusterMinPoints: 2,
-      //clusterProperties: {
-      //  "sum": ["+", ["get", "order"]]
-      //},
+      // NOTE: we keep the original single-source definition for backwards compatibility,
+      // but we will create one clustered source per type in applyTo to avoid cross-type clustering.
       data: {
         type: "FeatureCollection",
         features: this.features
       }
     };
+  }
+
+  // Color map for type-based cluster circles (tweak to your styling)
+  protected clusterColors: Record<string, string> = {
+    purpleair: "#6A0DAD",
+    airgradient: "#007ACC",
+    bam1022: "#FF8C00",
+    airnow: "#E53935",
+    aqview: "#2E7D32",
+    default: "#666666"
+  };
+
+  // Override applyTo to create one clustered source per type and add cluster layers.
+  async applyTo(mc: MapController) {
+    if (!mc.map) return;
+
+    // ensure icons are loaded
+    await this.icons.loadIcons(mc.map);
+
+    // group features by type
+    const featuresByType = new Map<string, MonitorMapFeature[]>();
+    for (const feat of this.features || []) {
+      const t = feat.properties?.type ?? "unknown";
+      const arr = featuresByType.get(t) ?? [];
+      arr.push(feat);
+      featuresByType.set(t, arr);
+    }
+
+    // Add a clustered source + cluster/unclustered layers for each type
+    for (const [type, feats] of featuresByType.entries()) {
+      const sourceId = `${this.referenceId}-${type}`;
+
+      // create source for this type (clustered)
+      if (mc.map.getSource(sourceId)) {
+        // if source exists, remove layers that may be present (simple refresh)
+        // attempt best-effort cleanup. If previously added, remove the layers first.
+        const existingLayers = [
+          `${sourceId}-clusters`,
+          `${sourceId}-cluster-count`,
+          `${sourceId}-unclustered`
+        ];
+        for (const lid of existingLayers) {
+          if (mc.map.getLayer(lid)) {
+            try { mc.map.removeLayer(lid); } catch { /* ignore */ }
+          }
+        }
+        try { mc.map.removeSource(sourceId); } catch { /* ignore */ }
+      }
+
+      mc.map.addSource(sourceId, {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: feats
+        },
+        cluster: true,
+        clusterRadius: 40,
+        clusterMaxZoom: 9
+      });
+
+      // cluster circles
+      mc.map.addLayer({
+        id: `${sourceId}-clusters`,
+        type: "circle",
+        source: sourceId,
+        filter: ["has", "point_count"],
+        paint: {
+          "circle-color": this.clusterColors[type] ?? this.clusterColors.default,
+          "circle-radius": [
+            "step",
+            ["get", "point_count"],
+            15, 10,
+            20, 25,
+            25
+          ],
+          "circle-opacity": 0.8,
+          "circle-stroke-width": 1,
+          "circle-stroke-color": "#ffffff"
+        }
+      }, this.beforeLayer);
+
+      // cluster count label
+      mc.map.addLayer({
+        id: `${sourceId}-cluster-count`,
+        type: "symbol",
+        source: sourceId,
+        filter: ["has", "point_count"],
+        layout: {
+          "text-field": ["get", "point_count_abbreviated"],
+          "text-size": 12,
+          "text-ignore-placement": true,
+          "text-allow-overlap": true
+        },
+        paint: {
+          "text-color": "#ffffff"
+        }
+      }, this.beforeLayer);
+
+      // unclustered points for this type
+      // apply the global filters and ensure we only show non-clustered points
+      const unclusteredFilter: any = ["all", this.filters || ["all"], ["!", ["has", "point_count"]]];
+
+      mc.map.addLayer({
+        id: `${sourceId}-unclustered`,
+        type: "symbol",
+        source: sourceId,
+        filter: unclusteredFilter,
+        layout: {
+          "symbol-sort-key": ["get", "order"],
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
+          "icon-image": ["get", "icon"],
+          "icon-size": 1
+        },
+        paint: {}
+      }, this.beforeLayer);
+
+      // cursor + tooltip handlers for unclustered points of this type
+      if (this.cursorPointer) {
+        mc.map.on("mousemove", `${sourceId}-unclustered`, () => {
+          mc.map!.getCanvas().style.cursor = "pointer";
+        });
+        mc.map.on("mouseleave", `${sourceId}-unclustered`, () => {
+          mc.map!.getCanvas().style.cursor = "";
+        });
+      }
+      if (this.tooltip) {
+        const tooltip = this.tooltip(mc);
+        mc.map.on("mousemove", `${sourceId}-unclustered`, tooltip);
+        mc.map.on("mouseleave", `${sourceId}-unclustered`, () => {
+          if (mc.tooltipPopup) mc.tooltipPopup.remove();
+          mc.tooltipPopup = null;
+        });
+      }
+    }
+
+    // set visibility according to enabled flag (for the first source/layer group)
+    // we toggle visibility on each cluster layer created above
+    for (const [type] of featuresByType.entries()) {
+      const clusterLayerId = `${this.referenceId}-${type}-clusters`;
+      const unclusteredLayerId = `${this.referenceId}-${type}-unclustered`;
+      const countLayerId = `${this.referenceId}-${type}-cluster-count`;
+      try {
+        const isVisible = mc.map.getLayoutProperty(clusterLayerId, "visibility");
+        const desired = this.enabled ? "visible" : "none";
+        if (!isVisible || isVisible !== desired) {
+          mc.map.setLayoutProperty(clusterLayerId, "visibility", desired);
+        }
+        if (!isVisible || mc.map.getLayer(unclusteredLayerId)) {
+          mc.map.setLayoutProperty(unclusteredLayerId, "visibility", desired);
+        }
+        if (!isVisible || mc.map.getLayer(countLayerId)) {
+          mc.map.setLayoutProperty(countLayerId, "visibility", desired);
+        }
+      } catch {
+        // ignore missing layers
+      }
+    }
   }
 }
