@@ -37,7 +37,7 @@
 	data-trigger
 	class:rounded-full={!isOpen}
 	class:delay-100={!isOpen}
-	class="absolute top-0 left-0 flex items-center justify-center overflow-hidden rounded bg-white p-1 shadow transition-all duration-0"
+	class="absolute top-0 left-0 flex items-center justify-center overflow-hidden rounded bg-white p-1 shadow transition-all duration-0 select-none"
 >
 	<button
 		class:w-0={isOpen}
