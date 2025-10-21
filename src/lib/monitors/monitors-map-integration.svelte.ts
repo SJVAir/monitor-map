@@ -233,7 +233,14 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         },
         cluster: true,
         clusterRadius: 40,
-        clusterMaxZoom: 9
+        clusterMaxZoom: 9,
+        // Aggregate properties for clusters so we can compute averages.
+        // sumValues: the sum of numeric `properties.value` for features in the cluster
+        // countValues: a simple count of features (sum of 1)
+        clusterProperties: {
+          sumValues: ["+", ["to-number", ["get", "value"]], 0],
+          countValues: ["+", 1, 0]
+        }
       });
 
       // cluster circles
@@ -257,14 +264,27 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         }
       }, this.beforeLayer);
 
-      // cluster count label
+      // cluster count label (show average of properties.value within the cluster)
       mc.map.addLayer({
         id: `${sourceId}-cluster-count`,
         type: "symbol",
         source: sourceId,
         filter: ["has", "point_count"],
         layout: {
-          "text-field": ["get", "point_count_abbreviated"],
+          // compute average = round(sumValues / countValues), fallback to point_count_abbreviated
+          "text-field": [
+            "case",
+            [">", ["get", "countValues"], 0],
+            //["concat",
+            ["to-string",
+              ["round",
+                ["/", ["get", "sumValues"], ["max", ["get", "countValues"], 1]]
+              ]
+            ],
+            //  " PM2.5"
+            //],
+            ["to-string", ["get", "point_count_abbreviated"]]
+          ],
           "text-size": 12,
           "text-ignore-placement": true,
           "text-allow-overlap": true
@@ -295,6 +315,9 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
       // cursor + tooltip handlers for unclustered points of this type
       if (this.cursorPointer) {
+        mc.map.on("mousemove", `${sourceId}-cluster-count`, (ev) => {
+          console.log(ev.features);
+        });
         mc.map.on("mousemove", `${sourceId}-unclustered`, () => {
           mc.map!.getCanvas().style.cursor = "pointer";
         });
