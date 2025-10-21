@@ -23,6 +23,25 @@ export interface MonitorMarkerProperties {
   value: string;
 }
 
+export function getIconShape(monitorType: string): string {
+
+  switch (monitorType) {
+    case "airgradient":
+      return "circle";
+
+    case "airnow":
+    case "aqview":
+    case "bam1022":
+      return "triangle";
+
+    case "purpleair":
+      return "square";
+
+    default:
+      throw new Error(`Icon shape for ${monitorType} has not been set`);
+  }
+}
+
 function getOrder<T extends MonitorData>(monitor: T): number {
   switch (monitor.type) {
     case "airgradient":
@@ -91,6 +110,8 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
             Value: ${feature.properties.value}PM2.5
             <br/>
             location: ${feature.properties.location}
+            <br/>
+            is_sjvair: ${feature.properties.is_sjvair}
           </div>`)
       .addTo(mapCtrl.map);
   }
@@ -116,6 +137,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
   @Derived(() => {
     const mc = new MonitorsController();
     const levels = mc.meta.entryType(mc.pollutant).asIter.levels;
+    console.log(levels)
 
     return mc.latest.map(m => {
       const feature: MonitorMapFeature = {
@@ -191,6 +213,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
   // Override applyTo to create one clustered source per type and add cluster layers.
   async applyTo(mc: MapController) {
     if (!mc.map) return;
+    console.log(this.icons)
 
     // ensure icons are loaded
     await this.icons.loadIcons(mc.map);
@@ -199,9 +222,10 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
     const featuresByType = new Map<string, MonitorMapFeature[]>();
     for (const feat of this.features || []) {
       const t = feat.properties?.type ?? "unknown";
-      const arr = featuresByType.get(t) ?? [];
+      const finalT = feat.properties?.is_sjvair ? "airgradient" : t;
+      const arr = featuresByType.get(finalT) ?? [];
       arr.push(feat);
-      featuresByType.set(t, arr);
+      featuresByType.set(finalT, arr);
     }
 
     // Add a clustered source + cluster/unclustered layers for each type
@@ -215,7 +239,8 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         const existingLayers = [
           `${sourceId}-clusters`,
           `${sourceId}-cluster-count`,
-          `${sourceId}-unclustered`
+          `${sourceId}-unclustered`,
+          `${sourceId}-cluster-icon`
         ];
         for (const lid of existingLayers) {
           if (mc.map.getLayer(lid)) {
@@ -243,28 +268,39 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         }
       });
 
-      // cluster circles
+      // cluster icon layer: use the averaged value in the cluster to pick an icon
+      // compute average as sumValues / max(countValues, 1)
+      const avgExpr = ["/", ["get", "sumValues"], ["max", ["get", "countValues"], 1]];
+
+      // NOTE: The icon expression below maps averaged PM2.5 to icon ids.
+      // Replace these icon ids with those produced by MonitorsIconManager (or
+      // expose a helper on MonitorsIconManager that returns an expression or a mapping).
+      // The thresholds chosen here are example PM2.5 breakpoints: 0-12,13-35,36-55,56-150,151+
       mc.map.addLayer({
-        id: `${sourceId}-clusters`,
-        type: "circle",
+        id: `${sourceId}-cluster-icon`,
+        type: "symbol",
         source: sourceId,
         filter: ["has", "point_count"],
-        paint: {
-          "circle-color": this.clusterColors[type] ?? this.clusterColors.default,
-          "circle-radius": [
-            "step",
-            ["get", "point_count"],
-            15, 10,
-            20, 25,
-            25
+        layout: {
+          // Choose an icon based on the computed average.
+          // Replace icon names ("outside-default-square", "outside-yellow-square", ...) with ones you generate.
+          "icon-image": [
+            "case",
+            ["<", avgExpr, 9.1], `outside-good-${getIconShape(type)}`,
+            ["<", avgExpr, 35.5], `outside-moderate-${getIconShape(type)}`,
+            ["<", avgExpr, 55.5], `outside-unhealthy_sensitive-${getIconShape(type)}`,
+            ["<", avgExpr, 150.5], `outside-unhealthy-${getIconShape(type)}`,
+            ["<", avgExpr, 250.5], `outside-very_unhealthy-${getIconShape(type)}`,
+            [">", avgExpr, 250.4], `outside-hazardous-${getIconShape(type)}`,
+            "outside-default-square"
           ],
-          "circle-opacity": 0.8,
-          "circle-stroke-width": 1,
-          "circle-stroke-color": "#ffffff"
+          "icon-size": 1.5,
+          "icon-ignore-placement": true,
+          "icon-allow-overlap": true
         }
       }, this.beforeLayer);
 
-      // cluster count label (show average of properties.value within the cluster)
+      // cluster count label (show rounded average of properties.value within the cluster)
       mc.map.addLayer({
         id: `${sourceId}-cluster-count`,
         type: "symbol",
@@ -290,7 +326,11 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
           "text-allow-overlap": true
         },
         paint: {
-          "text-color": "#ffffff"
+          "text-color": [
+            "case",
+            ["<", avgExpr, 250.5], "#000000",
+            "#FFFFFF",
+          ]
         }
       }, this.beforeLayer);
 
@@ -315,9 +355,6 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
       // cursor + tooltip handlers for unclustered points of this type
       if (this.cursorPointer) {
-        mc.map.on("mousemove", `${sourceId}-cluster-count`, (ev) => {
-          console.log(ev.features);
-        });
         mc.map.on("mousemove", `${sourceId}-unclustered`, () => {
           mc.map!.getCanvas().style.cursor = "pointer";
         });
@@ -338,14 +375,14 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
     // set visibility according to enabled flag (for the first source/layer group)
     // we toggle visibility on each cluster layer created above
     for (const [type] of featuresByType.entries()) {
-      const clusterLayerId = `${this.referenceId}-${type}-clusters`;
+      const clusterIconLayerId = `${this.referenceId}-${type}-cluster-icon`;
       const unclusteredLayerId = `${this.referenceId}-${type}-unclustered`;
       const countLayerId = `${this.referenceId}-${type}-cluster-count`;
       try {
-        const isVisible = mc.map.getLayoutProperty(clusterLayerId, "visibility");
+        const isVisible = mc.map.getLayoutProperty(clusterIconLayerId, "visibility");
         const desired = this.enabled ? "visible" : "none";
         if (!isVisible || isVisible !== desired) {
-          mc.map.setLayoutProperty(clusterLayerId, "visibility", desired);
+          mc.map.setLayoutProperty(clusterIconLayerId, "visibility", desired);
         }
         if (!isVisible || mc.map.getLayer(unclusteredLayerId)) {
           mc.map.setLayoutProperty(unclusteredLayerId, "visibility", desired);
