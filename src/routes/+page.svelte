@@ -9,13 +9,22 @@
 	import { MonitorsController } from "$lib/monitors/monitors.svelte";
 	import { MonitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte.ts";
 	import { WindMapIntegration } from "$lib/wind/wind.svelte";
-	import type { MapIntegration, SomeMapIntegration } from "$lib/map/integrations";
+	import { BaseLayerSeperator } from "$lib/map/integrations/base-layer-seperator";
+	import { IntegrationsManager } from "$lib/map/integrations/integrations-manager";
 
 	const monitors = new MonitorsController();
-	const integrations: Array<SomeMapIntegration> = [
+	const integrationsManager = new IntegrationsManager();
+
+	integrationsManager.register(
+		new BaseLayerSeperator(),
 		new WindMapIntegration(),
 		new MonitorsMapIntegration()
-	];
+	);
+	//const integrations: Array<SomeMapIntegration> = [
+	//	new BaseLayerSeperator(),
+	//	new WindMapIntegration(),
+	//	new MonitorsMapIntegration()
+	//];
 
 	await monitors.init();
 
@@ -26,7 +35,7 @@
 
 <main>
 	<LoadingScreen />
-	<Map {integrations} />
+	<Map />
 	<div class="absolute top-0 left-0 z-10 m-4">
 		<Menu>
 			<MonitorsDisplayOptions />

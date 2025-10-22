@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Attachment } from "svelte/attachments";
-	import { LoadingScreen } from "$lib/loading/screen/load-screen.svelte.ts";
+	import { LoadingScreenController } from "$lib/loading/screen/load-screen-controller.svelte.ts";
 
-	const ls = new LoadingScreen();
+	const ls = new LoadingScreenController();
 	let entered = $state(false);
 
 	const animationTrigger: Attachment<HTMLDivElement> = (_target: HTMLDivElement) => {

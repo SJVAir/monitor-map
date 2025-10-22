@@ -2,13 +2,23 @@
 	import { MapStyle } from "@maptiler/sdk";
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 	import { MapController } from "./map.svelte";
+	import { IntegrationsManager } from "./integrations/integrations-manager";
 
 	const mc = new MapController();
+	const im = new IntegrationsManager();
 	let currentStyle: keyof typeof MapStyle = $state("STREETS");
 
 	$effect(() => {
-		if (mc.initialized && mc.map?.getStyle().name?.toUpperCase() !== currentStyle) {
-			mc.updateMapStyle(currentStyle);
+		if (mc.map && mc.map?.getStyle().name?.toUpperCase() !== currentStyle) {
+			mc.map.once("style.load", async () => {
+				//mc.prepareMap();
+				//for (const integration of mc.integrations) {
+				//	await mc.applyIntegration(integration);
+				//}
+				im.refresh();
+			});
+
+			mc.map.setStyle(MapStyle[currentStyle]);
 		}
 	});
 </script>

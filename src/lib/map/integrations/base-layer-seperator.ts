@@ -1,9 +1,9 @@
 import { Map as MaptilerMap } from "@maptiler/sdk";
 import { Singleton } from "@tstk/decorators";
-import { MapIntegration } from "./integrations.ts";
+import { MapLayerIntegration } from "./map-layer-integration.svelte.ts";
 
 @Singleton
-export class BaseLayerSeperator extends MapIntegration {
+export class BaseLayerSeperator extends MapLayerIntegration {
   referenceId: string = "Base Layer Seperator"
 
   enabled: boolean = true;

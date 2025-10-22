@@ -1,7 +1,7 @@
 import { Singleton } from "@tstk/decorators";
 
 @Singleton
-export class LoadingScreen {
+export class LoadingScreenController {
   enabled: boolean = $state(true);
 
   enable() {

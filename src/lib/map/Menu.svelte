@@ -54,8 +54,8 @@
 	</button>
 	<div
 		class:h-55={isOpen}
-		class:w-115={isOpen}
-		class="relative flex h-0 w-0 items-center justify-center overflow-hidden transition-all duration-250"
+		class:w-135={isOpen}
+		class="relative flex h-0 w-0 items-center justify-center overflow-x-hidden overflow-y-scroll transition-all duration-250"
 	>
 		<div
 			data-trigger
