@@ -208,16 +208,6 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
     };
   }
 
-  // Color map for type-based cluster circles (tweak to your styling)
-  protected clusterColors: Record<string, string> = {
-    purpleair: "#6A0DAD",
-    airgradient: "#007ACC",
-    bam1022: "#FF8C00",
-    airnow: "#E53935",
-    aqview: "#2E7D32",
-    default: "#666666"
-  };
-
   // Override applyTo to create one clustered source per type and add cluster layers.
   apply() {
     if (!MonitorsMapIntegration.mapCtrl.map) return;
@@ -258,11 +248,11 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         // if source exists, remove layers that may be present (simple refresh)
         // attempt best-effort cleanup. If previously added, remove the layers first.
         const existingLayers = [
-          `${sourceId}-clusters`,
+          `${sourceId}-cluster-icon`,
           `${sourceId}-cluster-count`,
-          `${sourceId}-unclustered`,
-          `${sourceId}-cluster-icon`
+          `${sourceId}-unclustered`
         ];
+
         for (const lid of existingLayers) {
           if (MonitorsMapIntegration.mapCtrl.map.getLayer(lid)) {
             try { MonitorsMapIntegration.mapCtrl.map.removeLayer(lid); } catch { /* ignore */ }
@@ -432,6 +422,9 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         "icon-ignore-placement": true,
         "icon-allow-overlap": true
       },
+      paint: {
+        "icon-opacity": 0.8
+      }
     }, this.beforeLayer);
   }
 
@@ -445,7 +438,6 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
       source: sourceId,
       filter: ["has", "point_count"],
       paint: {
-        //"circle-color": this.clusterColors[type] ?? this.clusterColors.default,
         "circle-color": [
           "case",
           ["<", avgExpr, 9.1], levels[0].color,
@@ -474,9 +466,6 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
     const mc = new MonitorsController();
     const levels = mc.meta.entryType(mc.pollutant).asIter.levels!;
 
-    console.log(
-      Object.keys(MonitorsMapIntegration.mapCtrl.map!.style.imageManager.images).length
-    )
     MonitorsMapIntegration.mapCtrl.map?.addLayer({
       id: `${sourceId}-cluster-icon`,
       type: "symbol",
@@ -495,6 +484,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         "icon-allow-overlap": true
       },
       paint: {
+        "icon-opacity": 0.8,
         "icon-color": [
           "case",
           ["<", avgExpr, 9.1], levels[0].color,
@@ -530,10 +520,9 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         // if source exists, remove layers that may be present (simple refresh)
         // attempt best-effort cleanup. If previously added, remove the layers first.
         const existingLayers = [
-          `${sourceId}-clusters`,
+          `${sourceId}-cluster-icon`,
           `${sourceId}-cluster-count`,
-          `${sourceId}-unclustered`,
-          `${sourceId}-cluster-icon`
+          `${sourceId}-unclustered`
         ];
         for (const lid of existingLayers) {
           if (MonitorsMapIntegration.mapCtrl.map.getLayer(lid)) {
