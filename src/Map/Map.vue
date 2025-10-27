@@ -9,7 +9,7 @@ const mapTarget = ref<HTMLDivElement>();
 const { mapContainer } = await useInteractiveMap();
 
 onMounted(async () => {
-  window.requestAnimationFrame(() => mapTarget.value!.appendChild(mapContainer));
+  mapTarget.value!.appendChild(mapContainer)
 });
 </script>
 
