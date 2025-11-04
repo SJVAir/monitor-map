@@ -16,6 +16,7 @@ const zoomPanOptions: L.ZoomPanOptions = {
 };
 
 let map: L.Map;
+const pointLayer = L.layerGroup();
 
 interface InteractiveMap {
   map: L.Map;
@@ -36,9 +37,12 @@ export const useInteractiveMap = asyncInitializer<InteractiveMap>(
 
     const stopCaching = cacheMapStateOnLeave(map);
 
+    map.addEventListener("click", dropPoint);
+
     onBeforeUnmount(() => {
       stopCaching();
       resizeObserver.disconnect();
+      map.removeEventListener("click", dropPoint);
     });
 
     resolve({
@@ -49,6 +53,76 @@ export const useInteractiveMap = asyncInitializer<InteractiveMap>(
     });
   },
 );
+
+function dropPoint(evt: L.LeafletMouseEvent) {
+  const { originalEvent: { ctrlKey }, latlng, sourceTarget } = evt;
+
+  if (ctrlKey) {
+    const marker = L.marker(latlng);
+    const dropPointRemoval = dropPointRemoveHandler(marker);
+    marker.bindPopup(dropPointPopup(latlng));
+    marker.addEventListener("popupopen", () => {
+      const copyBtn = document.getElementById("dropPointPopupCopy");
+      const removeBtn = document.getElementById("dropPointPopupRemove");
+
+      copyBtn?.addEventListener("click", dropPointCopyHandler);
+      removeBtn?.addEventListener("click", dropPointRemoval);
+
+    });
+    // This needs to be when the marker is removed
+    marker.addEventListener("popupclose", () => {
+      const copyBtn = document.getElementById("dropPointPopupCopy");
+      const removeBtn = document.getElementById("dropPointPopupRemove");
+
+      copyBtn?.removeEventListener("click", dropPointCopyHandler);
+      removeBtn?.removeEventListener("click", dropPointRemoval);
+    });
+    //marker.removeEventListener("popupopen", dropPointPopupEvents);
+
+    marker.addTo(sourceTarget as L.Map);
+  }
+}
+
+function dropPointPopup(latlng: L.LatLng) {
+  return `
+  <p class="m-0">Lat: <span id="dropPointLat">${latlng.lat.toFixed(6)}</span></p>
+  <p class="m-0">Lng: <span id="dropPointLng">${latlng.lng.toFixed(6)}</span></p>
+  <div class="mt-1">
+    <button id="dropPointPopupCopy">Copy</button>
+    <button id="dropPointPopupRemove">Remove</button>
+  </div>
+`;
+}
+
+async function dropPointCopyHandler() {
+  const lat = document.getElementById("dropPointLat")?.textContent;
+  const lng = document.getElementById("dropPointLng")?.textContent;
+
+  await navigator.clipboard.writeText(`${lat},${lng}`)
+    .then(() => {
+      const notice = document.createElement("div");
+      notice.innerText = "Coordinates copied to clipboard!";
+      notice.style.position = "absolute";
+      notice.style.left = "50%";
+      notice.style.top = "5%";
+      notice.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+      notice.style.padding = "10px";
+      notice.style.fontSize = "18px";
+      notice.style.fontWeight = "bold";
+      notice.style.zIndex = "1000";
+
+      document.body.appendChild(notice);
+      setTimeout(() => {
+        notice.remove();
+      }, 3 * 1000)
+    });
+}
+
+function dropPointRemoveHandler(marker: L.Marker) {
+  return function () {
+    marker.remove();
+  }
+}
 
 // Handler for waking browser tab
 function cacheMapStateOnLeave(map: L.Map) {

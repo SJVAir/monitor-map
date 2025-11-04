@@ -18,6 +18,19 @@ const cmMethane = await useCarbonMapperMethane();
 //const { displayOptions: overlayTilesetDisplayOptions } = await useOverlayTilesets();
 const mapTilesets = await useMapTilesets();
 
+const mapLayers = {
+  label: "Map Layers",
+  options: {
+    ...hmsSmoke,
+    ...cmMethane
+  }
+}
+
+//const { USER } = window as any;
+//if (USER && USER.is_admin) {
+//  mapLayers.options = { ...mapLayers.options, ...cmMethane };
+//}
+
 const monitorOptions = computed(() => {
   if (primaryPollutant.value === "pm25") {
     return monitorMarkerDisplayOptions;
@@ -85,8 +98,7 @@ watch(primaryPollutant, async () => {
           </div>
           <div class="column">
             <DisplayOption :props="evStationDisplayOptions" />
-            <DisplayOption :props="hmsSmoke" />
-            <DisplayOption :props="cmMethane" />
+            <DisplayOption :props="mapLayers" />
             <DisplayOption :props="mapTilesets" />
           </div>
         </div>

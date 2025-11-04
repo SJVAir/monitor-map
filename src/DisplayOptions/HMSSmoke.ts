@@ -18,7 +18,7 @@ const hmsSmokeVisibility = Checkbox.defineOptions({
   },
 });
 
-export const useHMSSmoke = asyncInitializer<DisplayOptionProps<Checkbox>>(async (resolve) => {
+export const useHMSSmoke = asyncInitializer<typeof hmsSmokeVisibility>(async (resolve) => {
   const { map } = await useInteractiveMap();
   let smokeData = [];
   map.createPane(hmsSmokePane).style.zIndex = "601";
@@ -43,10 +43,11 @@ export const useHMSSmoke = asyncInitializer<DisplayOptionProps<Checkbox>>(async 
     }
   );
 
-  resolve({
-    label: "Map Layers",
-    options: hmsSmokeVisibility
-  });
+  //resolve({
+  //  label: "Map Layers",
+  //  options: hmsSmokeVisibility
+  //});
+  resolve(hmsSmokeVisibility);
 });
 
 async function loadSmoke() {
