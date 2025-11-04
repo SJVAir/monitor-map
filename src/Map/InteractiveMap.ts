@@ -16,7 +16,6 @@ const zoomPanOptions: L.ZoomPanOptions = {
 };
 
 let map: L.Map;
-const pointLayer = L.layerGroup();
 
 interface InteractiveMap {
   map: L.Map;
@@ -58,7 +57,7 @@ function dropPoint(evt: L.LeafletMouseEvent) {
   const { originalEvent: { ctrlKey }, latlng, sourceTarget } = evt;
 
   if (ctrlKey) {
-    const marker = L.marker(latlng);
+    const marker = genPointMarker(latlng);
     const dropPointRemoval = dropPointRemoveHandler(marker);
     marker.bindPopup(dropPointPopup(latlng));
     marker.addEventListener("popupopen", () => {
@@ -116,6 +115,18 @@ async function dropPointCopyHandler() {
         notice.remove();
       }, 3 * 1000)
     });
+}
+
+function genPointMarker(coords: L.LatLng) {
+  const icon = L.divIcon({
+    className: "is-flex is-justify-content-center is-align-items-center",
+    iconAnchor: new L.Point(5, 10),
+    //html: `<div class='crosshairs-svg-lg is-flex-grow-0 is-flex-shrink-0'>Hello</div>`
+    html: `<span class="material-symbols-outlined is-flex-grow-0 is-flex-shrink-0"> pin_drop </span>`
+  });
+  return L.marker(coords, {
+    icon,
+  });
 }
 
 function dropPointRemoveHandler(marker: L.Marker) {
