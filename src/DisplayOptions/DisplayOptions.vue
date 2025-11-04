@@ -5,6 +5,7 @@ import DisplayOption from "./DisplayOption.vue";
 //import { useOverlayTilesets } from "./OverlayTilesets";
 import { useMonitorMarkers } from "./MonitorMarkers";
 import { useHMSSmoke } from "./HMSSmoke";
+import { useCarbonMapperMethane } from "../CarbonMapper/service";
 import { useEVChargingMarkers } from "./EVChargingMarkers";
 import { useMapTilesets } from "./MapTilesets";
 import { primaryPollutant, updateMonitors } from "../Monitors";
@@ -13,8 +14,22 @@ const displayOptionsActive: Ref<boolean> = ref(false);
 const { displayOptions: monitorMarkerDisplayOptions } = await useMonitorMarkers();
 const evStationDisplayOptions = await useEVChargingMarkers();
 const hmsSmoke = await useHMSSmoke();
+const cmMethane = await useCarbonMapperMethane();
 //const { displayOptions: overlayTilesetDisplayOptions } = await useOverlayTilesets();
 const mapTilesets = await useMapTilesets();
+
+const mapLayers = {
+  label: "Map Layers",
+  options: {
+    ...hmsSmoke,
+    ...cmMethane
+  }
+}
+
+//const { USER } = window as any;
+//if (USER && USER.is_admin) {
+//  mapLayers.options = { ...mapLayers.options, ...cmMethane };
+//}
 
 const monitorOptions = computed(() => {
   if (primaryPollutant.value === "pm25") {
@@ -83,7 +98,7 @@ watch(primaryPollutant, async () => {
           </div>
           <div class="column">
             <DisplayOption :props="evStationDisplayOptions" />
-            <DisplayOption :props="hmsSmoke" />
+            <DisplayOption :props="mapLayers" />
             <DisplayOption :props="mapTilesets" />
           </div>
         </div>
