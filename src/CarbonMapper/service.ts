@@ -17,7 +17,7 @@ const methaneLayer: L.FeatureGroup = new L.FeatureGroup();
 const methaneVisibility = Checkbox.defineOptions({
   methane: {
     label: "Methane Plumes",
-    model: true,
+    model: false,
     icon: {
       id: "heat",
     }
