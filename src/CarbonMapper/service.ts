@@ -3,7 +3,7 @@ import { Checkbox } from "../DisplayOptions";
 import { useInteractiveMap } from "../Map/InteractiveMap";
 import { asyncInitializer } from "../modules/asyncInitializer";
 import { FeatureCollection, Polygon } from "geojson";
-import MethaneData from "../assets/carbon-mapper-methane-ca.geojson.br?url";
+import MethaneData from "../assets/carbon-mapper-methane-ca.geojson?url";
 import L from "../modules/Leaflet";
 
 export async function getCarbonMapperMethaneData(): Promise<FeatureCollection<Polygon>> {
