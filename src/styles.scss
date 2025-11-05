@@ -9,14 +9,15 @@
     overflow-y: hidden;
   }
 }
-span.location-icon.material-symbols-outlined, {
+
+span.location-icon.material-symbols-outlined {
   color: rgb(56, 128, 255);
   font-size: 2rem;
   font-variation-settings:
-  'FILL' 1,
-  'wght' 400,
-  'GRAD' 0,
-  'opsz' 24
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24
 }
 
 #SJVAirMonitorMap {
@@ -27,7 +28,8 @@ span.location-icon.material-symbols-outlined, {
 }
 
 .leaflet-lvl2evStations-pane {
-  .marker-cluster-small, 
+
+  .marker-cluster-small,
   .marker-cluster-medium,
   .marker-cluster-large,
   .leaflet-oldie .marker-cluster-small,
@@ -43,7 +45,8 @@ span.location-icon.material-symbols-outlined, {
 }
 
 .leaflet-lvl3evStations-pane {
-  .marker-cluster-small, 
+
+  .marker-cluster-small,
   .marker-cluster-medium,
   .marker-cluster-large,
   .leaflet-oldie .marker-cluster-small,
@@ -178,6 +181,7 @@ span.location-icon.material-symbols-outlined, {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

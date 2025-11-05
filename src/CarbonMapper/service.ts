@@ -19,7 +19,7 @@ const methaneVisibility = Checkbox.defineOptions({
     label: "Methane Plumes",
     model: false,
     icon: {
-      id: "heat",
+      id: "airwave",
     }
   },
 });
