@@ -65,10 +65,11 @@ async function loadCarbonMapperMethane() {
     //const geoJSONResponse = await fetch(geoJSONUrl).then(res => res.json());
     const layer = L.geoJSON(feature, {
       style: {
-        fillColor: "#CC5500",
-        color: "#0077CC",
-        fillOpacity: 0.2,
-        opacity: 0.3,
+        fillColor: "#800080",
+        color: "#301934",
+        fillOpacity: 0.3,
+        opacity: 0.4,
+        weight: 2
       },
     });
 
