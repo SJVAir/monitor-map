@@ -20,6 +20,11 @@ span.location-icon.material-symbols-outlined {
     'opsz' 24
 }
 
+.fill-material-icon {
+  font-variation-settings:
+    'FILL' 1,
+}
+
 #SJVAirMonitorMap {
   flex-grow: 1;
   display: flex;

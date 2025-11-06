@@ -122,7 +122,7 @@ function genPointMarker(coords: L.LatLng) {
     className: "is-flex is-justify-content-center is-align-items-center",
     iconAnchor: new L.Point(5, 10),
     //html: `<div class='crosshairs-svg-lg is-flex-grow-0 is-flex-shrink-0'>Hello</div>`
-    html: `<span class="material-symbols-outlined is-flex-grow-0 is-flex-shrink-0"> pin_drop </span>`
+    html: `<span class="material-symbols-outlined is-size-3 has-text-info fill-material-icon"> pin_drop </span>`
   });
   return L.marker(coords, {
     icon,
