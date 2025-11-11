@@ -19,7 +19,7 @@ export interface MonitorMarkerProperties {
   location: string;
   name: string;
   order: number;
-  type: string;
+  type: MonitorType;
   value: string;
 }
 
@@ -76,6 +76,42 @@ const filters = {
   },
 };
 
+function isVisible(monitor: MonitorData): boolean {
+  // showSJVAirPurpleAir
+  // showSJVAirBAM
+  // showPurpleAir
+  // showPurpleAirInside
+  // showAirNow
+
+  const { displayToggles } = new MonitorsController();
+
+  if (!monitor.is_active && !displayToggles.inactive) {
+    return false;
+  }
+
+  if (monitor.location === "inside" && !displayToggles.inside) {
+    return false;
+  }
+
+  switch (monitor.type) {
+    case "airgradient":
+    case "purpleair":
+      return monitor.is_sjvair
+        ? displayToggles.sjvair
+        : displayToggles.purpleair;
+
+    case "bam1022":
+      return displayToggles.bam1022;
+
+    case "airnow":
+      return displayToggles.airnow;
+
+    case "aqview":
+      return displayToggles.aqview;
+  }
+}
+
+
 @Singleton
 export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
   referenceId: string = "monitors";
@@ -127,6 +163,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
   @Derived((): FilterSpecification => {
     const mc = new MonitorsController();
+    $state.snapshot(mc.displayToggles);
     const monitorFilters: ExpressionSpecification = ["any"];
     const locationFilters: ExpressionSpecification = ["any", ["==", ["get", "location"], "outside"]];
     const statusFilters: ExpressionSpecification = ["any", ["==", ["get", "is_active"], true]];
@@ -147,37 +184,54 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
     const mc = new MonitorsController();
     const levels = mc.meta.entryType(mc.pollutant).asIter.levels;
 
-    return mc.latest.map(m => {
-      const feature: MonitorMapFeature = {
-        type: "Feature",
-        properties: {
-          order: getOrder(m),
-          icon: "outside-default-square",
-          location: m.location,
-          name: m.name,
-          value: m.latest.value,
-          type: m.type,
-          is_sjvair: m.is_sjvair,
-          is_active: m.is_active
-        },
-        geometry: m.position! as Geometry
-      };
+    return mc.latest
+      .filter(isVisible)
+      .map(m => {
+        const feature: MonitorMapFeature = {
+          type: "Feature",
+          properties: {
+            order: getOrder(m),
+            icon: "outside-default-square",
+            location: m.location,
+            name: m.name,
+            value: m.latest.value,
+            type: m.type,
+            is_sjvair: m.is_sjvair,
+            is_active: m.is_active
+          },
+          geometry: m.position! as Geometry
+        };
 
-      if (levels) {
-        const level = levels.find(lvl => {
-          const value = parseInt(m.latest.value, 10);
-          return value >= lvl.range[0] && value <= lvl.range[1];
-        });
+        if (levels) {
+          const level = levels.find(lvl => {
+            const value = parseInt(m.latest.value, 10);
+            return value >= lvl.range[0] && value <= lvl.range[1];
+          });
 
-        if (level) {
-          feature.properties.icon = getIconId(m, level);
+          if (level) {
+            feature.properties.icon = getIconId(m, level);
+          }
         }
-      }
 
-      return feature;
-    });
+        return feature;
+      });
   })
   accessor features!: Array<MonitorMapFeature>
+
+  get featuresByType(): Map<string, MonitorMapFeature[]> {
+    const featuresByType = new Map<string, MonitorMapFeature[]>();
+
+    for (const feat of this.features || []) {
+      const t = feat.properties.type;
+      // NOTE: cheating by giving SJVAir purpleair monitors
+      const finalT = (t === "purpleair") && feat.properties.is_sjvair ? "airgradient" : t;
+      const arr = featuresByType.get(finalT) ?? [];
+      arr.push(feat);
+      featuresByType.set(finalT, arr);
+    }
+
+    return featuresByType;
+  }
 
   get mapLayer(): Parameters<MaptilerMap["addLayer"]>[0] {
     return {
@@ -208,6 +262,50 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
     };
   }
 
+  constructor() {
+    super();
+    $effect(() => {
+      if (!MonitorsMapIntegration.mapCtrl.map) return;
+      console.log("Running monitors map integration effect", this.filters);
+      const source = MonitorsMapIntegration.mapCtrl.map.getSource(this.referenceId)!;
+      if (source) {
+        console.log("updating source data")
+        source.setData(this.features);
+      }
+      //const mc = new MonitorsController();
+      //console.log(this.filters);
+
+      //if (!this.enableClusters) {
+      //  console.log("Applying non-clustered filters");
+      //  MonitorsMapIntegration.mapCtrl.map.setFilter(this.referenceId, this.filters);
+      //} else {
+      //  console.log("Applying cluster filters");
+      //  for (const featureType of this.featuresByType.keys()) {
+      //    const sourceId = `${this.referenceId}-${featureType}`;
+
+      //    // NOTE: Set by visibility
+      //    //const enabled = featureType === "airgradient"
+      //    //  ? mc.displayToggles["sjvair"]
+      //    //  : mc.displayToggles[featureType as keyof typeof mc.displayToggles];
+      //    //if (enabled) {
+      //    //  MonitorsMapIntegration.mapCtrl.map.setLayoutProperty(`${sourceId}-cluster-icon`, "visibility", "visible");
+      //    //  MonitorsMapIntegration.mapCtrl.map.setLayoutProperty(`${sourceId}-cluster-count`, "visibility", "visible");
+      //    //  MonitorsMapIntegration.mapCtrl.map.setLayoutProperty(`${sourceId}-unclustered`, "visibility", "visible");
+      //    //} else {
+      //    //  MonitorsMapIntegration.mapCtrl.map.setLayoutProperty(`${sourceId}-cluster-icon`, "visibility", "none");
+      //    //  MonitorsMapIntegration.mapCtrl.map.setLayoutProperty(`${sourceId}-cluster-count`, "visibility", "none");
+      //    //  MonitorsMapIntegration.mapCtrl.map.setLayoutProperty(`${sourceId}-unclustered`, "visibility", "none");
+      //    //}
+
+      //    //MonitorsMapIntegration.mapCtrl.map.setFilter(`${sourceId}-cluster-icon`, this.filters.concat(["has", "point_count"]));
+      //    //MonitorsMapIntegration.mapCtrl.map.setFilter(`${sourceId}-cluster-count`, this.filters.concat(["has", "point_count"]));
+      //    ////MonitorsMapIntegration.mapCtrl.map.setFilter(`${sourceId}-unclustered`, ["all", this.filters || ["all"], ["!", ["has", "point_count"]]]);
+      //    //MonitorsMapIntegration.mapCtrl.map.setFilter(`${sourceId}-unclustered`, this.filters.concat(["!", ["has", "point_count"]]));
+      //  }
+      //}
+    });
+  }
+
   // Override applyTo to create one clustered source per type and add cluster layers.
   apply() {
     if (!MonitorsMapIntegration.mapCtrl.map) return;
@@ -230,17 +328,17 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
     if (!MonitorsMapIntegration.mapCtrl.map) return;
 
     // group features by type
-    const featuresByType = new Map<string, MonitorMapFeature[]>();
-    for (const feat of this.features || []) {
-      const t = feat.properties?.type ?? "unknown";
-      const finalT = feat.properties?.is_sjvair ? "airgradient" : t;
-      const arr = featuresByType.get(finalT) ?? [];
-      arr.push(feat);
-      featuresByType.set(finalT, arr);
-    }
+    //const featuresByType = new Map<string, MonitorMapFeature[]>();
+    //for (const feat of this.features || []) {
+    //  const t = feat.properties?.type ?? "unknown";
+    //  const finalT = feat.properties?.is_sjvair ? "airgradient" : t;
+    //  const arr = featuresByType.get(finalT) ?? [];
+    //  arr.push(feat);
+    //  featuresByType.set(finalT, arr);
+    //}
 
     // Add a clustered source + cluster/unclustered layers for each type
-    for (const [type, feats] of featuresByType.entries()) {
+    for (const [type, feats] of this.featuresByType.entries()) {
       const sourceId = `${this.referenceId}-${type}`;
 
       // create source for this type (clustered)
@@ -373,7 +471,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
     // set visibility according to enabled flag (for the first source/layer group)
     // we toggle visibility on each cluster layer created above
-    for (const [type] of featuresByType.entries()) {
+    for (const [type] of this.featuresByType.entries()) {
       const clusterIconLayerId = `${this.referenceId}-${type}-cluster-icon`;
       const unclusteredLayerId = `${this.referenceId}-${type}-unclustered`;
       const countLayerId = `${this.referenceId}-${type}-cluster-count`;
