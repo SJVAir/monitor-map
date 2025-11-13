@@ -64,17 +64,17 @@ function getOrder(monitor: MonitorData): number {
   }
 }
 
-const filters = {
-  monitor(deviceType: MonitorType): ExpressionSpecification {
-    return ["==", ["get", "type"], deviceType]
-  },
-  purpleair(): ExpressionSpecification {
-    return ["all", ["==", ["get", "type"], "purpleair"], ["==", ["get", "is_sjvair"], false]]
-  },
-  sjvPurpleair(): ExpressionSpecification {
-    return ["all", ["==", ["get", "type"], "purpleair"], ["==", ["get", "is_sjvair"], true]]
-  },
-};
+//const filters = {
+//  monitor(deviceType: MonitorType): ExpressionSpecification {
+//    return ["==", ["get", "type"], deviceType]
+//  },
+//  purpleair(): ExpressionSpecification {
+//    return ["all", ["==", ["get", "type"], "purpleair"], ["==", ["get", "is_sjvair"], false]]
+//  },
+//  sjvPurpleair(): ExpressionSpecification {
+//    return ["all", ["==", ["get", "type"], "purpleair"], ["==", ["get", "is_sjvair"], true]]
+//  },
+//};
 
 function isVisible<T extends MonitorData>(monitor: T): boolean {
   // showSJVAirPurpleAir
@@ -83,7 +83,7 @@ function isVisible<T extends MonitorData>(monitor: T): boolean {
   // showPurpleAirInside
   // showAirNow
 
-  const { displayToggles } = new MonitorsController();
+  const { displayToggles } = new MonitorsMapIntegration();
 
   if (!monitor.is_active && !displayToggles.inactive) {
     return false;
@@ -140,8 +140,6 @@ function monitorTooltip(evt: MapLayerEventType["mousemove"] & Object): Popup | v
 
 };
 
-const tooltipManager = new TooltipManager();
-
 @Singleton
 export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
   referenceId: string = "monitors";
@@ -154,14 +152,14 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
   tooltipManager = new TooltipManager();
 
-  @Reactive()
-  accessor enableClusters: boolean = true;
+  //@Reactive()
+  //accessor enableClusters: boolean = true;
 
-  @Reactive()
-  accessor clusterMode: "circles" | "monitorType" | "shapes" = "monitorType";
+  //@Reactive()
+  //accessor clusterMode: "circles" | "monitorType" | "shapes" = "monitorType";
 
-  @Reactive()
-  accessor shapeStyle: string = "billiards";
+  //@Reactive()
+  //accessor shapeStyle: string = "billiards";
 
   @Derived(() => {
     const mc = new MonitorsController();
@@ -202,24 +200,24 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
   })
   accessor diff!: any;
 
-  @Derived((): FilterSpecification => {
-    const mc = new MonitorsController();
-    $state.snapshot(mc.displayToggles);
-    const monitorFilters: ExpressionSpecification = ["any"];
-    const locationFilters: ExpressionSpecification = ["any", ["==", ["get", "location"], "outside"]];
-    const statusFilters: ExpressionSpecification = ["any", ["==", ["get", "is_active"], true]];
+  //@Derived((): FilterSpecification => {
+  //  const mc = new MonitorsController();
+  //  $state.snapshot(mc.displayToggles);
+  //  const monitorFilters: ExpressionSpecification = ["any"];
+  //  const locationFilters: ExpressionSpecification = ["any", ["==", ["get", "location"], "outside"]];
+  //  const statusFilters: ExpressionSpecification = ["any", ["==", ["get", "is_active"], true]];
 
-    if (mc.displayToggles.purpleair) monitorFilters.push(filters.purpleair());
-    if (mc.displayToggles.aqview) monitorFilters.push(filters.monitor("aqview"));
-    if (mc.displayToggles.bam1022) monitorFilters.push(filters.monitor("bam1022"));
-    if (mc.displayToggles.airnow) monitorFilters.push(filters.monitor("airnow"));
-    if (mc.displayToggles.sjvair) monitorFilters.push(filters.sjvPurpleair(), filters.monitor("airgradient"));
-    if (mc.displayToggles.inside) locationFilters.push(["==", ["get", "location"], "inside"]);
-    if (mc.displayToggles.inactive) statusFilters.push(["==", ["get", "is_active"], false]);
+  //  if (mc.displayToggles.purpleair) monitorFilters.push(filters.purpleair());
+  //  if (mc.displayToggles.aqview) monitorFilters.push(filters.monitor("aqview"));
+  //  if (mc.displayToggles.bam1022) monitorFilters.push(filters.monitor("bam1022"));
+  //  if (mc.displayToggles.airnow) monitorFilters.push(filters.monitor("airnow"));
+  //  if (mc.displayToggles.sjvair) monitorFilters.push(filters.sjvPurpleair(), filters.monitor("airgradient"));
+  //  if (mc.displayToggles.inside) locationFilters.push(["==", ["get", "location"], "inside"]);
+  //  if (mc.displayToggles.inactive) statusFilters.push(["==", ["get", "is_active"], false]);
 
-    return ["all", monitorFilters, locationFilters, statusFilters];
-  })
-  accessor filters!: FilterSpecification;
+  //  return ["all", monitorFilters, locationFilters, statusFilters];
+  //})
+  //accessor filters!: FilterSpecification;
 
   @Derived(() => {
     const mc = new MonitorsController();
@@ -279,7 +277,6 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
       id: this.referenceId,
       type: "symbol",
       source: this.referenceId,
-      filter: this.filters,
       layout: {
         "symbol-sort-key": ["get", "order"],
         "icon-allow-overlap": true,
@@ -306,25 +303,25 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
   constructor() {
     super();
-    $effect(() => {
-      if (!MonitorsMapIntegration.mapCtrl.map) return;
+    //$effect(() => {
+    //  if (!MonitorsMapIntegration.mapCtrl.map) return;
 
-      if (this.enableClusters) {
-        for (const [sourceId, features] of this.featuresByType.entries()) {
-          MonitorsMapIntegration.mapCtrl.setDataSource(sourceId, features);
-          //const source = MonitorsMapIntegration.mapCtrl.map.getSource(sourceId);
-          //if (isGeoJSONSource(source)) {
-          //  source.setData({
-          //    type: "FeatureCollection",
-          //    features: this.featuresByType.get(sourceId.replace(`${this.referenceId}-`, "")) || []
-          //  });
-          //}
-        }
+    //  if (this.enableClusters) {
+    //    for (const [sourceId, features] of this.featuresByType.entries()) {
+    //      MonitorsMapIntegration.mapCtrl.setDataSource(sourceId, features);
+    //      //const source = MonitorsMapIntegration.mapCtrl.map.getSource(sourceId);
+    //      //if (isGeoJSONSource(source)) {
+    //      //  source.setData({
+    //      //    type: "FeatureCollection",
+    //      //    features: this.featuresByType.get(sourceId.replace(`${this.referenceId}-`, "")) || []
+    //      //  });
+    //      //}
+    //    }
 
-      } else {
-        MonitorsMapIntegration.mapCtrl.setDataSource(this.referenceId, this.features);
-      }
-    });
+    //  } else {
+    //    MonitorsMapIntegration.mapCtrl.setDataSource(this.referenceId, this.features);
+    //  }
+    //});
   }
 
   // Override applyTo to create one clustered source per type and add cluster layers.
@@ -466,7 +463,8 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
       // unclustered points for this type
       // apply the global filters and ensure we only show non-clustered points
-      const unclusteredFilter: any = ["all", this.filters || ["all"], ["!", ["has", "point_count"]]];
+      //const unclusteredFilter: any = ["all", this.filters || ["all"], ["!", ["has", "point_count"]]];
+      const unclusteredFilter: any = ["all", ["!", ["has", "point_count"]]];
 
       MonitorsMapIntegration.mapCtrl.map.addLayer({
         id: `${sourceId}-unclustered`,
@@ -482,29 +480,6 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         },
         paint: {}
       }, this.beforeLayer);
-    }
-
-    // set visibility according to enabled flag (for the first source/layer group)
-    // we toggle visibility on each cluster layer created above
-    for (const [type] of this.featuresByType.entries()) {
-      const clusterIconLayerId = `${this.referenceId}-${type}-cluster-icon`;
-      const unclusteredLayerId = `${this.referenceId}-${type}-unclustered`;
-      const countLayerId = `${this.referenceId}-${type}-cluster-count`;
-      try {
-        const isVisible = MonitorsMapIntegration.mapCtrl.map.getLayoutProperty(clusterIconLayerId, "visibility");
-        const desired = this.enabled ? "visible" : "none";
-        if (!isVisible || isVisible !== desired) {
-          MonitorsMapIntegration.mapCtrl.map.setLayoutProperty(clusterIconLayerId, "visibility", desired);
-        }
-        if (!isVisible || MonitorsMapIntegration.mapCtrl.map.getLayer(unclusteredLayerId)) {
-          MonitorsMapIntegration.mapCtrl.map.setLayoutProperty(unclusteredLayerId, "visibility", desired);
-        }
-        if (!isVisible || MonitorsMapIntegration.mapCtrl.map.getLayer(countLayerId)) {
-          MonitorsMapIntegration.mapCtrl.map.setLayoutProperty(countLayerId, "visibility", desired);
-        }
-      } catch {
-        // ignore missing layers
-      }
     }
   }
 

@@ -7,7 +7,6 @@ export abstract class MapGeoJSONIntegration<T extends Record<string, any>> exten
   abstract icons: MapIconManager;
   abstract features: Array<Feature<Geometry, T>>;
   abstract mapSource: Parameters<MaptilerMap["addSource"]>[1];
-  abstract filters?: FilterSpecification;
 
   apply() {
     if (!MapGeoJSONIntegration.mapCtrl.map) return;

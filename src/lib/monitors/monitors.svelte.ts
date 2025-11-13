@@ -43,17 +43,6 @@ export class MonitorsController {
   @Reactive()
   accessor pollutant!: "pm25" | "o3";
 
-  @Reactive()
-  accessor displayToggles: MonitorDisplayToggles = {
-    purpleair: true,
-    sjvair: true,
-    aqview: true,
-    bam1022: true,
-    airnow: true,
-    inactive: false,
-    inside: false
-  };
-
   @Derived(() => {
     const mc = new MonitorsController();
     return mc.meta?.entryType(mc.pollutant ?? mc.meta.default_pollutant).asIter.levels;

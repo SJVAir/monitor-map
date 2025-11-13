@@ -1,13 +1,15 @@
 <script lang="ts">
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 	import { MonitorsController } from "$lib/monitors/monitors.svelte";
+	import { MonitorDisplayOptions } from "./monitors-display-options.svelte";
 	import { MonitorsMapIntegration } from "./monitors-map-integration.svelte";
 
-	const mc = new MonitorsController();
+	//const mc = new MonitorsController();
 	const mi = new MonitorsMapIntegration();
+	const display = new MonitorDisplayOptions();
 </script>
 
-{#if mc.meta}
+{#if display.options}
 	<DisplayOption>
 		<p class="text-lg font-bold underline">Air Monitors</p>
 		<label for="clusters" class="my-1 cursor-pointer font-bold whitespace-nowrap select-none">
@@ -55,15 +57,10 @@
 			{/if}
 		</label>
 
-		{#each Object.keys(mc.displayToggles) as label}
-			<label for={label} class="cursor-pointer whitespace-nowrap select-none">
-				<input
-					type="checkbox"
-					id={label}
-					name={label}
-					bind:checked={mc.displayToggles[label as keyof typeof mc.displayToggles]}
-				/>
-				{mc.displayOptions[label as keyof typeof mc.displayToggles]}
+		{#each Object.values(display.options) as option}
+			<label for={option.label} class="cursor-pointer whitespace-nowrap select-none">
+				<input type="checkbox" id={option.label} name={option.label} bind:checked={option.value} />
+				{option.label}
 			</label>
 		{/each}
 	</DisplayOption>

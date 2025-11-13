@@ -60,7 +60,7 @@ export class TooltipManager {
   }
 }
 
-export class TooltipHandle {
+class TooltipHandle {
   layerId: string;
 
   private clearTooltip: () => void;
