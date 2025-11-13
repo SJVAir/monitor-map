@@ -9,7 +9,7 @@ export type TooltipPopup = <T extends TooltipController>(mapCtrl: T) => (evt: Ma
 export type SomeMapIntegration = MapIntegration | MapGeoJSONIntegration<any>;
 
 interface TooltipController {
-  tooltipPopup: Popup | null;
+  tooltip: Popup | null;
   map?: MaptilerMap;
 }
 

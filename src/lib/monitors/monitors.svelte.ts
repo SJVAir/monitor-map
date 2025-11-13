@@ -18,6 +18,17 @@ interface MonitorDisplayToggles extends Record<Exclude<MonitorType, "airgradient
   inside: boolean;
 }
 
+async function getMonitorsLatestMap(
+  pollutant: "pm25" | "o3"
+): Promise<Map<string, MonitorLatestType<"pm25" | "o3">>> {
+  const monitors = await getMonitorsLatest(pollutant);
+  const latest = new Map<string, MonitorLatestType<"pm25" | "o3">>();
+  for (const monitor of monitors) {
+    latest.set(monitor.id, monitor);
+  }
+  return latest;
+}
+
 @Singleton
 export class MonitorsController {
   @Reactive(true)
@@ -27,7 +38,7 @@ export class MonitorsController {
   accessor list!: Array<MonitorData>;
 
   @Reactive(true)
-  accessor latest!: Array<MonitorLatestType<"pm25" | "o3">>;
+  accessor latest!: Map<string, MonitorLatestType<"pm25" | "o3">>;
 
   @Reactive()
   accessor pollutant!: "pm25" | "o3";
@@ -70,14 +81,14 @@ export class MonitorsController {
       getMonitors(),
     ])
     this.pollutant = this.meta.default_pollutant;
-    this.latest = await getMonitorsLatest(this.pollutant);
+    this.latest = await getMonitorsLatestMap(this.pollutant);
     this.autoUpdate.start();
   }
 
   async update(): Promise<void> {
     [this.list, this.latest] = await Promise.all([
       getMonitors(),
-      getMonitorsLatest(this.pollutant)
+      getMonitorsLatestMap(this.pollutant)
     ])
 
   }

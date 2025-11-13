@@ -13,13 +13,13 @@
 	import { IntegrationsManager } from "$lib/map/integrations/integrations-manager";
 
 	const monitors = new MonitorsController();
-	const integrationsManager = new IntegrationsManager();
+	//const integrationsManager = new IntegrationsManager();
 
-	integrationsManager.register(
-		new BaseLayerSeperator(),
-		new WindMapIntegration(),
-		new MonitorsMapIntegration()
-	);
+	//integrationsManager.register(
+	//	new BaseLayerSeperator(),
+	//	new WindMapIntegration(),
+	//	new MonitorsMapIntegration()
+	//);
 	//const integrations: Array<SomeMapIntegration> = [
 	//	new BaseLayerSeperator(),
 	//	new WindMapIntegration(),
