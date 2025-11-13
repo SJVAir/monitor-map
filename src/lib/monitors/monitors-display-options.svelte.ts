@@ -1,15 +1,19 @@
-import { Derived, Reactive } from "$lib/reactivity.svelte.ts";
+import { Reactive } from "$lib/reactivity.svelte.ts";
 import type { MonitorType } from "@sjvair/sdk";
-import { MonitorsController } from "./monitors.svelte.ts";
 import { Singleton } from "@tstk/decorators";
 
-type MonitorDisplayOptionsType = Record<Exclude<MonitorType, "airgradient"> | "inactive" | "inside", {
+type MonitorDisplayOptionsType = Record<Exclude<MonitorType, "airgradient"> | "sjvair" | "inactive" | "inside", {
+  label: string;
+  value: boolean;
+}>;
+
+type OtherMonitorDisplayOptionsType = Array<{
   label: string;
   value: boolean;
 }>;
 
 @Singleton
-export class MonitorDisplayOptions {
+export class MonitorsDisplayOptions {
   @Reactive()
   accessor enableClusters: boolean = true;
 
@@ -19,38 +23,67 @@ export class MonitorDisplayOptions {
   @Reactive()
   accessor shapeStyle: string = "billiards";
 
-  @Derived(() => {
-    const mc = new MonitorsController();
-    return {
-      purpleair: {
-        label: mc.meta.monitors["purpleair"].label,
-        value: true
-      },
-      sjvair: {
-        label: "SJVAir non-FEM",
-        value: true
-      },
-      aqview: {
-        label: mc.meta.monitors["aqview"].label,
-        value: true
-      },
-      bam1022: {
-        label: "SJVAir FEM",
-        value: true
-      },
-      airnow: {
-        label: mc.meta.monitors["airnow"].label,
-        value: true
-      },
-      inactive: {
-        label: "Inactive",
-        value: false
-      },
-      inside: {
-        label: "Inside",
-        value: false
-      }
+  @Reactive()
+  accessor options: MonitorDisplayOptionsType = {
+    purpleair: {
+      label: "PurpleAir",
+      value: true
+    },
+    sjvair: {
+      label: "SJVAir non-FEM",
+      value: true
+    },
+    aqview: {
+      label: "AQview",
+      value: true
+    },
+    bam1022: {
+      label: "SJVAir FEM",
+      value: true
+    },
+    airnow: {
+      label: "AirNow",
+      value: true
+    },
+    inactive: {
+      label: "Inactive",
+      value: false
+    },
+    inside: {
+      label: "Inside",
+      value: false
     }
-  })
-  accessor options!: MonitorDisplayOptionsType;
+  };
+
+  @Reactive()
+  accessor otherOptions: OtherMonitorDisplayOptionsType = [
+    {
+      label: "PurpleAir",
+      value: true
+    },
+    {
+      label: "SJVAir non-FEM",
+      value: true
+    },
+    {
+      label: "AQview",
+      value: true
+    },
+    {
+      label: "SJVAir FEM",
+      value: true
+    },
+    {
+      label: "AirNow",
+      value: true
+    },
+    {
+      label: "Inactive",
+      value: false
+    },
+    {
+      label: "Inside",
+      value: false
+    }
+  ];
 }

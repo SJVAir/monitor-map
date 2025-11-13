@@ -23,6 +23,9 @@ export class TooltipManager {
   enable() {
     if (!TooltipManager.mapCtrl.map || this.isEnabled) return;
     TooltipManager.mapCtrl.map.on("zoom", handleZoom);
+    for (const tooltip of this.tooltips) {
+      tooltip.enable();
+    }
     this.isEnabled = true;
   }
 
