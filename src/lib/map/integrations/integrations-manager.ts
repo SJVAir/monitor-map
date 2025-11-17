@@ -14,7 +14,11 @@ export class IntegrationsManager {
 
   refresh(): void {
     for (const integration of this.integrations.values()) {
-      integration.apply();
+      if (integration.enabled) {
+        integration.apply();
+      } else if (integration.remove) {
+        integration.remove();
+      }
     }
   }
 }

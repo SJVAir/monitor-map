@@ -19,6 +19,11 @@
 		new WindMapIntegration(),
 		new MonitorsMapIntegration()
 	);
+	$effect(() => {
+		if (mapCtrl.map) {
+			integrationsManager.refresh();
+		}
+	});
 </script>
 
 <div {@attach mapCtrl.init} style="width: 100%; height: 100%;"></div>

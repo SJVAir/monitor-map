@@ -106,6 +106,7 @@ function monitorTooltip(evt: MapLayerEventType["mousemove"] & Object): Popup | v
 
 @Singleton
 export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
+
   referenceId: string = "monitors";
 
   enabled: boolean = true;
@@ -118,7 +119,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
     const mc = new MonitorsController();
     const levels = mc.meta.entryType(mc.pollutant).asIter.levels;
 
-    return mc.latest.values()
+    return Array.from(mc.latest.values()
       .map(m => {
         const feature: MonitorMapFeature = {
           type: "Feature",
@@ -148,7 +149,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
         }
 
         return feature;
-      });
+      }));
   })
   accessor diff!: any;
 
@@ -183,6 +184,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
   accessor filters!: FilterSpecification;
 
   @Derived(() => {
+    console.log("updating monitor features")
     const mc = new MonitorsController();
     const levels = mc.meta.entryType(mc.pollutant).asIter.levels;
 

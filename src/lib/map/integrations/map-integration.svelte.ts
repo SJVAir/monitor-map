@@ -7,17 +7,17 @@ export abstract class MapIntegration {
   abstract referenceId: string;
   abstract enabled: boolean;
 
-  constructor() {
-    $effect(() => {
-      if (MapIntegration.mapCtrl.map) {
-        if (this.enabled) {
-          this.apply();
-        } else if (this.remove) {
-          this.remove();
-        }
-      }
-    });
-  }
+  //constructor() {
+  //  $effect(() => {
+  //    if (MapIntegration.mapCtrl.map) {
+  //      if (this.enabled) {
+  //        this.apply();
+  //      } else if (this.remove) {
+  //        this.remove();
+  //      }
+  //    }
+  //  });
+  //}
 
   abstract apply(): void;
 

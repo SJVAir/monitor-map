@@ -11,8 +11,7 @@ export class WindMapIntegration extends MapLayerIntegration {
 
   beforeLayer = new BaseLayerSeperator().referenceId;
 
-  @Reactive()
-  accessor enabled: boolean = false;
+  enabled: boolean = false;
 
   mapLayer: Parameters<MaptilerMap["addLayer"]>[0] = new WindLayer({
     id: this.referenceId,
