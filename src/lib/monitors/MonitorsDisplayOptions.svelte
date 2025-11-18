@@ -5,7 +5,7 @@
 	import { MonitorsMapIntegration } from "./monitors-map-integration.svelte";
 
 	//const mc = new MonitorsController();
-	const mi = new MonitorsMapIntegration();
+	//const mi = new MonitorsMapIntegration();
 	const display = new MonitorsDisplayOptions();
 	//$effect(() => {
 	//	// NOTE: Has to reference option.value

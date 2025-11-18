@@ -1,4 +1,3 @@
-import { Singleton, SingleUse } from "@tstk/decorators";
 import {
   getMonitors,
   getMonitorsLatest,
@@ -6,16 +5,52 @@ import {
   type MonitorData,
   type MonitorLatestType,
   type MonitorsMeta,
-  type MonitorType,
-  type SJVAirEntryLevel,
+  type SJVAirEntryLevel
 } from "@sjvair/sdk";
-import { Derived, Reactive } from "$lib/reactivity.svelte.ts";
+import { XMap } from "@tstk/builtin-extensions";
 import { Interval } from "@tstk/utils";
 
-interface MonitorDisplayToggles extends Record<Exclude<MonitorType, "airgradient">, boolean> {
-  sjvair: boolean;
-  inactive: boolean;
-  inside: boolean;
+//export class MonitorsController { }
+interface MonitorsState {
+  autoUpdate: Interval;
+  initialized: boolean;
+  latest: Map<string, MonitorLatestType<"pm25" | "o3">>;
+  list: Array<MonitorData> | null;
+  meta: MonitorsMeta | null;
+  pollutant: "pm25" | "o3" | null;
+}
+
+export const state: MonitorsState = $state({
+  autoUpdate: new Interval(async () => await update(), 2 * 60 * 1000),
+  initialized: false,
+  latest: new XMap(),
+  list: null,
+  meta: null,
+  pollutant: null
+})
+
+export const levels: Array<SJVAirEntryLevel> | null = $derived.by(() => {
+  return state.meta?.entryType(state.pollutant ?? state.meta.default_pollutant).asIter.levels || null;
+});
+
+export async function init(): Promise<void> {
+  if (state.initialized) return;
+
+  [state.meta, state.list] = await Promise.all([getMonitorsMeta(), getMonitors()]);
+
+  state.pollutant = state.meta.default_pollutant;
+  state.latest = await getMonitorsLatestMap(state.pollutant);
+  state.autoUpdate.start();
+  state.initialized = true;
+}
+
+export async function update(): Promise<void> {
+  if (!state.initialized) return;
+
+  [state.list, state.latest] = await Promise.all([
+    getMonitors(),
+    getMonitorsLatestMap(state.pollutant || state.meta?.default_pollutant || "pm25")
+  ]);
 }
 
 async function getMonitorsLatestMap(
@@ -23,63 +58,11 @@ async function getMonitorsLatestMap(
 ): Promise<Map<string, MonitorLatestType<"pm25" | "o3">>> {
   const monitors = await getMonitorsLatest(pollutant);
   const latest = new Map<string, MonitorLatestType<"pm25" | "o3">>();
+
   for (const monitor of monitors) {
     latest.set(monitor.id, monitor);
   }
+
   return latest;
-}
-
-@Singleton
-export class MonitorsController {
-  @Reactive(true)
-  accessor meta!: MonitorsMeta;
-
-  @Reactive(true)
-  accessor list!: Array<MonitorData>;
-
-  @Reactive(true)
-  accessor latest!: Map<string, MonitorLatestType<"pm25" | "o3">>;
-
-  @Reactive()
-  accessor pollutant!: "pm25" | "o3";
-
-  @Derived(() => {
-    const mc = new MonitorsController();
-    return mc.meta?.entryType(mc.pollutant ?? mc.meta.default_pollutant).asIter.levels;
-  })
-  accessor levels!: Array<SJVAirEntryLevel> | null;
-
-  autoUpdate = new Interval(async () => await this.update(), 2 * 60 * 1000)
-
-  get displayOptions(): Record<keyof MonitorDisplayToggles, any> {
-    return {
-      purpleair: this.meta.monitors["purpleair"].label,
-      airnow: this.meta.monitors["airnow"].label,
-      aqview: this.meta.monitors["aqview"].label,
-      bam1022: "SJVAir FEM",
-      sjvair: "SJVAir non-FEM",
-      inactive: "Inactive",
-      inside: "Inside"
-    };
-  }
-
-  @SingleUse
-  async init(): Promise<void> {
-    [this.meta, this.list] = await Promise.all([
-      getMonitorsMeta(),
-      getMonitors(),
-    ])
-    this.pollutant = this.meta.default_pollutant;
-    this.latest = await getMonitorsLatestMap(this.pollutant);
-    this.autoUpdate.start();
-  }
-
-  async update(): Promise<void> {
-    [this.list, this.latest] = await Promise.all([
-      getMonitors(),
-      getMonitorsLatestMap(this.pollutant)
-    ])
-
-  }
 }
 

@@ -1,30 +1,45 @@
-import { Reactive } from "$lib/reactivity.svelte.ts";
 import type { MonitorType } from "@sjvair/sdk";
-import { Singleton } from "@tstk/decorators";
 
-type MonitorDisplayOptionsType = Record<Exclude<MonitorType, "airgradient"> | "sjvair" | "inactive" | "inside", {
-  label: string;
-  value: boolean;
-}>;
+interface MonitorDisplayToggles extends Record<Exclude<MonitorType, "airgradient">, boolean> {
+  sjvair: boolean;
+  inactive: boolean;
+  inside: boolean;
+}
+
+type MonitorDisplayOptionsType = Record<
+  Exclude<MonitorType, "airgradient"> | "sjvair" | "inactive" | "inside",
+  {
+    label: string;
+    value: boolean;
+  }
+>;
 
 type OtherMonitorDisplayOptionsType = Array<{
   label: string;
   value: boolean;
 }>;
 
-@Singleton
 export class MonitorsDisplayOptions {
-  @Reactive()
-  accessor enableClusters: boolean = true;
+  static instance: MonitorsDisplayOptions;
 
-  @Reactive()
-  accessor clusterMode: "circles" | "monitorType" | "shapes" = "monitorType";
+  enableClusters: boolean = $state(true);
 
-  @Reactive()
-  accessor shapeStyle: string = "billiards";
+  clusterMode: "circles" | "monitorType" | "shapes" = $state("monitorType");
 
-  @Reactive()
-  accessor options: MonitorDisplayOptionsType = {
+  shapeStyle: string = $state("billiards");
+
+  //displayOptions: Record<keyof MonitorDisplayToggles, any> = $derived({
+  //  purpleair: this.meta?.monitors["purpleair"].label,
+  //  airnow: this.meta?.monitors["airnow"].label,
+  //  aqview: this.meta?.monitors["aqview"].label,
+  //  bam1022: "SJVAir FEM",
+  //  sjvair: "SJVAir non-FEM",
+  //  inactive: "Inactive",
+  //  inside: "Inside"
+  //})
+
+
+  options: MonitorDisplayOptionsType = $state({
     purpleair: {
       label: "PurpleAir",
       value: true
@@ -53,10 +68,9 @@ export class MonitorsDisplayOptions {
       label: "Inside",
       value: false
     }
-  };
+  });
 
-  @Reactive()
-  accessor otherOptions: OtherMonitorDisplayOptionsType = [
+  otherOptions: OtherMonitorDisplayOptionsType = $state([
     {
       label: "PurpleAir",
       value: true
@@ -85,5 +99,12 @@ export class MonitorsDisplayOptions {
       label: "Inside",
       value: false
     }
-  ];
+  ]);
+
+  constructor() {
+    if (MonitorsDisplayOptions.instance) {
+      return MonitorsDisplayOptions.instance;
+    }
+    MonitorsDisplayOptions.instance = this;
+  }
 }
