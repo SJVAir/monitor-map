@@ -1,10 +1,7 @@
-import type { Map as MaptilerMap } from "@maptiler/sdk";
-import { MapController } from "../map.svelte.ts";
 import { XMap } from "@tstk/builtin-extensions";
 
 export abstract class MapIntegration {
   static instances: XMap<Function, MapIntegration> = new XMap();
-  static mapCtrl: MapController = new MapController();
 
   abstract referenceId: string;
   abstract enabled: boolean;

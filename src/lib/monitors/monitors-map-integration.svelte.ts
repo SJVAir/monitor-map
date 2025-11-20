@@ -8,14 +8,13 @@ import {
 import type { MonitorData, MonitorType } from "@sjvair/sdk";
 import { cast } from "@tstk/utils";
 import type { Feature, Geometry } from "geojson";
+import { state as mapState } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
-import { MonitorsController } from "./monitors.svelte.ts";
+import { state } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
-import { MonitorsDisplayOptions } from "./monitors-display-options.svelte.ts";
 
 export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
-
 
 export interface MonitorMarkerProperties {
   icon: string;
@@ -29,23 +28,85 @@ export interface MonitorMarkerProperties {
   value: string;
 }
 
-export function getIconShape(monitorType: string): string {
-  switch (monitorType) {
-    case "airgradient":
-      return "circle";
+const REFERENCE_ID: string = "monitors";
+const icons: MonitorsIconManager = new MonitorsIconManager();
+const tooltipManager: TooltipManager = new TooltipManager();
 
-    case "airnow":
-    case "aqview":
-    case "bam1022":
-      return "triangle";
+export const features: Array<MonitorMapFeature> = $derived.by(() => {
+  console.log("updating monitor features");
 
-    case "purpleair":
-      return "square";
-
-    default:
-      throw new Error(`Icon shape for ${monitorType} has not been set`);
+  if (!state.meta || !state.latest || !state.pollutant) {
+    return [];
   }
-}
+  const levels = state.meta.entryType(state.pollutant).asIter.levels;
+
+  return Array.from(
+    state.latest.values().map((m) => {
+      const feature: MonitorMapFeature = {
+        type: "Feature",
+        properties: {
+          icon: "outside-default-square",
+          id: m.id,
+          is_active: m.is_active,
+          is_sjvair: m.is_sjvair,
+          location: m.location,
+          name: m.name,
+          order: getOrder(m),
+          type: m.type,
+          value: m.latest.value
+        },
+        geometry: m.position! as Geometry
+      };
+
+      if (levels) {
+        const level = levels.find((lvl) => {
+          const value = parseInt(m.latest.value, 10);
+          return value >= lvl.range[0] && value <= lvl.range[1];
+        });
+
+        if (level) {
+          feature.properties.icon = getIconId(m, level);
+        }
+      }
+
+      return feature;
+    })
+  );
+});
+
+export const mapLayer: Parameters<MaptilerMap["addLayer"]>[0] = {
+  id: REFERENCE_ID,
+  type: "symbol",
+  source: REFERENCE_ID,
+  //filter: this.filters,
+  layout: {
+    "symbol-sort-key": ["get", "order"],
+    "icon-allow-overlap": true,
+    "icon-ignore-placement": true,
+    "icon-image": ["get", "icon"],
+    "icon-size": 1
+  },
+  paint: {}
+};
+
+
+//function getIconShape(monitorType: string): string {
+//  switch (monitorType) {
+//    case "airgradient":
+//      return "circle";
+//
+//    case "airnow":
+//    case "aqview":
+//    case "bam1022":
+//      return "triangle";
+//
+//    case "purpleair":
+//      return "square";
+//
+//    default:
+//      throw new Error(`Icon shape for ${monitorType} has not been set`);
+//  }
+//}
 
 function getOrder(monitor: MonitorData): number {
   switch (monitor.type) {
@@ -102,13 +163,6 @@ function monitorTooltip(evt: MapLayerEventType["mousemove"] & Object): Popup | v
 }
 
 export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
-  referenceId: string = "monitors";
-
-  enabled: boolean = true;
-
-  icons: MonitorsIconManager = new MonitorsIconManager();
-
-  tooltipManager = new TooltipManager();
 
   filters: FilterSpecification = ["all"] as FilterSpecification;
   //filters: FilterSpecification = $derived.by((): FilterSpecification => {
@@ -144,66 +198,6 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
   //  return ["all", monitorFilters, locationFilters, statusFilters];
   //});
 
-  features: Array<MonitorMapFeature> = $derived.by(() => {
-    console.log("updating monitor features");
-    const mc = new MonitorsController();
-
-    if (!mc.meta || !mc.latest || mc.pollutant) {
-      return [];
-    }
-    const levels = mc.meta.entryType(mc.pollutant).asIter.levels;
-
-    return Array.from(
-      mc.latest.values().map((m) => {
-        const feature: MonitorMapFeature = {
-          type: "Feature",
-          properties: {
-            icon: "outside-default-square",
-            id: m.id,
-            is_active: m.is_active,
-            is_sjvair: m.is_sjvair,
-            location: m.location,
-            name: m.name,
-            order: getOrder(m),
-            type: m.type,
-            value: m.latest.value
-          },
-          geometry: m.position! as Geometry
-        };
-
-        if (levels) {
-          const level = levels.find((lvl) => {
-            const value = parseInt(m.latest.value, 10);
-            return value >= lvl.range[0] && value <= lvl.range[1];
-          });
-
-          if (level) {
-            feature.properties.icon = getIconId(m, level);
-          }
-        }
-
-        return feature;
-      })
-    );
-  });
-
-  get mapLayer(): Parameters<MaptilerMap["addLayer"]>[0] {
-    return {
-      id: this.referenceId,
-      type: "symbol",
-      source: this.referenceId,
-      filter: this.filters,
-      layout: {
-        "symbol-sort-key": ["get", "order"],
-        "icon-allow-overlap": true,
-        "icon-ignore-placement": true,
-        "icon-image": ["get", "icon"],
-        "icon-size": 1
-      },
-      paint: {}
-    };
-  }
-
   get mapSource(): Parameters<MaptilerMap["addSource"]>[1] {
     return {
       type: "geojson",
@@ -217,7 +211,7 @@ export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerP
 
   // Override applyTo to create one clustered source per type and add cluster layers.
   apply() {
-    if (!MonitorsMapIntegration.mapCtrl.map) return;
+    if (!mapState.map) return;
 
     if (!this.tooltipManager.has(this.referenceId)) {
       this.tooltipManager.register(this.referenceId, monitorTooltip);

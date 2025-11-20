@@ -26,7 +26,37 @@ export const state: MonitorsState = $state({
   latest: new XMap(),
   list: null,
   meta: null,
-  pollutant: null
+  pollutant: null,
+  displayOptions: {
+    purpleair: {
+      label: "PurpleAir",
+      value: true
+    },
+    sjvair: {
+      label: "SJVAir non-FEM",
+      value: true
+    },
+    aqview: {
+      label: "AQview",
+      value: true
+    },
+    bam1022: {
+      label: "SJVAir FEM",
+      value: true
+    },
+    airnow: {
+      label: "AirNow",
+      value: true
+    },
+    inactive: {
+      label: "Inactive",
+      value: false
+    },
+    inside: {
+      label: "Inside",
+      value: false
+    }
+  }
 })
 
 export const levels: Array<SJVAirEntryLevel> | null = $derived.by(() => {

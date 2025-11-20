@@ -1,4 +1,4 @@
-import type { FilterSpecification, Map as MaptilerMap } from "@maptiler/sdk";
+import type { Map as MaptilerMap } from "@maptiler/sdk";
 import type { Feature, Geometry } from "geojson";
 import type { MapIconManager } from "./map-icon-manager.ts";
 import { MapLayerIntegration } from "./map-layer-integration.svelte.ts";
@@ -11,7 +11,7 @@ export abstract class MapGeoJSONIntegration<T extends Record<string, any>> exten
   apply() {
     if (!MapGeoJSONIntegration.mapCtrl.map) return;
 
-    this.icons.loadIcons(MapGeoJSONIntegration.mapCtrl.map)
+    this.icons.loadIcons()
       .then(() => {
         this.remove();
         MapGeoJSONIntegration.mapCtrl.map?.addSource(this.referenceId, this.mapSource);

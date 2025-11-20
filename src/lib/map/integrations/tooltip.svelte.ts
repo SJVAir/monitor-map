@@ -1,5 +1,5 @@
 import type { MapLayerEventType, Popup } from "@maptiler/sdk";
-import { MapController } from "../map.svelte";
+import { state as mapState } from "../map.svelte";
 import { XMap } from "@tstk/builtin-extensions";
 
 export type TooltipBuilder = (evt: MapLayerEventType["mousemove"] & Object) => Popup | void;
@@ -10,7 +10,6 @@ function handleZoom() {
 }
 
 export class TooltipManager {
-  static mapCtrl: MapController = new MapController();
   static tooltip: Popup | null = null;
 
   private isEnabled: boolean = false;
@@ -21,8 +20,8 @@ export class TooltipManager {
   }
 
   enable() {
-    if (!TooltipManager.mapCtrl.map || this.isEnabled) return;
-    TooltipManager.mapCtrl.map.on("zoom", handleZoom);
+    if (!mapState.map || this.isEnabled) return;
+    mapState.map.on("zoom", handleZoom);
     for (const tooltip of this.tooltips) {
       tooltip.enable();
     }
@@ -30,8 +29,8 @@ export class TooltipManager {
   }
 
   disable() {
-    if (!TooltipManager.mapCtrl.map || !this.isEnabled) return;
-    TooltipManager.mapCtrl.map.off("zoom", handleZoom);
+    if (!mapState.map || !this.isEnabled) return;
+    mapState.map.off("zoom", handleZoom);
     for (const tooltip of this.tooltips) {
       tooltip.disable();
     }
@@ -70,11 +69,10 @@ class TooltipHandle {
   private isEnabled: boolean = false;
   private setTooltip: (evt: MapLayerEventType["mousemove"] & Object) => void;
 
-
   constructor(layerId: string, builder: TooltipBuilder) {
     this.layerId = layerId;
     this.setTooltip = (evt: MapLayerEventType["mousemove"] & Object) => {
-      if (!TooltipManager.mapCtrl.map || !evt.features) return;
+      if (!mapState.map || !evt.features) return;
 
       TooltipManager.tooltip?.remove();
 
@@ -82,7 +80,7 @@ class TooltipHandle {
 
       if (tooltip) {
         TooltipManager.tooltip = tooltip;
-        TooltipManager.tooltip.addTo(TooltipManager.mapCtrl.map);
+        TooltipManager.tooltip.addTo(mapState.map);
       }
     };
 
@@ -95,37 +93,36 @@ class TooltipHandle {
   }
 
   enable() {
-    if (!TooltipManager.mapCtrl.map || this.isEnabled) return;
+    if (!mapState.map || this.isEnabled) return;
 
-    TooltipManager.mapCtrl.map.on("mousemove", this.layerId, this.setCursorPointer);
-    TooltipManager.mapCtrl.map.on("mouseleave", this.layerId, this.setCursorDefault);
+    mapState.map.on("mousemove", this.layerId, this.setCursorPointer);
+    mapState.map.on("mouseleave", this.layerId, this.setCursorDefault);
 
-    TooltipManager.mapCtrl.map.on("mousemove", this.layerId, this.setTooltip);
-    TooltipManager.mapCtrl.map.on("mouseleave", this.layerId, this.clearTooltip);
+    mapState.map.on("mousemove", this.layerId, this.setTooltip);
+    mapState.map.on("mouseleave", this.layerId, this.clearTooltip);
 
     this.isEnabled = true;
   }
 
   disable() {
-    if (!TooltipManager.mapCtrl.map || !this.isEnabled) return;
+    if (!mapState.map || !this.isEnabled) return;
 
     TooltipManager.tooltip?.remove();
 
-    TooltipManager.mapCtrl.map.off("mousemove", this.layerId, this.setCursorPointer);
-    TooltipManager.mapCtrl.map.off("mouseleave", this.layerId, this.setCursorDefault);
+    mapState.map.off("mousemove", this.layerId, this.setCursorPointer);
+    mapState.map.off("mouseleave", this.layerId, this.setCursorDefault);
 
-    TooltipManager.mapCtrl.map.off("mousemove", this.layerId, this.setTooltip);
-    TooltipManager.mapCtrl.map.off("mouseleave", this.layerId, this.clearTooltip);
+    mapState.map.off("mousemove", this.layerId, this.setTooltip);
+    mapState.map.off("mouseleave", this.layerId, this.clearTooltip);
 
     this.isEnabled = false;
   }
 
   private setCursorPointer() {
-    TooltipManager.mapCtrl.map!.getCanvas().style.cursor = "pointer";
+    mapState.map!.getCanvas().style.cursor = "pointer";
   }
 
   private setCursorDefault() {
-    TooltipManager.mapCtrl.map!.getCanvas().style.cursor = "";
+    mapState.map!.getCanvas().style.cursor = "";
   }
-
 }
