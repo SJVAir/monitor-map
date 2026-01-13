@@ -6,7 +6,10 @@
 	import MonitorsDisplayOptions from "$lib/monitors/MonitorsDisplayOptions.svelte";
 	import WindDisplayOptions from "$lib/wind/WindDisplayOptions.svelte";
 	import MapStyleDisplayOptions from "$lib/map/MapStyleDisplayOptions.svelte";
-	import { init as initMonitors, state as monitorsState } from "$lib/monitors/monitors.svelte";
+	import {
+		init as initMonitors,
+		monitorsState as monitorsState
+	} from "$lib/monitors/monitors.svelte";
 	import { MonitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte.ts";
 	import { WindMapIntegration } from "$lib/wind/wind.svelte";
 	import { BaseLayerSeperator } from "$lib/map/integrations/base-layer-seperator";

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import "@maptiler/sdk/dist/maptiler-sdk.css";
-	import { initializeMap, state as MapState } from "./map.svelte.ts";
+	import { initializeMap, mapState } from "./map.svelte.ts";
 	import { IntegrationsManager } from "$lib/map/integrations/integrations-manager";
 	import type { SomeMapIntegration } from "./integrations/types.ts";
 	//import { IntegrationsManager } from "./integrations/integrations-manager.ts";
@@ -12,7 +12,7 @@
 
 	integrationsManager.register(...integrations);
 	$effect(() => {
-		if (MapState.map) {
+		if (mapState.map) {
 			integrationsManager.refresh();
 		}
 	});

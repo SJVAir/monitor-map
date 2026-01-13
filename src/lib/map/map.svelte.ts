@@ -1,5 +1,5 @@
 import { config as MaptilerConfig, Map as MaptilerMap, MapStyle } from "@maptiler/sdk";
-import { LoadingScreenController } from "$lib/loading/screen/load-screen-controller.svelte.ts";
+import { disable as disableLoadScreen } from "$lib/loading/screen/LoadScreen.svelte";
 import type { Attachment } from "svelte/attachments";
 import { isGeoJSONSource } from "./utils";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
@@ -11,7 +11,7 @@ const excludeLayers = ["Sport", "Tourism", "Culture", "Shopping", "Food", "Trans
 interface MapState {
   map: MaptilerMap | null;
 }
-export const state: MapState = $state({
+export const mapState: MapState = $state({
   map: null
 });
 
@@ -30,17 +30,17 @@ export const initializeMap: Attachment<HTMLDivElement> = (container: string | HT
   map.on("load", async () => {
 
     map.once("idle", () => {
-      new LoadingScreenController().disable();
+      disableLoadScreen();
     });
 
-    state.map = map;
+    mapState.map = map;
   });
 
   return () => map.remove();
 };
 
 export function setDataSource(sourceId: string, features: Array<Feature<Geometry, GeoJsonProperties>>): void {
-  const source = state.map?.getSource(sourceId);
+  const source = mapState.map?.getSource(sourceId);
 
   if (isGeoJSONSource(source)) {
     console.log(`Setting data for source ${sourceId} with ${features.length} features.`);
@@ -52,19 +52,19 @@ export function setDataSource(sourceId: string, features: Array<Feature<Geometry
 }
 
 export function refreshMap(): void {
-  if (state.map) {
+  if (mapState.map) {
     removeExcludedLayers();
   }
 }
 
 export function removeExcludedLayers(): void {
   for (const toExclude of excludeLayers) {
-    if (state.map?.getLayer(toExclude)) {
-      state.map.removeLayer(toExclude);
+    if (mapState.map?.getLayer(toExclude)) {
+      mapState.map.removeLayer(toExclude);
     }
   }
 }
 
 export function removeMap(): void {
-  return state.map?.remove();
+  return mapState.map?.remove();
 }

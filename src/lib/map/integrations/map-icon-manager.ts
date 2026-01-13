@@ -1,6 +1,6 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
 import { XMap } from "@tstk/builtin-extensions";
-import { state as mapState } from "../map.svelte.ts";
+import { mapState } from "../map.svelte.ts";
 import type { MapImageIcon } from "./types";
 
 const allIcons = new XMap<string, MapImageIcon>();

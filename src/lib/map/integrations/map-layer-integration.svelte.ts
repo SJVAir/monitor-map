@@ -1,5 +1,5 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
-import { state as mapState } from "../map.svelte.ts";
+import { mapState } from "../map.svelte.ts";
 import { MapIntegration } from "./map-integration.svelte.ts";
 
 export abstract class MapLayerIntegration extends MapIntegration {

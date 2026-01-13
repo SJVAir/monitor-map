@@ -8,9 +8,9 @@ import {
 import type { MonitorData, MonitorType } from "@sjvair/sdk";
 import { cast } from "@tstk/utils";
 import type { Feature, Geometry } from "geojson";
-import { state as mapState } from "$lib/map/map.svelte.ts";
+import { mapState } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
-import { state } from "./monitors.svelte.ts";
+import { monitorsState } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 
@@ -32,16 +32,16 @@ const REFERENCE_ID: string = "monitors";
 const icons: MonitorsIconManager = new MonitorsIconManager();
 const tooltipManager: TooltipManager = new TooltipManager();
 
-export const features: Array<MonitorMapFeature> = $derived.by(() => {
+const features: Array<MonitorMapFeature> = $derived.by(() => {
   console.log("updating monitor features");
 
-  if (!state.meta || !state.latest || !state.pollutant) {
+  if (!monitorsState.meta || !monitorsState.latest || !monitorsState.pollutant) {
     return [];
   }
-  const levels = state.meta.entryType(state.pollutant).asIter.levels;
+  const levels = monitorsState.meta.entryType(monitorsState.pollutant).asIter.levels;
 
   return Array.from(
-    state.latest.values().map((m) => {
+    monitorsState.latest.values().map((m) => {
       const feature: MonitorMapFeature = {
         type: "Feature",
         properties: {
@@ -73,6 +73,9 @@ export const features: Array<MonitorMapFeature> = $derived.by(() => {
     })
   );
 });
+export function getFeatures(): Array<MonitorMapFeature> {
+  return features;
+}
 
 export const mapLayer: Parameters<MaptilerMap["addLayer"]>[0] = {
   id: REFERENCE_ID,
@@ -162,63 +165,63 @@ function monitorTooltip(evt: MapLayerEventType["mousemove"] & Object): Popup | v
   }
 }
 
-export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
-
-  filters: FilterSpecification = ["all"] as FilterSpecification;
-  //filters: FilterSpecification = $derived.by((): FilterSpecification => {
-  //  console.log("updating filters");
-  //  const display = new MonitorsDisplayOptions();
-  //  const monitorFilters: ExpressionSpecification = ["any"];
-  //  const locationFilters: ExpressionSpecification = [
-  //    "any",
-  //    ["==", ["get", "location"], "outside"]
-  //  ];
-  //  const statusFilters: ExpressionSpecification = ["any", ["==", ["get", "is_active"], true]];
-
-  //  for (const option of Object.values(display.options)) {
-  //    console.log(`${option.label}: ${option.value}`);
-  //  }
-  //  if (display.options.purpleair.value) monitorFilters.push(filters.purpleair());
-  //  if (display.options.aqview.value) monitorFilters.push(filters.monitor("aqview"));
-  //  if (display.options.bam1022.value) monitorFilters.push(filters.monitor("bam1022"));
-  //  if (display.options.airnow.value) monitorFilters.push(filters.monitor("airnow"));
-  //  if (display.options.sjvair.value)
-  //    monitorFilters.push(filters.sjvPurpleair(), filters.monitor("airgradient"));
-  //  if (display.options.inside.value) locationFilters.push(["==", ["get", "location"], "inside"]);
-  //  if (display.options.inactive.value) statusFilters.push(["==", ["get", "is_active"], false]);
-
-  //  //if (display.otherOptions.find(o => o.label === "PurpleAir")?.value) monitorFilters.push(filters.purpleair());
-  //  //if (display.otherOptions.find(o => o.label === "AQview")?.value) monitorFilters.push(filters.monitor("aqview"));
-  //  //if (display.otherOptions.find(o => o.label === "SJVAir FEM")?.value) monitorFilters.push(filters.monitor("bam1022"));
-  //  //if (display.otherOptions.find(o => o.label === "AirNow")?.value) monitorFilters.push(filters.monitor("airnow"));
-  //  //if (display.otherOptions.find(o => o.label === "SJVAir non-FEM")?.value) monitorFilters.push(filters.sjvPurpleair(), filters.monitor("airgradient"));
-  //  //if (display.otherOptions.find(o => o.label === "Inside")?.value) locationFilters.push(["==", ["get", "location"], "inside"]);
-  //  //if (display.otherOptions.find(o => o.label === "Inactive")?.value) statusFilters.push(["==", ["get", "is_active"], false]);
-
-  //  return ["all", monitorFilters, locationFilters, statusFilters];
-  //});
-
-  get mapSource(): Parameters<MaptilerMap["addSource"]>[1] {
-    return {
-      type: "geojson",
-      promoteId: "id",
-      data: {
-        type: "FeatureCollection",
-        features: this.features
-      }
-    };
-  }
-
-  // Override applyTo to create one clustered source per type and add cluster layers.
-  apply() {
-    if (!mapState.map) return;
-
-    if (!this.tooltipManager.has(this.referenceId)) {
-      this.tooltipManager.register(this.referenceId, monitorTooltip);
-    }
-
-    this.tooltipManager.enable();
-
-    super.apply();
-  }
-}
+//export class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
+//
+//  filters: FilterSpecification = ["all"] as FilterSpecification;
+//  //filters: FilterSpecification = $derived.by((): FilterSpecification => {
+//  //  console.log("updating filters");
+//  //  const display = new MonitorsDisplayOptions();
+//  //  const monitorFilters: ExpressionSpecification = ["any"];
+//  //  const locationFilters: ExpressionSpecification = [
+//  //    "any",
+//  //    ["==", ["get", "location"], "outside"]
+//  //  ];
+//  //  const statusFilters: ExpressionSpecification = ["any", ["==", ["get", "is_active"], true]];
+//
+//  //  for (const option of Object.values(display.options)) {
+//  //    console.log(`${option.label}: ${option.value}`);
+//  //  }
+//  //  if (display.options.purpleair.value) monitorFilters.push(filters.purpleair());
+//  //  if (display.options.aqview.value) monitorFilters.push(filters.monitor("aqview"));
+//  //  if (display.options.bam1022.value) monitorFilters.push(filters.monitor("bam1022"));
+//  //  if (display.options.airnow.value) monitorFilters.push(filters.monitor("airnow"));
+//  //  if (display.options.sjvair.value)
+//  //    monitorFilters.push(filters.sjvPurpleair(), filters.monitor("airgradient"));
+//  //  if (display.options.inside.value) locationFilters.push(["==", ["get", "location"], "inside"]);
+//  //  if (display.options.inactive.value) statusFilters.push(["==", ["get", "is_active"], false]);
+//
+//  //  //if (display.otherOptions.find(o => o.label === "PurpleAir")?.value) monitorFilters.push(filters.purpleair());
+//  //  //if (display.otherOptions.find(o => o.label === "AQview")?.value) monitorFilters.push(filters.monitor("aqview"));
+//  //  //if (display.otherOptions.find(o => o.label === "SJVAir FEM")?.value) monitorFilters.push(filters.monitor("bam1022"));
+//  //  //if (display.otherOptions.find(o => o.label === "AirNow")?.value) monitorFilters.push(filters.monitor("airnow"));
+//  //  //if (display.otherOptions.find(o => o.label === "SJVAir non-FEM")?.value) monitorFilters.push(filters.sjvPurpleair(), filters.monitor("airgradient"));
+//  //  //if (display.otherOptions.find(o => o.label === "Inside")?.value) locationFilters.push(["==", ["get", "location"], "inside"]);
+//  //  //if (display.otherOptions.find(o => o.label === "Inactive")?.value) statusFilters.push(["==", ["get", "is_active"], false]);
+//
+//  //  return ["all", monitorFilters, locationFilters, statusFilters];
+//  //});
+//
+//  get mapSource(): Parameters<MaptilerMap["addSource"]>[1] {
+//    return {
+//      type: "geojson",
+//      promoteId: "id",
+//      data: {
+//        type: "FeatureCollection",
+//        features: this.features
+//      }
+//    };
+//  }
+//
+//  // Override applyTo to create one clustered source per type and add cluster layers.
+//  apply() {
+//    if (!mapState.map) return;
+//
+//    if (!this.tooltipManager.has(this.referenceId)) {
+//      this.tooltipManager.register(this.referenceId, monitorTooltip);
+//    }
+//
+//    this.tooltipManager.enable();
+//
+//    super.apply();
+//  }
+//}

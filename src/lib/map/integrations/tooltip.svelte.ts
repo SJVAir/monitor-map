@@ -1,5 +1,5 @@
 import type { MapLayerEventType, Popup } from "@maptiler/sdk";
-import { state as mapState } from "../map.svelte";
+import { mapState } from "../map.svelte";
 import { XMap } from "@tstk/builtin-extensions";
 
 export type TooltipBuilder = (evt: MapLayerEventType["mousemove"] & Object) => Popup | void;

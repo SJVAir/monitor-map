@@ -2,7 +2,7 @@
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 	//import { MonitorsController } from "$lib/monitors/monitors.svelte";
 	import { MonitorsDisplayOptions } from "./monitors-display-options.svelte";
-	import { MonitorsMapIntegration } from "./monitors-map-integration.svelte";
+	import { getFeatures } from "./monitors-map-integration.svelte";
 
 	//const mc = new MonitorsController();
 	//const mi = new MonitorsMapIntegration();

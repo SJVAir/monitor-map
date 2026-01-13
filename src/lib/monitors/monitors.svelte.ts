@@ -20,7 +20,7 @@ interface MonitorsState {
   pollutant: "pm25" | "o3" | null;
 }
 
-export const state: MonitorsState = $state({
+export const monitorsState: MonitorsState = $state({
   autoUpdate: new Interval(async () => await update(), 2 * 60 * 1000),
   initialized: false,
   latest: new XMap(),
@@ -59,27 +59,28 @@ export const state: MonitorsState = $state({
   }
 })
 
-export const levels: Array<SJVAirEntryLevel> | null = $derived.by(() => {
-  return state.meta?.entryType(state.pollutant ?? state.meta.default_pollutant).asIter.levels || null;
-});
+const levels: Array<SJVAirEntryLevel> | null = $derived(monitorsState.meta?.entryType(monitorsState.pollutant ?? monitorsState.meta.default_pollutant).asIter.levels || null);
+export function getCurrentLevels(): Array<SJVAirEntryLevel> | null {
+  return levels;
+}
 
 export async function init(): Promise<void> {
-  if (state.initialized) return;
+  if (monitorsState.initialized) return;
 
-  [state.meta, state.list] = await Promise.all([getMonitorsMeta(), getMonitors()]);
+  [monitorsState.meta, monitorsState.list] = await Promise.all([getMonitorsMeta(), getMonitors()]);
 
-  state.pollutant = state.meta.default_pollutant;
-  state.latest = await getMonitorsLatestMap(state.pollutant);
-  state.autoUpdate.start();
-  state.initialized = true;
+  monitorsState.pollutant = monitorsState.meta.default_pollutant;
+  monitorsState.latest = await getMonitorsLatestMap(monitorsState.pollutant);
+  monitorsState.autoUpdate.start();
+  monitorsState.initialized = true;
 }
 
 export async function update(): Promise<void> {
-  if (!state.initialized) return;
+  if (!monitorsState.initialized) return;
 
-  [state.list, state.latest] = await Promise.all([
+  [monitorsState.list, monitorsState.latest] = await Promise.all([
     getMonitors(),
-    getMonitorsLatestMap(state.pollutant || state.meta?.default_pollutant || "pm25")
+    getMonitorsLatestMap(monitorsState.pollutant || monitorsState.meta?.default_pollutant || "pm25")
   ]);
 }
 

@@ -1,7 +1,7 @@
 import type { MonitorData, SJVAirEntryLevel } from "@sjvair/sdk";
 import { asDataURI, circle, square, triangle } from "$lib/map/icons.ts";
 import { MapIconManager } from "$lib/map/integrations/map-icon-manager.ts";
-import { levels } from "./monitors.svelte.ts";
+import { getCurrentLevels } from "./monitors.svelte.ts";
 
 const MONITOR_ICONS = { circle, square, triangle };
 const MONITOR_ICON_WIDTH = 24;
@@ -30,6 +30,7 @@ export function getIconId<T extends MonitorData>(monitor: T, level: SJVAirEntryL
 }
 
 export function genMonitorIcons() {
+  const levels = getCurrentLevels();
   if (levels) {
     const iconLevels = [...levels, { name: "default", color: MONITOR_ICON_DEFAULT_COLOR }];
 
@@ -71,6 +72,7 @@ export class MonitorsIconManager extends MapIconManager {
     super();
 
     $effect(() => {
+      const levels = getCurrentLevels();
       if (levels) {
         const iconLevels = [...levels, { name: "default", color: MONITOR_ICON_DEFAULT_COLOR }];
 
