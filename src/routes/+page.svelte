@@ -6,25 +6,23 @@
 	import MonitorsDisplayOptions from "$lib/monitors/MonitorsDisplayOptions.svelte";
 	import WindDisplayOptions from "$lib/wind/WindDisplayOptions.svelte";
 	import MapStyleDisplayOptions from "$lib/map/MapStyleDisplayOptions.svelte";
-	import {
-		init as initMonitors,
-		monitorsState as monitorsState
-	} from "$lib/monitors/monitors.svelte";
-	import { MonitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte.ts";
+	import { MonitorsManager } from "$lib/monitors/monitors.svelte";
+	import {} from "$lib/monitors/monitors-map-integration.svelte.ts";
 	import { WindMapIntegration } from "$lib/wind/wind.svelte";
 	import { BaseLayerSeperator } from "$lib/map/integrations/base-layer-seperator";
 	import type { SomeMapIntegration } from "$lib/map/integrations/types";
 
+	const mm = new MonitorsManager();
 	const integrations: Array<SomeMapIntegration> = [
 		new BaseLayerSeperator(),
-		new WindMapIntegration(),
-		new MonitorsMapIntegration()
+		new WindMapIntegration()
+		//new MonitorsMapIntegration()
 	];
 
-	await initMonitors();
+	await mm.init();
 
 	onDestroy(() => {
-		monitorsState.autoUpdate.stop();
+		mm.autoUpdate.stop();
 	});
 </script>
 
