@@ -1,19 +1,24 @@
 import { resolve } from "node:path";
-import { defineConfig, PluginOption } from 'vite'
-import htmlPurge from 'vite-plugin-purgecss'
-import vue from '@vitejs/plugin-vue'
-import type { UserConfig } from 'vite';
+import { defineConfig, PluginOption } from "vite";
+import htmlPurge from "vite-plugin-purgecss";
+import vue from "@vitejs/plugin-vue";
+import type { UserConfig } from "vite";
 
 // Node DNS prefers ipv6, this messes with the proxy server.
 // workaround: change dns to prefer ipv4
-import dns from 'node:dns';
-dns.setDefaultResultOrder('ipv4first');
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
 
 const htmlPurgeOptions = {
   content: [`./public/**/*.html`, `./src/**/*.vue`, `./src/**/*.ts`],
   defaultExtractor(content: any) {
-    const contentWithoutStyleBlocks = content.replace(/<style[^]+?<\/style>/gi, '')
-    return contentWithoutStyleBlocks.match(/[A-Za-z0-9-_/:]*[A-Za-z0-9-_/]+/g) || []
+    const contentWithoutStyleBlocks = content.replace(
+      /<style[^]+?<\/style>/gi,
+      "",
+    );
+    return (
+      contentWithoutStyleBlocks.match(/[A-Za-z0-9-_/:]*[A-Za-z0-9-_/]+/g) || []
+    );
   },
   safelist: [
     /-(leave|enter|appear)(|-(to|from|active))$/,
@@ -24,13 +29,13 @@ const htmlPurgeOptions = {
     /marker-cluster*/,
     /uplot*/,
     /^u-*/,
-    /^dp*/
-  ]
-}
+    /^dp*/,
+  ],
+};
 
 const devConfig: UserConfig = {
   base: "/",
-  build: {}
+  build: {},
 };
 
 const prodConfig: UserConfig = {
@@ -39,14 +44,14 @@ const prodConfig: UserConfig = {
     outDir: resolve(__dirname, "./dist"),
     rollupOptions: {
       input: {
-        sjvairMonitorMap: resolve(__dirname, "./src/main.ts")
+        sjvairMonitorMap: resolve(__dirname, "./src/main.ts"),
       },
       output: {
         entryFileNames: "[name].js",
-        assetFileNames: "[name].[ext]"
-      }
-    }
-  }
+        assetFileNames: "[name].[ext]",
+      },
+    },
+  },
 };
 
 const devMode = process.env.PROD !== "true";
@@ -61,14 +66,11 @@ export default defineConfig({
     target: "esnext",
     sourcemap: devMode,
     minify: "terser",
-    ...build
+    ...build,
   },
-  plugins: [
-    htmlPurge(htmlPurgeOptions) as unknown as PluginOption,
-    vue()
-  ],
+  plugins: [htmlPurge(htmlPurgeOptions) as unknown as PluginOption, vue()],
   esbuild: {
-    target: "es2024"
+    target: "es2024",
   },
   worker: {
     format: "es",
@@ -80,9 +82,9 @@ export default defineConfig({
           $pantone-blue-light: #3549B6;
           $sjvair-main: rgb(62, 142, 208);
           @use "bulma/bulma";
-        `
+        `,
       },
-    }
+    },
   },
   server: {
     proxy: {
@@ -95,7 +97,7 @@ export default defineConfig({
         target: "http://localhost:8000",
         changeOrigin: true,
         secure: true,
-      }
-    }
+      },
+    },
   },
-})
+});
