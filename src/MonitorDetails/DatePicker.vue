@@ -22,10 +22,7 @@ function disabledDates(d: Date) {
 
 watch(
   () => date.value,
-  (date) => {
-    emit("selection", date);
-    console.log("date, new:", date);
-  },
+  (date) => emit("selection", date),
 );
 </script>
 

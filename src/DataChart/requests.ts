@@ -4,17 +4,19 @@ import { primaryPollutant, type Monitor } from "../Monitors";
 import type { DateRange } from "../models";
 import type { Dayjs } from "dayjs";
 
-
-export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.AlignedData> {
-  return getMonitorEntries({
+export async function fetchChartData(
+  m: Monitor,
+  d: DateRange,
+): Promise<uPlot.AlignedData> {
+  return await getMonitorEntries({
     entryType: primaryPollutant.value,
     monitorId: m.data.id,
     timestampGte: d.start,
-    timestampLte: d.end
+    timestampLte: d.end,
   })
-    .then(entries => {
+    .then((entries) => {
       const xAxisData: Array<Dayjs> = [];
-      const updateDuration = (m.data.data_source.name === "PurpleAir") ? 2 : 60;
+      const updateDuration = m.data.data_source.name === "PurpleAir" ? 2 : 60;
 
       const yAxisRecord: Array<number> = [];
 
@@ -22,24 +24,30 @@ export async function fetchChartData(m: Monitor, d: DateRange): Promise<uPlot.Al
         const entry = entries[i];
 
         if (xAxisData.length > 1) {
-          const entrytime = dateUtil(entry.timestamp).utc().tz('America/Los_Angeles').toISOString();
+          const entrytime = dateUtil(entry.timestamp)
+            .utc()
+            .tz("America/Los_Angeles")
+            .toISOString();
           let prevTimestamp = dateUtil(xAxisData[xAxisData.length - 1]);
 
-          while (prevTimestamp.skewedDiff(entrytime, updateDuration) > updateDuration + 1) {
+          while (
+            prevTimestamp.skewedDiff(entrytime, updateDuration) >
+            updateDuration + 1
+          ) {
             prevTimestamp = prevTimestamp.add(updateDuration, "m");
-            fillChartDataRecords(xAxisData, yAxisRecord, entry, prevTimestamp)
+            fillChartDataRecords(xAxisData, yAxisRecord, entry, prevTimestamp);
           }
         }
 
         fillChartDataRecords(xAxisData, yAxisRecord, entry);
       }
 
-      return [
-        xAxisData.map(d => d.unix()),
-        yAxisRecord
-      ] as uPlot.AlignedData;
+      return [xAxisData.map((d) => d.unix()), yAxisRecord] as uPlot.AlignedData;
     })
-    .catch(err => err);
+    .catch((err) => {
+      console.error("Failed to load chart data: ", err);
+      return [];
+    });
 }
 
 function fillChartDataRecords(
@@ -49,18 +57,18 @@ function fillChartDataRecords(
   timestamp?: Dayjs,
 ) {
   if (timestamp) {
-    xAxisData.push(timestamp.utc().tz('America/Los_Angeles'));
+    xAxisData.push(timestamp.utc().tz("America/Los_Angeles"));
   } else {
-    xAxisData.push(dateUtil(entry.timestamp).utc().tz('America/Los_Angeles'));
+    xAxisData.push(dateUtil(entry.timestamp).utc().tz("America/Los_Angeles"));
   }
 
   let dataPoint: number | null;
 
   if (timestamp) {
-    dataPoint = null
+    dataPoint = null;
   } else {
-    const value = parseFloat(entry.value)
-    dataPoint = (value >= 0) ? value : 0;
+    const value = parseFloat(entry.value);
+    dataPoint = value >= 0 ? value : 0;
   }
 
   yAxisRecord.push(dataPoint);
