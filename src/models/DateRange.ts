@@ -6,14 +6,21 @@ export class DateRange {
   end: string;
 
   constructor(range?: DatePickerSelection) {
+    let start;
+    let end;
     if (!range) {
-      this.start = dateUtil().subtract(1, "day").startOf("day").toISOString();
-      this.end = dateUtil().endOf("day").toISOString();
-
+      start = dateUtil().subtract(1, "day").startOf("day");
+      end = dateUtil();
     } else {
-      this.start = dateUtil(range[0]).startOf("day").toISOString();
-      this.end = dateUtil(range[1]).endOf("day").toISOString();
+      start = dateUtil(range[0]).startOf("day");
+      end = dateUtil(range[1]);
     }
-  }
 
+    if (!end.isSame(dateUtil(), "day")) {
+      end = end.endOf("day");
+    }
+
+    this.start = start.toISOString();
+    this.end = end.toISOString();
+  }
 }
