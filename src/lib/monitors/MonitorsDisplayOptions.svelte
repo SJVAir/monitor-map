@@ -2,7 +2,8 @@
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 	//import { MonitorsController } from "$lib/monitors/monitors.svelte";
 	import { MonitorsDisplayOptions } from "./monitors-display-options.svelte";
-	import { getFeatures } from "./monitors-map-integration.svelte";
+	import { monitorsMapIntegration } from "./monitors-map-integration.svelte";
+	import { mapManager } from "$lib/map/map.svelte";
 
 	//const mc = new MonitorsController();
 	//const mi = new MonitorsMapIntegration();
@@ -25,6 +26,7 @@
 {#if display.options}
 	<DisplayOption>
 		<p class="text-lg font-bold underline">Air Monitors</p>
+		<!--
 		<label for="clusters" class="my-1 cursor-pointer font-bold whitespace-nowrap select-none">
 			<input type="checkbox" id="clusters" name="clusters" bind:checked={display.enableClusters} />
 			Enable Clustering
@@ -51,7 +53,7 @@
 									bind:value={display.shapeStyle}
 									class="w-50 rounded border p-1"
 								>
-									{#each Object.keys(MonitorsMapIntegration.mapCtrl.map!.style.imageManager.images) as label}
+									{#each Object.keys(mapManager.map!.style.imageManager.images) as label}
 										<option value={label}>{label}</option>
 									{/each}
 								</select>
@@ -79,8 +81,9 @@
 				</div>
 			{/if}
 		</label>
+    -->
 
-		{#each Object.values(display.options) as option}
+		{#each Object.values(monitorsMapIntegration.displayOptions) as option (option.label)}
 			<label for={option.label} class="cursor-pointer whitespace-nowrap select-none">
 				<input type="checkbox" id={option.label} name={option.label} bind:checked={option.value} />
 				{option.label}
