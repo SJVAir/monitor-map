@@ -25,7 +25,7 @@
 <script lang="ts">
 	import type { Attachment } from "svelte/attachments";
 
-	const animationTrigger: Attachment<HTMLDivElement> = (_target: HTMLDivElement) => {
+	const animationTrigger: Attachment<HTMLDivElement> = () => {
 		loadScreenState.entered = true;
 	};
 </script>
