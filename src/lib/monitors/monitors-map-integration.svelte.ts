@@ -272,7 +272,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		source: this.referenceId,
 		filter: this.filters,
 		layout: {
-			"symbol-sort-key": ["get", "order"],
+			"symbol-sort-key": ["coalesce", ["get", "order"], 0],
 			"icon-allow-overlap": true,
 			"icon-ignore-placement": true,
 			"icon-image": ["get", "icon"],
