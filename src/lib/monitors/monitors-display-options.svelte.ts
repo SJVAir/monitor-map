@@ -1,11 +1,5 @@
 import type { MonitorType } from "@sjvair/sdk";
 
-interface MonitorDisplayToggles extends Record<Exclude<MonitorType, "airgradient">, boolean> {
-	sjvair: boolean;
-	inactive: boolean;
-	inside: boolean;
-}
-
 type MonitorDisplayOptionsType = Record<
 	Exclude<MonitorType, "airgradient"> | "sjvair" | "inactive" | "inside",
 	{
