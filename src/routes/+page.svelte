@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	import LoadScreen, { disable } from "$lib/loading/screen/LoadScreen.svelte";
+	import LoadScreen, { disable } from "$lib/LoadScreen.svelte";
 	import Map from "$lib/map/Map.svelte";
 	import Menu from "$lib/map/Menu.svelte";
 	import MonitorsDisplayOptions from "$lib/monitors/MonitorsDisplayOptions.svelte";

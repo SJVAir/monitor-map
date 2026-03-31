@@ -31,7 +31,6 @@ class MonitorsManager {
 	async init(): Promise<void> {
 		if (this.initialized) return;
 
-		//[this.meta, this.list] = await Promise.all([getMonitorsMeta(), getMonitors()]);
 		[this.collocationSites, this.list, this.meta] = await Promise.all([
 			getCollocationSites(),
 			getMonitors(),
