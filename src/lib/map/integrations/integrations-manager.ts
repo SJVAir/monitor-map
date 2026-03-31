@@ -1,24 +1,25 @@
 import { XMap } from "@tstk/builtin-extensions";
-import { Singleton } from "@tstk/decorators";
 import type { SomeMapIntegration } from "./types";
 
-@Singleton
-export class IntegrationsManager {
-  private integrations: XMap<string, SomeMapIntegration> = new XMap();
+class IntegrationsManager {
+	private integrations: XMap<string, SomeMapIntegration> = new XMap();
 
-  register(...integrations: Array<SomeMapIntegration>): void {
-    for (const integration of integrations) {
-      this.integrations.set(integration.referenceId, integration);
-    }
-  }
+	register(...integrations: Array<SomeMapIntegration>): void {
+		for (const integration of integrations) {
+			this.integrations.set(integration.referenceId, integration);
+		}
+	}
 
-  refresh(): void {
-    for (const integration of this.integrations.values()) {
-      if (integration.enabled) {
-        integration.apply();
-      } else if (integration.remove) {
-        integration.remove();
-      }
-    }
-  }
+	refresh(): void {
+		for (const integration of this.integrations.values()) {
+			if (integration.enabled) {
+				integration.apply();
+			} else if (integration.remove) {
+				integration.remove();
+			}
+		}
+	}
 }
+
+export const integrationsManager = new IntegrationsManager();
+export type { IntegrationsManager };
