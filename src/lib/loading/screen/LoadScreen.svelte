@@ -5,7 +5,7 @@
 	}
 
 	export const loadScreenState: LoadScreenState = $state({
-		enabled: false,
+		enabled: true,
 		entered: false
 	});
 
