@@ -1,5 +1,5 @@
 import { WorkerServiceClient } from "../Webworkers/WorkerServiceClient";
-import type { MonitorSubscription } from "../modules/api";
+import type { MonitorsMeta, MonitorSubscription } from "../modules/api";
 import type { MonitorsRecord } from "../types";
 
 type MonitorsServiceModule = typeof import("./requests");
@@ -10,23 +10,31 @@ const worker = new MonitorsWorkerService();
 // import MonitorsWorkerServiceURL from "./MonitorsWorker?url";
 // const worker = new Worker(MonitorsWorkerServiceURL, { type: 'module' })
 
-const monitorsWorkerService = new WorkerServiceClient<MonitorsServiceModule>(worker);
+const monitorsWorkerService = new WorkerServiceClient<MonitorsServiceModule>(
+  worker,
+);
 
-export async function fetchMonitors(pollutant: "pm25" | "o3"): Promise<MonitorsRecord> {
+export async function fetchMonitors(
+  pollutant: "pm25" | "o3",
+): Promise<MonitorsRecord> {
   return await monitorsWorkerService.run("fetchMonitors", pollutant);
 }
 
-export async function fetchSubscriptions(): Promise<Array<MonitorSubscription>> {
+export async function fetchSubscriptions(): Promise<
+  Array<MonitorSubscription>
+> {
   return await monitorsWorkerService.run("fetchSubscriptions");
 }
 
-export async function fetchTempByCoords(coords: [number, number]): Promise<number> {
+export async function fetchTempByCoords(
+  coords: [number, number],
+): Promise<number> {
   return await monitorsWorkerService.run("fetchTempByCoords", coords);
 }
 
 //export function queryMonitorsData(queryString: string) {
 //  queryString = queryString.toLowerCase();
-//  
+//
 //  const externalResults = ref([]);
 //
 //  http(`https://api.maptiler.com/geocoding/${ queryString }.json?key=${ import.meta.env.VITE_MAPTILER_KEY }`)
