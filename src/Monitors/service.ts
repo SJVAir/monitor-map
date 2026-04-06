@@ -22,7 +22,6 @@ function getPrimaryPollutant(): "pm25" | "o3" {
   return "pm25";
 }
 
-
 interface MonitorsServiceExtras {
   activeMonitor: Ref<Monitor | undefined>;
   monitors: Ref<Record<string, Monitor>>;
@@ -32,42 +31,45 @@ interface MonitorsServiceExtras {
 }
 
 type MonitorsServiceModule = MonitorsServiceExtras & typeof MonitorsService;
-export const useMonitorsService = asyncInitializer<MonitorsServiceModule>(async (resolve) => {
-  const route = useRoute();
+export const useMonitorsService = asyncInitializer<MonitorsServiceModule>(
+  async (resolve) => {
+    const route = useRoute();
 
-  await updateMonitors();
+    await updateMonitors();
 
-  if ("monitorId" in route.params) {
-    activeMonitor.value = monitors.value[route.params.monitorId as string];
-  }
+    if ("monitorId" in route.params) {
+      activeMonitor.value = monitors.value[route.params.monitorId as string];
+    }
 
-  resolve({
-    activeMonitor,
-    monitors,
-    downloadCSV,
-    getMonitor,
-    updateMonitors,
-    ...MonitorsService
-  });
-});
+    resolve({
+      activeMonitor,
+      monitors,
+      downloadCSV,
+      getMonitor,
+      updateMonitors,
+      ...MonitorsService,
+    });
+  },
+);
 
 function downloadCSV(monitor: Monitor, dateRange: DateRange): void {
   const url = getMonitorEntriesCSVUrl({
     monitorId: monitor.data.id,
     entryType: primaryPollutant.value,
     timestampGte: dateRange.start,
-    timestampLte: dateRange.end
-  })
+    timestampLte: dateRange.end,
+  });
 
   window.open(url);
 }
 
 export async function updateMonitors(): Promise<void> {
-  return await MonitorsService.fetchMonitors(primaryPollutant.value)
-    .then(monitorsRecord => {
+  return await MonitorsService.fetchMonitors(primaryPollutant.value).then(
+    (monitorsRecord) => {
       monitors.value = monitorsRecord;
       window.dispatchEvent(monitorsLoadedEvent);
-    });
+    },
+  );
 }
 
 export function getMonitor(id: MonitorId): Monitor {
