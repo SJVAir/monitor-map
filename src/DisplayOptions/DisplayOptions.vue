@@ -5,15 +5,18 @@ import DisplayOption from "./DisplayOption.vue";
 //import { useOverlayTilesets } from "./OverlayTilesets";
 import { useMonitorMarkers } from "./MonitorMarkers";
 import { useHMSSmoke } from "./HMSSmoke";
+import { useHMSFire } from "./HMSFire";
 import { useCarbonMapperMethane } from "../CarbonMapper/service";
 import { useEVChargingMarkers } from "./EVChargingMarkers";
 import { useMapTilesets } from "./MapTilesets";
 import { primaryPollutant, updateMonitors } from "../Monitors";
 
 const displayOptionsActive: Ref<boolean> = ref(false);
-const { displayOptions: monitorMarkerDisplayOptions } = await useMonitorMarkers();
+const { displayOptions: monitorMarkerDisplayOptions } =
+  await useMonitorMarkers();
 const evStationDisplayOptions = await useEVChargingMarkers();
 const hmsSmoke = await useHMSSmoke();
+const hmsFire = await useHMSFire();
 const cmMethane = await useCarbonMapperMethane();
 //const { displayOptions: overlayTilesetDisplayOptions } = await useOverlayTilesets();
 const mapTilesets = await useMapTilesets();
@@ -22,9 +25,10 @@ const mapLayers = {
   label: "Map Layers",
   options: {
     ...hmsSmoke,
-    ...cmMethane
-  }
-}
+    ...hmsFire,
+    ...cmMethane,
+  },
+};
 
 //const { USER } = window as any;
 //if (USER && USER.is_admin) {
@@ -43,12 +47,12 @@ const monitorOptions = computed(() => {
         displayInactive,
         PurpleAirInside,
         ...options
-      }
+      },
     } = monitorMarkerDisplayOptions;
 
     return {
       label,
-      options
+      options,
     };
   }
 });
@@ -60,14 +64,23 @@ function close() {
   displayOptionsActive.value = false;
 }
 watch(primaryPollutant, async () => {
-  await updateMonitors()
+  await updateMonitors();
 });
 </script>
 
 <template>
-  <div class="dropdown" :class="displayOptionsActive ? 'is-active' : ''" v-click-outside="close">
+  <div
+    class="dropdown"
+    :class="displayOptionsActive ? 'is-active' : ''"
+    v-click-outside="close"
+  >
     <div class="dropdown-trigger">
-      <button class="button" aria-haspopup="true" aria-controls="dropdown-display" v-on:click="toggleDisplayOptions">
+      <button
+        class="button"
+        aria-haspopup="true"
+        aria-controls="dropdown-display"
+        v-on:click="toggleDisplayOptions"
+      >
         <span class="icon">
           <span translate="no" class="material-symbols-outlined">
             settings
@@ -75,7 +88,11 @@ watch(primaryPollutant, async () => {
         </span>
         <span class="is-size-7">Display Options</span>
         <span class="icon is-small">
-          <span class="fas" :class="displayOptionsActive ? 'fa-angle-up' : 'fa-angle-down'" aria-hidden="true"></span>
+          <span
+            class="fas"
+            :class="displayOptionsActive ? 'fa-angle-up' : 'fa-angle-down'"
+            aria-hidden="true"
+          ></span>
         </span>
       </button>
     </div>
@@ -83,14 +100,26 @@ watch(primaryPollutant, async () => {
       <div class="dropdown-content">
         <div class="columns">
           <div class="column">
-            <div class="control is-unselectable display-item is-flex is-flex-direction-column">
+            <div
+              class="control is-unselectable display-item is-flex is-flex-direction-column"
+            >
               <h3 class="display-group-label">Pollutant</h3>
               <label class="radio option-label has-text-black pollutant-label">
-                <input type="radio" name="pollutant" value="pm25" v-model="primaryPollutant" />
+                <input
+                  type="radio"
+                  name="pollutant"
+                  value="pm25"
+                  v-model="primaryPollutant"
+                />
                 PM 2.5
               </label>
               <label class="radio option-label has-text-black pollutant-label">
-                <input type="radio" name="pollutant" value="o3" v-model="primaryPollutant" />
+                <input
+                  type="radio"
+                  name="pollutant"
+                  value="o3"
+                  v-model="primaryPollutant"
+                />
                 Ozone
               </label>
             </div>
@@ -112,14 +141,11 @@ watch(primaryPollutant, async () => {
 $sjvair-comp: color.complement($sjvair-main);
 
 .dropdown {
-
   .dropdown-trigger {
-
     button {
       .icon {
         .material-symbols-outlined {
-          font-variation-settings:
-            'wght' 200,
+          font-variation-settings: "wght" 200;
         }
       }
     }
@@ -132,7 +158,7 @@ $sjvair-comp: color.complement($sjvair-main);
       overflow-y: auto;
       overflow-x: hidden;
       max-height: 300px;
-      padding: .75rem;
+      padding: 0.75rem;
 
       .display-item {
         label.pollutant-label {
@@ -143,25 +169,22 @@ $sjvair-comp: color.complement($sjvair-main);
       }
 
       :deep(.display-item) {
-
         &:not(:last-child) {
           margin-bottom: 1rem;
         }
 
         .dropdown-item {
           user-select: none;
-          padding: .375rem .3rem;
+          padding: 0.375rem 0.3rem;
 
           label.radio,
           label.checkbox {
             &:hover {
-
               color: inherit !important;
             }
           }
 
           &.icon-border {
-
             .material-symbols-outlined {
               font-size: 16px !important;
               width: 15px;
@@ -182,7 +205,8 @@ $sjvair-comp: color.complement($sjvair-main);
               @extend .has-text-white;
               margin: 0 4px;
               background-color: $pantone-blue-light;
-              border: 2px solid color.scale($pantone-blue-light, $lightness: -20%);
+              border: 2px solid
+                color.scale($pantone-blue-light, $lightness: -20%);
               border-radius: 50%;
               width: 18px;
               height: 18px;
@@ -196,8 +220,7 @@ $sjvair-comp: color.complement($sjvair-main);
                 font-size: 14px !important;
                 max-width: 14px !important;
 
-                font-variation-settings:
-                  'FILL' 0 !important;
+                font-variation-settings: "FILL" 0 !important;
               }
             }
 
@@ -206,13 +229,12 @@ $sjvair-comp: color.complement($sjvair-main);
               max-width: 20px;
 
               font-variation-settings:
-                'FILL' 1,
-                'wght' 400,
-                'GRAD' 0,
-                'opsz' 20
+                "FILL" 1,
+                "wght" 400,
+                "GRAD" 0,
+                "opsz" 20;
             }
           }
-
         }
       }
 
@@ -220,7 +242,6 @@ $sjvair-comp: color.complement($sjvair-main);
         text-decoration: underline;
         font-weight: bold;
       }
-
     }
   }
 }
