@@ -3,9 +3,7 @@ import { computed } from "vue";
 import { primaryPollutant } from "../Monitors";
 
 const label = computed(() => {
-  return primaryPollutant.value === "pm25"
-    ? "PM 2.5"
-    : "Ozone";
+  return primaryPollutant.value === "pm25" ? "PM 2.5" : "Ozone";
 });
 const values = computed(() => {
   return primaryPollutant.value === "pm25"
@@ -16,8 +14,11 @@ const values = computed(() => {
 
 <template>
   <div
-    class="map-legend-container card columns column is-half-mobile is-half-tablet is-one-fifth-desktop is-flex is-flex-direction-column">
-    <p class="has-text-centered has-text-wrap-nowrap has-font-weight-semibold">{{ label }} Concentration</p>
+    class="map-legend-container card columns column is-half-mobile is-half-tablet is-one-fifth-desktop is-flex is-flex-direction-column"
+  >
+    <p class="has-text-centered has-text-wrap-nowrap has-font-weight-semibold">
+      {{ label }} Concentration
+    </p>
     <div class="map-legend">&nbsp;</div>
     <div class="map-legend-lines is-flex">
       <div>
@@ -28,21 +29,28 @@ const values = computed(() => {
       </div>
     </div>
   </div>
-
 </template>
 
 <style scoped lang="scss">
 .map-legend-container {
   min-width: 200px;
   position: absolute;
-  padding: .5em 1.5em !important;
+  padding: 0.5em 1.5em !important;
 
   p {
     white-space: nowrap;
   }
 
   .map-legend {
-    background: linear-gradient(90deg, #00e400 0%, #ffff00 20%, #ff7e00 40%, #ff0000 60%, #8f3f97 80%, #7e0023 100%);
+    background: linear-gradient(
+      90deg,
+      #00e400 0%,
+      #ffff00 20%,
+      #ff7e00 40%,
+      #ff0000 60%,
+      #8f3f97 80%,
+      #7e0023 100%
+    );
     display: inline-block;
     height: 1.5em;
   }
@@ -53,7 +61,7 @@ const values = computed(() => {
     div {
       width: calc(100% / 5);
       flex-shrink: 0;
-      height: .5em;
+      height: 0.5em;
       border-left: 1px solid black;
 
       &:last-child {
@@ -62,17 +70,17 @@ const values = computed(() => {
       }
 
       &:not(:first-child) span {
-        right: .5em;
+        right: 0.5em;
       }
 
-      &:nth-child(n+5) span:first-child {
-        right: .8em;
+      &:nth-child(n + 5) span:first-child {
+        right: 0.8em;
       }
 
       span {
         position: relative;
-        top: .5em;
-        right: .3em;
+        top: 0.5em;
+        right: 0.3em;
       }
     }
   }

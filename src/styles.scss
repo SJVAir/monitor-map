@@ -14,15 +14,14 @@ span.location-icon.material-symbols-outlined {
   color: rgb(56, 128, 255);
   font-size: 2rem;
   font-variation-settings:
-    'FILL' 1,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 24
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }
 
 .fill-material-icon {
-  font-variation-settings:
-    'FILL' 1,
+  font-variation-settings: "FILL" 1;
 }
 
 #SJVAirMonitorMap {
@@ -33,7 +32,6 @@ span.location-icon.material-symbols-outlined {
 }
 
 .leaflet-lvl2evStations-pane {
-
   .marker-cluster-small,
   .marker-cluster-medium,
   .marker-cluster-large,
@@ -50,7 +48,6 @@ span.location-icon.material-symbols-outlined {
 }
 
 .leaflet-lvl3evStations-pane {
-
   .marker-cluster-small,
   .marker-cluster-medium,
   .marker-cluster-large,
@@ -101,7 +98,7 @@ span.location-icon.material-symbols-outlined {
 
       .tooltip-header {
         background-color: $sjvair-main;
-        padding: 1em 4px .5em 4px;
+        padding: 1em 4px 0.5em 4px;
         border-radius: 12px 12px 0 0;
       }
 
@@ -113,6 +110,41 @@ span.location-icon.material-symbols-outlined {
 
   a.leaflet-popup-close-button {
     color: bulma.$white;
+  }
+}
+
+.leaflet-fire-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  cursor: grab;
+
+  span {
+    &.sm {
+      font-size: 1rem;
+      color: #feb14c;
+    }
+
+    &.md {
+      font-size: 1.2rem;
+      color: #fd8d3c;
+    }
+
+    &.lg {
+      font-size: 1.4rem;
+      color: #fc4e29;
+    }
+
+    &.xl {
+      font-size: 1.6rem;
+      color: #e3191c;
+    }
+
+    &.xxl {
+      font-size: 1.8rem;
+      color: #b30024;
+    }
   }
 }
 

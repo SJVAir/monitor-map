@@ -2,7 +2,7 @@ import L from "../modules/Leaflet";
 import { watch } from "vue";
 import { useInteractiveMap } from "../Map";
 import { asyncInitializer } from "../modules";
-import { Checkbox, DisplayOptionProps } from "../DisplayOptions";
+import { Checkbox } from "../DisplayOptions";
 import { getHMSSmoke, type HMSSmokeGeoJSON } from "@sjvair/sdk/hms";
 
 const hmsSmokePane = "hmssmoke";
