@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import MarkerLegendVue from "./MarkerLegend.vue";
+import FireLegendVue from "./FireLegend.vue";
 import MonitorSearch from "../monitor-search/MonitorSearch.vue";
 import Geolocate from "./Geolocate.vue";
 import { useInteractiveMap } from "./InteractiveMap";
@@ -9,7 +10,7 @@ const mapTarget = ref<HTMLDivElement>();
 const { mapContainer } = await useInteractiveMap();
 
 onMounted(async () => {
-  mapTarget.value!.appendChild(mapContainer)
+  mapTarget.value!.appendChild(mapContainer);
 });
 </script>
 
@@ -17,7 +18,10 @@ onMounted(async () => {
   <div ref="mapTarget" class="map section is-paddingless">
     <MonitorSearch class="monitor-search"></MonitorSearch>
     <div class="map-footer">
-      <MarkerLegendVue class="marker-legend"></MarkerLegendVue>
+      <div class="legend-container">
+        <fireLegendVue class="fire-legend"></fireLegendVue>
+        <MarkerLegendVue class="marker-legend"></MarkerLegendVue>
+      </div>
       <Geolocate class="geolocate"></Geolocate>
     </div>
   </div>
@@ -34,7 +38,7 @@ onMounted(async () => {
   .monitor-search {
     position: absolute;
     left: 14rem;
-    top: .5rem;
+    top: 0.5rem;
     z-index: 500;
   }
 
@@ -47,7 +51,21 @@ onMounted(async () => {
     position: absolute;
     bottom: 3rem;
     z-index: 1000;
-  }
 
+    .legend-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+
+      .fire-legend {
+        bottom: 1rem;
+        right: 0.75rem;
+      }
+    }
+
+    .geolocate {
+      align-self: flex-end;
+    }
+  }
 }
 </style>
