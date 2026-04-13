@@ -14,7 +14,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@sjvair/sdk": "npm:@jsr/sjvair__sdk@^3.0.0",
+    "@sjvair/sdk": "npm:@jsr/sjvair__sdk@^3.0.2",
     "@tstk/builtin-extensions": "npm:@jsr/tstk__builtin-extensions@^1.0.8",
     "@tstk/decorators": "npm:@jsr/tstk__decorators@^1.0.5",
     "@tstk/types": "npm:@jsr/tstk__types@^1.1.0",
