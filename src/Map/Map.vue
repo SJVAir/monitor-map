@@ -51,11 +51,18 @@ onMounted(async () => {
     position: absolute;
     bottom: 3rem;
     z-index: 1000;
+    pointer-events: none;
 
     .legend-container {
       display: flex;
       flex-direction: column;
       width: 100%;
+      pointer-events: none;
+
+      .fire-legend,
+      .marker-legend {
+        pointer-events: auto;
+      }
 
       .fire-legend {
         bottom: 1rem;
@@ -65,6 +72,7 @@ onMounted(async () => {
 
     .geolocate {
       align-self: flex-end;
+      pointer-events: auto;
     }
   }
 }

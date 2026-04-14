@@ -27,7 +27,7 @@ export const useHMSFire = asyncInitializer<typeof hmsFireVisibility>(
   async (resolve) => {
     const { map } = await useInteractiveMap();
     let fireData: Array<HMSFireGeoJSON> = [];
-    map.createPane(hmsFirePane).style.zIndex = "601";
+    map.createPane(hmsFirePane).style.zIndex = "610";
 
     fireData = await loadFire();
     fireLayer.addTo(map);
