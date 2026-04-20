@@ -1,12 +1,12 @@
 import { Map as MaptilerMap } from "@maptiler/sdk";
 import { WindLayer } from "@maptiler/weather";
-import { BaseLayerSeperator } from "../map/integrations/base-layer-seperator.ts";
+import { baseLayerSeperator } from "../map/integrations/base-layer-seperator.ts";
 import { MapLayerIntegration } from "$lib/map/integrations/map-layer-integration.svelte.ts";
 
 class WindMapIntegration extends MapLayerIntegration {
 	referenceId: string = "MapTiler Wind";
 
-	beforeLayer = new BaseLayerSeperator().referenceId;
+	beforeLayer = baseLayerSeperator.referenceId;
 
 	enabled: boolean = $state(false);
 

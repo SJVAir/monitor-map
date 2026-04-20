@@ -10,11 +10,11 @@
 	import { monitorsManager } from "$lib/monitors/monitors.svelte";
 	import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte.ts";
 	import { windMapIntegration } from "$lib/wind/wind.svelte";
-	import { BaseLayerSeperator } from "$lib/map/integrations/base-layer-seperator";
+	import { baseLayerSeperator } from "$lib/map/integrations/base-layer-seperator";
 	import type { SomeMapIntegration } from "$lib/map/integrations/types";
 
 	const integrations: Array<SomeMapIntegration> = [
-		new BaseLayerSeperator(),
+		baseLayerSeperator,
 		windMapIntegration,
 		monitorsMapIntegration
 	];
