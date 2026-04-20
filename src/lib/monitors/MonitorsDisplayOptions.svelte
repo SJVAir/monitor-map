@@ -26,6 +26,16 @@
 {#if display.options}
 	<DisplayOption>
 		<p class="text-lg font-bold underline">Air Monitors</p>
+		<label for="monitor-clusters" class="cursor-pointer whitespace-nowrap select-none">
+			<input
+				type="checkbox"
+				id="monitor-clusters"
+				name="monitor-clusters"
+				bind:checked={monitorsMapIntegration.clustered}
+			/>
+			Enable Clusters
+		</label>
+
 		<!--
 		<label for="clusters" class="my-1 cursor-pointer font-bold whitespace-nowrap select-none">
 			<input type="checkbox" id="clusters" name="clusters" bind:checked={display.enableClusters} />
