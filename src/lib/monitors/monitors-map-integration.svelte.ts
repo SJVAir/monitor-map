@@ -7,12 +7,14 @@ import {
 } from "@maptiler/sdk";
 import type { MonitorData, MonitorType } from "@sjvair/sdk";
 import { cast } from "@tstk/utils";
+import { untrack } from "svelte";
 import type { Feature, Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
 import { monitorsManager } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
+import { getOrder, getTypeShape } from "./monitor-utils.ts";
 
 export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
 
@@ -28,45 +30,6 @@ export interface MonitorMarkerProperties {
 	value: string;
 }
 
-function getOrder(monitor: MonitorData): number {
-	switch (monitor.type) {
-		case "airgradient":
-			return 5;
-
-		case "airnow":
-			return 2;
-
-		case "aqview":
-			return 3;
-
-		case "bam1022":
-			return 6;
-
-		case "purpleair":
-			return monitor.is_sjvair ? 4 : 1;
-
-		default:
-			throw new Error(`Map ordering for ${monitor.device} has not been set`);
-	}
-}
-
-function getTypeShape(type: string): string {
-	switch (type) {
-		case "airgradient":
-			return "circle";
-
-		case "airnow":
-		case "aqview":
-		case "bam1022":
-			return "triangle";
-
-		case "purpleair":
-			return "square";
-
-		default:
-			return "circle";
-	}
-}
 
 const filters = {
 	monitor(deviceType: MonitorType): ExpressionSpecification {
@@ -112,7 +75,7 @@ class MapDisplayOption {
 
 class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
 	referenceId: string = "monitors";
-	enabled: boolean = true;
+	enabled: boolean = $state(true);
 	clustered: boolean = $state(false);
 
 	icons: MonitorsIconManager = new MonitorsIconManager();
@@ -194,7 +157,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 	// Groups features by monitor type for per-type cluster sources, applying display option
 	// filters so cluster aggregates only include visible monitors. sjvair purpleair is remapped
 	// to "airgradient" since they share the same shape (circle).
-	get featuresByType(): Map<string, MonitorMapFeature[]> {
+	featuresByType: Map<string, MonitorMapFeature[]> = $derived.by(() => {
 		const opts = this.displayOptions;
 		const byType = new Map<string, MonitorMapFeature[]>();
 
@@ -219,7 +182,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			byType.set(key, arr);
 		}
 		return byType;
-	}
+	});
 
 	mapLayer: Parameters<MaptilerMap["addLayer"]>[0] = {
 		id: this.referenceId,
@@ -274,6 +237,13 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				}
 			});
 
+			// Sync unclustered source data when features change
+			$effect(() => {
+				const features = this.features;
+				if (!mapManager.map || this.clustered) return;
+				mapManager.setDataSource(this.referenceId, features);
+			});
+
 			// Keep cluster source data in sync when features or display options change
 			$effect(() => {
 				const featuresByType = this.featuresByType;
@@ -284,12 +254,13 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				}
 			});
 
-			// Re-apply when the clustered flag or map instance changes
+			// Re-apply when clustered mode switches. mapManager.map is untracked because the
+			// base class already owns the map-load lifecycle. untrack on apply() prevents
+			// reactive reads inside it from leaking into this effect's dependency graph.
 			$effect(() => {
 				const clustered = this.clustered;
-				if (mapManager.map) {
-					this.apply();
-				}
+				if (!untrack(() => mapManager.map)) return;
+				untrack(() => this.apply());
 			});
 		});
 	}
