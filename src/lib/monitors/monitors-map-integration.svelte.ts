@@ -191,8 +191,6 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		inside: new MapDisplayOption("Inside", false)
 	};
 	features: Array<MonitorMapFeature> = $derived.by(() => {
-		console.log("updating monitor features");
-
 		if (!monitorsManager.meta || !monitorsManager.latest || !monitorsManager.pollutant) {
 			return [];
 		}
@@ -234,7 +232,6 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 	//filters: FilterSpecification = ["all"] as FilterSpecification;
 	filters: FilterSpecification = $derived.by((): FilterSpecification => {
-		console.log("updating filters", this.displayOptions.airnow.value);
 		const monitorFilters: ExpressionSpecification = ["any"];
 		const locationFilters: ExpressionSpecification = [
 			"any",
@@ -242,9 +239,6 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		];
 		const statusFilters: ExpressionSpecification = ["any", ["==", ["get", "is_active"], true]];
 
-		for (const option of Object.values(this.displayOptions)) {
-			console.log(`${option.label}: ${option.value}`);
-		}
 		if (this.displayOptions.purpleair.value) monitorFilters.push(filters.purpleair());
 		if (this.displayOptions.aqview.value) monitorFilters.push(filters.monitor("aqview"));
 		if (this.displayOptions.bam1022.value) monitorFilters.push(filters.monitor("bam1022"));

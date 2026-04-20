@@ -3,7 +3,7 @@
 	//import { MonitorsController } from "$lib/monitors/monitors.svelte";
 	import { MonitorsDisplayOptions } from "./monitors-display-options.svelte";
 	import { monitorsMapIntegration } from "./monitors-map-integration.svelte";
-	import { mapManager } from "$lib/map/map.svelte";
+	//import { mapManager } from "$lib/map/map.svelte";
 
 	//const mc = new MonitorsController();
 	//const mi = new MonitorsMapIntegration();
@@ -87,7 +87,6 @@
 			<label for={option.label} class="cursor-pointer whitespace-nowrap select-none">
 				<input type="checkbox" id={option.label} name={option.label} bind:checked={option.value} />
 				{option.label}
-				{option.value}
 			</label>
 		{/each}
 	</DisplayOption>
