@@ -7,7 +7,6 @@ import {
 } from "@maptiler/sdk";
 import type { MonitorData, MonitorType } from "@sjvair/sdk";
 import { cast } from "@tstk/utils";
-import { untrack } from "svelte";
 import type { Feature, Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
@@ -192,13 +191,29 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		return ["all", monitorFilters, locationFilters, statusFilters];
 	});
 
-	// Groups features by monitor type for per-type cluster sources.
-	// sjvair purpleair is remapped to "airgradient" since they share the same shape (circle).
+	// Groups features by monitor type for per-type cluster sources, applying display option
+	// filters so cluster aggregates only include visible monitors. sjvair purpleair is remapped
+	// to "airgradient" since they share the same shape (circle).
 	get featuresByType(): Map<string, MonitorMapFeature[]> {
+		const opts = this.displayOptions;
 		const byType = new Map<string, MonitorMapFeature[]>();
+
 		for (const feat of this.features) {
-			const type = feat.properties.type;
-			const key = type === "purpleair" && feat.properties.is_sjvair ? "airgradient" : type;
+			const p = feat.properties;
+
+			if (!p.is_active && !opts.inactive.value) continue;
+			if (p.location === "inside" && !opts.inside.value) continue;
+
+			const typeVisible: Partial<Record<MonitorType, boolean>> = {
+				purpleair: p.is_sjvair ? opts.sjvair.value : opts.purpleair.value,
+				airgradient: opts.sjvair.value,
+				aqview: opts.aqview.value,
+				bam1022: opts.bam1022.value,
+				airnow: opts.airnow.value
+			};
+			if (!(typeVisible[p.type] ?? true)) continue;
+
+			const key = p.type === "purpleair" && p.is_sjvair ? "airgradient" : p.type;
 			const arr = byType.get(key) ?? [];
 			arr.push(feat);
 			byType.set(key, arr);
@@ -259,20 +274,20 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				}
 			});
 
-			// Keep cluster source data in sync when features change (clustered mode only)
+			// Keep cluster source data in sync when features or display options change
 			$effect(() => {
 				const featuresByType = this.featuresByType;
 				if (!mapManager.map || !this.clustered) return;
 
-				for (const [type, features] of featuresByType.entries()) {
-					mapManager.setDataSource(`${this.referenceId}-${type}`, features);
+				for (const type of this._clusterTypes) {
+					mapManager.setDataSource(`${this.referenceId}-${type}`, featuresByType.get(type) ?? []);
 				}
 			});
 
-			// Re-apply when the clustered flag changes, without tracking mapManager.map
+			// Re-apply when the clustered flag or map instance changes
 			$effect(() => {
-				this.clustered; // track
-				if (untrack(() => mapManager.map)) {
+				const clustered = this.clustered;
+				if (mapManager.map) {
 					this.apply();
 				}
 			});
