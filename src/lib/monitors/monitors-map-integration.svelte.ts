@@ -28,88 +28,6 @@ export interface MonitorMarkerProperties {
 	value: string;
 }
 
-//const REFERENCE_ID: string = "monitors";
-//const icons: MonitorsIconManager = new MonitorsIconManager();
-//const tooltipManager: TooltipManager = new TooltipManager();
-
-//const features: Array<MonitorMapFeature> = $derived.by(() => {
-//	console.log("updating monitor features");
-//
-//	if (!monitorsManager.meta || !monitorsManager.latest || !monitorsManager.pollutant) {
-//		return [];
-//	}
-//	const levels = monitorsManager.meta.entryType(monitorsManager.pollutant).asIter.levels;
-//
-//	return Array.from(
-//		monitorsManager.latest.values().map((m) => {
-//			const feature: MonitorMapFeature = {
-//				type: "Feature",
-//				properties: {
-//					icon: "outside-default-square",
-//					id: m.id,
-//					is_active: m.is_active,
-//					is_sjvair: m.is_sjvair,
-//					location: m.location,
-//					name: m.name,
-//					order: getOrder(m),
-//					type: m.type,
-//					value: m.latest.value
-//				},
-//				geometry: m.position! as Geometry
-//			};
-//
-//			if (levels) {
-//				const level = levels.find((lvl) => {
-//					const value = parseInt(m.latest.value, 10);
-//					return value >= lvl.range[0] && value <= lvl.range[1];
-//				});
-//
-//				if (level) {
-//					feature.properties.icon = getIconId(m, level);
-//				}
-//			}
-//
-//			return feature;
-//		})
-//	);
-//});
-//export function getFeatures(): Array<MonitorMapFeature> {
-//	return features;
-//}
-
-//export const mapLayer: Parameters<MaptilerMap["addLayer"]>[0] = {
-//	id: REFERENCE_ID,
-//	type: "symbol",
-//	source: REFERENCE_ID,
-//	//filter: this.filters,
-//	layout: {
-//		"symbol-sort-key": ["get", "order"],
-//		"icon-allow-overlap": true,
-//		"icon-ignore-placement": true,
-//		"icon-image": ["get", "icon"],
-//		"icon-size": 1
-//	},
-//	paint: {}
-//};
-
-//function getIconShape(monitorType: string): string {
-//  switch (monitorType) {
-//    case "airgradient":
-//      return "circle";
-//
-//    case "airnow":
-//    case "aqview":
-//    case "bam1022":
-//      return "triangle";
-//
-//    case "purpleair":
-//      return "square";
-//
-//    default:
-//      throw new Error(`Icon shape for ${monitorType} has not been set`);
-//  }
-//}
-
 function getOrder(monitor: MonitorData): number {
 	switch (monitor.type) {
 		case "airgradient":
@@ -230,7 +148,6 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		);
 	});
 
-	//filters: FilterSpecification = ["all"] as FilterSpecification;
 	filters: FilterSpecification = $derived.by((): FilterSpecification => {
 		const monitorFilters: ExpressionSpecification = ["any"];
 		const locationFilters: ExpressionSpecification = [
@@ -248,14 +165,6 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		if (this.displayOptions.inside.value)
 			locationFilters.push(["==", ["get", "location"], "inside"]);
 		if (this.displayOptions.inactive.value) statusFilters.push(["==", ["get", "is_active"], false]);
-
-		//if (display.otherOptions.find(o => o.label === "PurpleAir")?.value) monitorFilters.push(filters.purpleair());
-		//if (display.otherOptions.find(o => o.label === "AQview")?.value) monitorFilters.push(filters.monitor("aqview"));
-		//if (display.otherOptions.find(o => o.label === "SJVAir FEM")?.value) monitorFilters.push(filters.monitor("bam1022"));
-		//if (display.otherOptions.find(o => o.label === "AirNow")?.value) monitorFilters.push(filters.monitor("airnow"));
-		//if (display.otherOptions.find(o => o.label === "SJVAir non-FEM")?.value) monitorFilters.push(filters.sjvPurpleair(), filters.monitor("airgradient"));
-		//if (display.otherOptions.find(o => o.label === "Inside")?.value) locationFilters.push(["==", ["get", "location"], "inside"]);
-		//if (display.otherOptions.find(o => o.label === "Inactive")?.value) statusFilters.push(["==", ["get", "is_active"], false]);
 
 		return ["all", monitorFilters, locationFilters, statusFilters];
 	});
