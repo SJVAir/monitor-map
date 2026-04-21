@@ -386,15 +386,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				source: sourceId,
 				filter: ["has", "point_count"],
 				layout: {
-					"text-field": [
-						"case",
-						[">", ["get", "countValues"], 0],
-						[
-							"to-string",
-							["round", ["/", ["get", "sumValues"], ["max", ["get", "countValues"], 1]]]
-						],
-						["to-string", ["get", "point_count_abbreviated"]]
-					],
+					"text-field": ["to-string", ["round", avgExpr]],
 					"text-size": 12,
 					"text-ignore-placement": true,
 					"text-allow-overlap": true
