@@ -5,7 +5,7 @@ import {
 	type MapLayerEventType,
 	type Map as MaptilerMap
 } from "@maptiler/sdk";
-import type { MonitorData, MonitorType } from "@sjvair/sdk";
+import type { MonitorType } from "@sjvair/sdk";
 import { cast } from "@tstk/utils";
 import { untrack } from "svelte";
 import type { Feature, Geometry } from "geojson";
@@ -29,7 +29,6 @@ export interface MonitorMarkerProperties {
 	type: MonitorType;
 	value: string;
 }
-
 
 const filters = {
 	monitor(deviceType: MonitorType): ExpressionSpecification {
@@ -76,7 +75,7 @@ class MapDisplayOption {
 class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
 	referenceId: string = "monitors";
 	enabled: boolean = $state(true);
-	clustered: boolean = $state(false);
+	clustered: boolean = $state(true);
 
 	icons: MonitorsIconManager = new MonitorsIconManager();
 	tooltipManager: TooltipManager = new TooltipManager();
