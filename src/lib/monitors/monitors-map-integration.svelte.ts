@@ -294,7 +294,12 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 	private applyClusters() {
 		if (!mapManager.map) return;
 
-		for (const [type, features] of this.featuresByType.entries()) {
+		const sortedEntries = [...this.featuresByType.entries()].sort(([, a], [, b]) => {
+			const maxOrder = (fs: MonitorMapFeature[]) => fs.reduce((m, f) => Math.max(m, f.properties.order), 0);
+			return maxOrder(a) - maxOrder(b);
+		});
+
+		for (const [type, features] of sortedEntries) {
 			const sourceId = `${this.referenceId}-${type}`;
 			const avgExpr: ExpressionSpecification = [
 				"/",
