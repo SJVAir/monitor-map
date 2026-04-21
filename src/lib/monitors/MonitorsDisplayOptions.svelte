@@ -16,6 +16,10 @@
 		</label>
 
 	{#each Object.entries(monitorsMapIntegration.displayOptions) as [id, option] (option.label)}
+		{@const inputId = `${id}-monitor-display-option`}
+		<label for={inputId} class="cursor-pointer whitespace-nowrap select-none">
+			<input type="checkbox" id={inputId} name={option.label} bind:checked={option.value} />
+			{option.label}
 		</label>
 
 		{#each Object.values(monitorsMapIntegration.displayOptions) as option (option.label)}
