@@ -1,18 +1,12 @@
 <script lang="ts">
-	import type { Attachment } from "svelte/attachments";
 	import "@maptiler/sdk/dist/maptiler-sdk.css";
-	import { MapController, type MapConfig } from "./map.svelte.ts";
+	import { initializeMap } from "./map.svelte.ts";
+	import { integrationsManager } from "$lib/map/integrations/integrations-manager";
+	import type { SomeMapIntegration } from "./integrations/types.ts";
 
-	const { integrations }: Pick<MapConfig, "integrations"> = $props();
+	const { integrations }: { integrations: Array<SomeMapIntegration> } = $props();
 
-	const mapCtrl = new MapController();
-
-	const initMap: Attachment<HTMLDivElement> = (container: HTMLDivElement) => {
-		mapCtrl.init({
-			container,
-			integrations
-		});
-	};
+	integrationsManager.register(...integrations);
 </script>
 
-<div {@attach initMap} style="width: 100%; height: 100%;"></div>
+<div {@attach initializeMap} style="width: 100%; height: 100%;"></div>

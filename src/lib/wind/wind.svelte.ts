@@ -1,21 +1,20 @@
 import { Map as MaptilerMap } from "@maptiler/sdk";
 import { WindLayer } from "@maptiler/weather";
-import { Singleton } from "@tstk/decorators";
-import { Reactive } from "$lib/reactivity.svelte.ts";
-import { MapIntegration } from "../map/integrations.ts";
-import { BaseLayerSeperator } from "../map/base-layer-seperator.ts";
+import { baseLayerSeperator } from "../map/integrations/base-layer-seperator.ts";
+import { MapLayerIntegration } from "$lib/map/integrations/map-layer-integration.svelte.ts";
 
-@Singleton
-export class WindMapIntegration extends MapIntegration {
-  referenceId: string = "MapTiler Wind";
+class WindMapIntegration extends MapLayerIntegration {
+	referenceId: string = "MapTiler Wind";
 
-  beforeLayer = new BaseLayerSeperator().referenceId;
+	beforeLayer = baseLayerSeperator.referenceId;
 
-  @Reactive()
-  accessor enabled: boolean = false;
+	enabled: boolean = $state(false);
 
-  mapLayer: Parameters<MaptilerMap["addLayer"]>[0] = new WindLayer({
-    id: this.referenceId,
-    opacity: 0.5,
-  });
+	mapLayer = new WindLayer({
+		id: this.referenceId,
+		opacity: 0.5
+	}) as unknown as Parameters<MaptilerMap["addLayer"]>[0];
 }
+
+export const windMapIntegration = new WindMapIntegration();
+export type { WindMapIntegration };
