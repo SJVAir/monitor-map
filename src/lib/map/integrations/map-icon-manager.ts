@@ -30,12 +30,23 @@ export class MapIconManager {
 		this.icons.set(id, imageIcon);
 	}
 
-	protected async loadImage(icon: MapImageIcon, map: MaptilerMap): Promise<void> {
-		if (!mapManager.map) return;
+	protected loadImage(icon: MapImageIcon, map: MaptilerMap): Promise<void> {
+		return this.applyImage("add", icon, map);
+	}
+
+	protected updateImage(icon: MapImageIcon, map: MaptilerMap): Promise<void> {
+		return this.applyImage("update", icon, map);
+	}
+
+	private applyImage(action: "add" | "update", icon: MapImageIcon, map: MaptilerMap): Promise<void> {
+		const apply = () =>
+			action === "add"
+				? map.addImage(icon.id, icon.image)
+				: map.updateImage(icon.id, icon.image);
 		if (!icon.image.complete) {
 			return new Promise((resolve, reject) => {
 				icon.image.onload = () => {
-					map.addImage(icon.id, icon.image);
+					apply();
 					resolve();
 				};
 				icon.image.onerror = (err) => {
@@ -43,7 +54,7 @@ export class MapIconManager {
 				};
 			});
 		} else {
-			map.addImage(icon.id, icon.image);
+			apply();
 			return Promise.resolve();
 		}
 	}
