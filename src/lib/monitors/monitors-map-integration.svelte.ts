@@ -295,7 +295,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		if (!mapManager.map) return;
 
 		const sortedEntries = [...this.featuresByType.entries()].sort(([, a], [, b]) => {
-			const maxOrder = (fs: MonitorMapFeature[]) => fs.reduce((m, f) => Math.max(m, f.properties.order), 0);
+			const maxOrder = (fs: MonitorMapFeature[]) =>
+				fs.reduce((m, f) => Math.max(m, f.properties.order), 0);
 			return maxOrder(a) - maxOrder(b);
 		});
 
