@@ -29,42 +29,6 @@ export function getIconId<T extends MonitorData>(monitor: T, level: SJVAirEntryL
 	}
 }
 
-//export function genMonitorIcons() {
-//	const levels = monitorsManager.levels;
-//	if (levels) {
-//		const iconLevels = [...levels, { name: "default", color: MONITOR_ICON_DEFAULT_COLOR }];
-//
-//		for (const location of ["inside", "outside"]) {
-//			for (const [shapeName, shape] of Object.entries(MONITOR_ICONS)) {
-//				for (const level of iconLevels) {
-//					const id = `${location}-${level.name}-${shapeName}`;
-//					const src = asDataURI(
-//						shape(
-//							level.color,
-//							MONITOR_ICON_BORDER_WIDTH,
-//							location === "inside" ? "#000000" : undefined
-//						)
-//					);
-//
-//					if (this.icons.has(id)) {
-//						const icon = this.icons.get(id);
-//						if (icon.image.src === src) {
-//							continue;
-//						}
-//					} else {
-//						const icon = new Image();
-//						icon.src = src;
-//						icon.width = MONITOR_ICON_WIDTH;
-//						icon.height = MONITOR_ICON_HEIGHT;
-//
-//						this.register(id, icon);
-//					}
-//				}
-//			}
-//		}
-//	}
-//}
-
 export class MonitorsIconManager extends MapIconManager {
 	constructor() {
 		super();
