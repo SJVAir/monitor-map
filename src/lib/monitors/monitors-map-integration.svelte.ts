@@ -14,6 +14,7 @@ import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integra
 import { monitorsManager } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
+import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte.ts";
 import { getOrder, getTypeShape } from "./monitor-utils.ts";
 
 export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
@@ -59,16 +60,6 @@ function monitorTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | v
           <br/>
           is_sjvair: ${feature.properties.is_sjvair}
         </div>`);
-	}
-}
-
-class MapDisplayOption {
-	label: string;
-	value: boolean;
-
-	constructor(label: string, value: boolean) {
-		this.label = label;
-		this.value = $state(value);
 	}
 }
 
