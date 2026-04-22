@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	import LoadScreen, { disable } from "$lib/LoadScreen.svelte";
+	import LoadScreen, { disable as disableLoadScreen } from "$lib/LoadScreen.svelte";
 	import Map from "$lib/map/Map.svelte";
 	import Menu from "$lib/map/Menu.svelte";
 	import MonitorsDisplayOptions from "$lib/monitors/MonitorsDisplayOptions.svelte";
@@ -23,7 +23,7 @@
 
 	$effect(() => {
 		if (mapManager.map && monitorsManager.initialized) {
-			mapManager.map.once("idle", () => disable());
+			mapManager.map.once("idle", () => disableLoadScreen());
 		}
 	});
 
