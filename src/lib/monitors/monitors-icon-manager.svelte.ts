@@ -34,7 +34,6 @@ export class MonitorsIconManager extends MapIconManager {
 	constructor() {
 		super();
 
-		// TODO: decide if $effect should be kept, or this.icons should be converted to $derived
 		$effect.root(() => {
 			$effect(() => {
 				if (monitorsManager.levels) {
