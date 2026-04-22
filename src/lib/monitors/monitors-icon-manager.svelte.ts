@@ -1,6 +1,7 @@
 import type { MonitorData, SJVAirEntryLevel } from "@sjvair/sdk";
 import { asDataURI, circle, square, triangle } from "$lib/map/icons.ts";
 import { MapIconManager } from "$lib/map/integrations/map-icon-manager.ts";
+import { mapManager } from "$lib/map/map.svelte.ts";
 import { monitorsManager } from "./monitors.svelte.ts";
 
 const MONITOR_ICONS = { circle, square, triangle };
@@ -56,9 +57,13 @@ export class MonitorsIconManager extends MapIconManager {
 
 								if (this.icons.has(id)) {
 									const icon = this.icons.get(id);
-									if (icon.image.src === src) {
-										continue;
+									if (icon.image.src !== src) {
+										icon.image.src = src;
+										if (mapManager.map?.hasImage(id)) {
+											this.updateImage(icon, mapManager.map);
+										}
 									}
+									continue;
 								} else {
 									const icon = new Image();
 									icon.src = src;
