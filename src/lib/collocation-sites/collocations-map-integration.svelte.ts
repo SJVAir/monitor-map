@@ -2,7 +2,10 @@ import { Popup, type MapLayerEventType, type Map as MaptilerMap } from "@maptile
 import type { Feature, Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
-import { CollocationIconManager, getCollocationIconId } from "./collocations-icon-manager.svelte.ts";
+import {
+	CollocationIconManager,
+	getCollocationIconId
+} from "./collocations-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { collocationSitesManager } from "./collocations.svelte.ts";
 import { monitorsManager } from "$lib/monitors/monitors.svelte.ts";
@@ -55,7 +58,6 @@ class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSi
 		) {
 			return [];
 		}
-		//const levels = monitorsManager.meta.entryType(monitorsManager.pollutant).asIter.levels;
 
 		return collocationSitesManager.collocationSites.map((c) => {
 			const referenceMonitorFeature = monitorsMapIntegration.features.find(
@@ -72,17 +74,6 @@ class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSi
 				},
 				geometry: c.position! as Geometry
 			};
-
-			//if (levels) {
-			//	const level = levels.find((lvl) => {
-			//		const value = parseInt(c.latest.value, 10);
-			//		return value >= lvl.range[0] && value <= lvl.range[1];
-			//	});
-
-			//	if (level) {
-			//		feature.properties.icon = getIconId(c, level);
-			//	}
-			//}
 
 			return feature;
 		});
@@ -118,6 +109,8 @@ class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSi
 		if (!this.tooltipManager.has(this.referenceId)) {
 			this.tooltipManager.register(this.referenceId, collocationTooltip);
 		}
+
+		this.tooltipManager.enable();
 
 		super.apply();
 	}
