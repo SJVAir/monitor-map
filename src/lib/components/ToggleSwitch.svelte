@@ -2,21 +2,25 @@
 	interface ToggleSwitchProps {
 		id: string;
 		label: string;
+		reverse?: boolean;
 		value: boolean;
 	}
 
-	let { id, label, value = $bindable() }: ToggleSwitchProps = $props();
+	let { id, label, reverse, value = $bindable() }: ToggleSwitchProps = $props();
 </script>
 
 <label
 	for={id}
-	class="flex cursor-pointer items-center justify-center whitespace-nowrap select-none"
+	class={[
+		"flex cursor-pointer items-center justify-center gap-x-[0.25em] whitespace-nowrap select-none",
+		{ "flex-row-reverse": reverse }
+	]}
 >
+	{label}
 	<div class="switch">
 		<input class="switch-input" type="checkbox" {id} name={id} bind:checked={value} />
 		<span class="slider round"></span>
 	</div>
-	{label}
 </label>
 
 <style>
@@ -32,7 +36,7 @@
 		display: inline-block;
 		width: var(--track-width);
 		height: var(--track-height);
-		margin-right: 0.75em;
+		transform: scale(0.8);
 
 		.switch-input {
 			opacity: 0;

@@ -14,6 +14,7 @@ import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integra
 import { monitorsManager } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
+import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte.ts";
 import { getOrder, getTypeShape } from "./monitor-utils.ts";
 
 export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
@@ -42,7 +43,17 @@ const filters = {
 	}
 };
 
+function clusterTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
+	console.log("running clusterTooltip");
+	return new Popup({ closeButton: false, closeOnClick: false }).setLngLat(evt.lngLat).setHTML(`
+        <div>
+          <h1>Hello, World<h1/>
+        </div>
+`);
+}
+
 function monitorTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
+	console.log("running monitorTooltip");
 	const feature = cast<MonitorMapFeature, Array<MonitorMapFeature>>(evt.features, (features) => {
 		features.sort((a, b) => b.properties.order - a.properties.order);
 		return features[0];
@@ -59,16 +70,6 @@ function monitorTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | v
           <br/>
           is_sjvair: ${feature.properties.is_sjvair}
         </div>`);
-	}
-}
-
-class MapDisplayOption {
-	label: string;
-	value: boolean;
-
-	constructor(label: string, value: boolean) {
-		this.label = label;
-		this.value = $state(value);
 	}
 }
 
@@ -268,7 +269,10 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		if (!mapManager.map) return;
 
 		if (!this.tooltipManager.has(this.referenceId)) {
+			console.log("registering monitorTooltip");
 			this.tooltipManager.register(this.referenceId, monitorTooltip);
+			console.log("registering clusterTooltip");
+			this.tooltipManager.register(this.referenceId, clusterTooltip);
 		}
 
 		if (this.clustered) {
@@ -277,7 +281,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			this.removeClusters();
 			this.icons.loadIcons().then(() => {
 				this.applyClusters();
-				this.tooltipManager.disable();
+				//this.tooltipManager.disable();
+				this.tooltipManager.enable();
 			});
 		} else {
 			this.removeClusters();
@@ -295,7 +300,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		if (!mapManager.map) return;
 
 		const sortedEntries = [...this.featuresByType.entries()].sort(([, a], [, b]) => {
-			const maxOrder = (fs: MonitorMapFeature[]) => fs.reduce((m, f) => Math.max(m, f.properties.order), 0);
+			const maxOrder = (fs: MonitorMapFeature[]) =>
+				fs.reduce((m, f) => Math.max(m, f.properties.order), 0);
 			return maxOrder(a) - maxOrder(b);
 		});
 

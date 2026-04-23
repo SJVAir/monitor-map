@@ -19,20 +19,31 @@ export class TooltipManager {
 		return this._tooltips.values();
 	}
 
-	enable() {
+	enable(layerId?: string) {
 		if (!mapManager.map || this.isEnabled) return;
 		mapManager.map.on("zoom", handleZoom);
-		for (const tooltip of this.tooltips) {
+
+		if (layerId !== undefined && this._tooltips.has(layerId)) {
+			const tooltip = this._tooltips.get(layerId);
 			tooltip.enable();
+		} else {
+			for (const tooltip of this.tooltips) {
+				tooltip.enable();
+			}
 		}
 		this.isEnabled = true;
 	}
 
-	disable() {
+	disable(layerId?: string) {
 		if (!mapManager.map || !this.isEnabled) return;
 		mapManager.map.off("zoom", handleZoom);
-		for (const tooltip of this.tooltips) {
+		if (layerId !== undefined && this._tooltips.has(layerId)) {
+			const tooltip = this._tooltips.get(layerId);
 			tooltip.disable();
+		} else {
+			for (const tooltip of this.tooltips) {
+				tooltip.disable();
+			}
 		}
 		this.isEnabled = false;
 	}

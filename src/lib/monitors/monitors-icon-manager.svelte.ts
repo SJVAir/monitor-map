@@ -1,11 +1,10 @@
 import type { MonitorData, SJVAirEntryLevel } from "@sjvair/sdk";
 import { asDataURI, circle, square, triangle } from "$lib/map/icons.ts";
 import { MapIconManager } from "$lib/map/integrations/map-icon-manager.ts";
+import { mapManager } from "$lib/map/map.svelte.ts";
 import { monitorsManager } from "./monitors.svelte.ts";
 
 const MONITOR_ICONS = { circle, square, triangle };
-const MONITOR_ICON_WIDTH = 24;
-const MONITOR_ICON_HEIGHT = 24;
 const MONITOR_ICON_BORDER_WIDTH = 2;
 const MONITOR_ICON_DEFAULT_COLOR = "#969696"; // light gray
 
@@ -29,47 +28,14 @@ export function getIconId<T extends MonitorData>(monitor: T, level: SJVAirEntryL
 	}
 }
 
-//export function genMonitorIcons() {
-//	const levels = monitorsManager.levels;
-//	if (levels) {
-//		const iconLevels = [...levels, { name: "default", color: MONITOR_ICON_DEFAULT_COLOR }];
-//
-//		for (const location of ["inside", "outside"]) {
-//			for (const [shapeName, shape] of Object.entries(MONITOR_ICONS)) {
-//				for (const level of iconLevels) {
-//					const id = `${location}-${level.name}-${shapeName}`;
-//					const src = asDataURI(
-//						shape(
-//							level.color,
-//							MONITOR_ICON_BORDER_WIDTH,
-//							location === "inside" ? "#000000" : undefined
-//						)
-//					);
-//
-//					if (this.icons.has(id)) {
-//						const icon = this.icons.get(id);
-//						if (icon.image.src === src) {
-//							continue;
-//						}
-//					} else {
-//						const icon = new Image();
-//						icon.src = src;
-//						icon.width = MONITOR_ICON_WIDTH;
-//						icon.height = MONITOR_ICON_HEIGHT;
-//
-//						this.register(id, icon);
-//					}
-//				}
-//			}
-//		}
-//	}
-//}
+export abstract class MonitorShapeIconManager extends MapIconManager {
+	protected abstract get idPrefix(): string;
+	protected abstract transformSvg(svg: string): string;
+	protected get iconSize(): number { return 24; }
 
-export class MonitorsIconManager extends MapIconManager {
 	constructor() {
 		super();
 
-		// TODO: decide if $effect should be kept, or this.icons should be converted to $derived
 		$effect.root(() => {
 			$effect(() => {
 				if (monitorsManager.levels) {
@@ -81,26 +47,32 @@ export class MonitorsIconManager extends MapIconManager {
 					for (const location of ["inside", "outside"]) {
 						for (const [shapeName, shape] of Object.entries(MONITOR_ICONS)) {
 							for (const level of iconLevels) {
-								const id = `${location}-${level.name}-${shapeName}`;
+								const parts = [this.idPrefix, location, level.name, shapeName].filter(Boolean);
+								const id = parts.join("-");
 								const src = asDataURI(
-									shape(
-										level.color,
-										MONITOR_ICON_BORDER_WIDTH,
-										location === "inside" ? "#000000" : undefined
+									this.transformSvg(
+										shape(
+											level.color,
+											MONITOR_ICON_BORDER_WIDTH,
+											location === "inside" ? "#000000" : undefined
+										)
 									)
 								);
 
 								if (this.icons.has(id)) {
-									const icon = this.icons.get(id);
-									if (icon.image.src === src) {
-										continue;
+									const icon = this.icons.get(id)!;
+									if (icon.image.src !== src) {
+										icon.image.src = src;
+										if (mapManager.map?.hasImage(id)) {
+											this.updateImage(icon, mapManager.map);
+										}
 									}
+									continue;
 								} else {
 									const icon = new Image();
 									icon.src = src;
-									icon.width = MONITOR_ICON_WIDTH;
-									icon.height = MONITOR_ICON_HEIGHT;
-
+									icon.width = this.iconSize;
+									icon.height = this.iconSize;
 									this.register(id, icon);
 								}
 							}
@@ -110,4 +82,9 @@ export class MonitorsIconManager extends MapIconManager {
 			});
 		});
 	}
+}
+
+export class MonitorsIconManager extends MonitorShapeIconManager {
+	protected get idPrefix(): string { return ""; }
+	protected transformSvg(svg: string): string { return svg; }
 }
