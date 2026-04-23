@@ -43,7 +43,17 @@ const filters = {
 	}
 };
 
+function clusterTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
+	console.log("running clusterTooltip");
+	return new Popup({ closeButton: false, closeOnClick: false }).setLngLat(evt.lngLat).setHTML(`
+        <div>
+          <h1>Hello, World<h1/>
+        </div>
+`);
+}
+
 function monitorTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
+	console.log("running monitorTooltip");
 	const feature = cast<MonitorMapFeature, Array<MonitorMapFeature>>(evt.features, (features) => {
 		features.sort((a, b) => b.properties.order - a.properties.order);
 		return features[0];
@@ -259,7 +269,10 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		if (!mapManager.map) return;
 
 		if (!this.tooltipManager.has(this.referenceId)) {
+			console.log("registering monitorTooltip");
 			this.tooltipManager.register(this.referenceId, monitorTooltip);
+			console.log("registering clusterTooltip");
+			this.tooltipManager.register(this.referenceId, clusterTooltip);
 		}
 
 		if (this.clustered) {
@@ -268,7 +281,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			this.removeClusters();
 			this.icons.loadIcons().then(() => {
 				this.applyClusters();
-				this.tooltipManager.disable();
+				//this.tooltipManager.disable();
+				this.tooltipManager.enable();
 			});
 		} else {
 			this.removeClusters();
