@@ -2,7 +2,7 @@ import { Popup, type MapLayerEventType, type Map as MaptilerMap } from "@maptile
 import type { Feature, Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
-import { MonitorsIconManager } from "./collocations-icon-manager.svelte.ts";
+import { CollocationIconManager, getCollocationIconId } from "./collocations-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { collocationSitesManager } from "./collocations.svelte.ts";
 import { monitorsManager } from "$lib/monitors/monitors.svelte.ts";
@@ -44,7 +44,7 @@ class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSi
 	enabled: boolean = $state(false);
 	clustered: boolean = $state(true);
 
-	icons: MonitorsIconManager = new MonitorsIconManager();
+	icons: CollocationIconManager = new CollocationIconManager();
 	tooltipManager: TooltipManager = new TooltipManager();
 
 	features: Array<CollocationSiteMapFeature> = $derived.by(() => {
@@ -65,7 +65,7 @@ class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSi
 			const feature: CollocationSiteMapFeature = {
 				type: "Feature",
 				properties: {
-					icon: referenceMonitorFeature!.properties.icon,
+					icon: getCollocationIconId(referenceMonitorFeature!.properties.icon),
 					colocated_id: c.colocated_id,
 					reference_id: c.reference_id,
 					name: c.name
