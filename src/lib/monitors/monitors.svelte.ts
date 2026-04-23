@@ -1,9 +1,7 @@
 import {
-	getCollocationSites,
 	getMonitors,
 	getMonitorsLatest,
 	getMonitorsMeta,
-	type CollocationSite,
 	type MonitorData,
 	type MonitorLatestType,
 	type MonitorsMeta,
@@ -16,7 +14,6 @@ class MonitorsManager {
 	autoUpdate: Interval = new Interval(async () => await this.update(), 2 * 60 * 1000);
 	initialized: boolean = $state(false);
 
-	collocationSites: Array<CollocationSite> | null = $state(null);
 	latest: XMap<string, MonitorLatestType<"pm25" | "o3">> | null = $state(null);
 	list: Array<MonitorData> | null = $state(null);
 
@@ -31,11 +28,7 @@ class MonitorsManager {
 	async init(): Promise<void> {
 		if (this.initialized) return;
 
-		[this.collocationSites, this.list, this.meta] = await Promise.all([
-			getCollocationSites(),
-			getMonitors(),
-			getMonitorsMeta()
-		]);
+		[this.list, this.meta] = await Promise.all([getMonitors(), getMonitorsMeta()]);
 
 		this.pollutant = this.meta.default_pollutant;
 		this.latest = await getMonitorsLatestMap(this.pollutant);
@@ -46,8 +39,7 @@ class MonitorsManager {
 	async update(): Promise<void> {
 		if (!this.initialized) return;
 
-		[this.collocationSites, this.list, this.latest] = await Promise.all([
-			getCollocationSites(),
+		[this.list, this.latest] = await Promise.all([
 			getMonitors(),
 			getMonitorsLatestMap(this.pollutant || this.meta?.default_pollutant || "pm25")
 		]);
