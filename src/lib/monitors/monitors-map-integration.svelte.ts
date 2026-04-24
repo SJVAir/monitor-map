@@ -1,3 +1,4 @@
+import { mount, unmount } from "svelte";
 import {
 	Popup,
 	type ExpressionSpecification,
@@ -6,7 +7,6 @@ import {
 	type Map as MaptilerMap
 } from "@maptiler/sdk";
 import type { MonitorType } from "@sjvair/sdk";
-import { cast } from "@tstk/utils";
 import { untrack } from "svelte";
 import type { Feature, Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
@@ -16,6 +16,7 @@ import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.t
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte.ts";
 import { getOrder, getTypeShape } from "./monitor-utils.ts";
+import DataBox from "$lib/components/DataBox.svelte";
 
 export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
 
@@ -31,6 +32,8 @@ export interface MonitorMarkerProperties {
 	value: string;
 }
 
+const databoxLabel = $derived(monitorsManager.pollutant === "pm25" ? "PM2.5" : "Ozone");
+
 const filters = {
 	monitor(deviceType: MonitorType): ExpressionSpecification {
 		return ["==", ["get", "type"], deviceType];
@@ -44,32 +47,65 @@ const filters = {
 };
 
 function clusterTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
-	console.log("running clusterTooltip");
-	return new Popup({ closeButton: false, closeOnClick: false }).setLngLat(evt.lngLat).setHTML(`
-        <div>
-          <h1>Hello, World<h1/>
-        </div>
-`);
+	const feature = evt.features?.[0];
+	if (!feature) return;
+
+	const sum = feature.properties.sumValues as number;
+	const count = feature.properties.countValues as number;
+	const avg = Math.round(sum / Math.max(count, 1));
+
+	const container = document.createElement("div");
+	const databox = mount(DataBox, {
+		target: container,
+		props: {
+			color: "#FF0000",
+			header: databoxLabel,
+			subheading: "(averaged)",
+			value: avg.toString()
+		}
+	});
+
+	const popup = new Popup({ closeButton: false, closeOnClick: false })
+		.setLngLat(evt.lngLat)
+		.setDOMContent(container);
+
+	popup.on("close", () => unmount(databox));
+
+	return popup;
 }
 
 function monitorTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
-	console.log("running monitorTooltip");
-	const feature = cast<MonitorMapFeature, Array<MonitorMapFeature>>(evt.features, (features) => {
-		features.sort((a, b) => b.properties.order - a.properties.order);
-		return features[0];
-	});
+	const features = evt.features as unknown as Array<MonitorMapFeature> | undefined;
+	const feature = features?.sort((a, b) => b.properties.order - a.properties.order)[0];
 
 	if (feature) {
-		return new Popup({ closeButton: false, closeOnClick: false }).setLngLat(evt.lngLat).setHTML(`
-        <div>
-          <strong>${feature.properties.name}</strong>
-          <br/>
-          Value: ${feature.properties.value}PM2.5
-          <br/>
-          location: ${feature.properties.location}
-          <br/>
-          is_sjvair: ${feature.properties.is_sjvair}
-        </div>`);
+		const container = document.createElement("div");
+		const databox = mount(DataBox, {
+			target: container,
+			props: {
+				color: "#FF0000",
+				header: databoxLabel,
+				subheading: "(averaged)",
+				value: feature.properties.value
+			}
+		});
+
+		const popup = new Popup({ closeButton: false, closeOnClick: false })
+			.setLngLat(evt.lngLat)
+			.setDOMContent(container);
+
+		popup.on("close", () => unmount(databox));
+		//return new Popup({ closeButton: false, closeOnClick: false }).setLngLat(evt.lngLat).setHTML(`
+		//    <div>
+		//      <strong>${feature.properties.name}</strong>
+		//      <br/>
+		//      Value: ${feature.properties.value}PM2.5
+		//      <br/>
+		//      location: ${feature.properties.location}
+		//      <br/>
+		//      is_sjvair: ${feature.properties.is_sjvair}
+		//    </div>`);
+		return popup;
 	}
 }
 
@@ -269,22 +305,20 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		if (!mapManager.map) return;
 
 		if (!this.tooltipManager.has(this.referenceId)) {
-			console.log("registering monitorTooltip");
 			this.tooltipManager.register(this.referenceId, monitorTooltip);
-			console.log("registering clusterTooltip");
-			this.tooltipManager.register(this.referenceId, clusterTooltip);
 		}
 
 		if (this.clustered) {
 			if (mapManager.map.getLayer(this.referenceId)) mapManager.map.removeLayer(this.referenceId);
 			if (mapManager.map.getSource(this.referenceId)) mapManager.map.removeSource(this.referenceId);
+			this.tooltipManager.disable();
 			this.removeClusters();
 			this.icons.loadIcons().then(() => {
 				this.applyClusters();
-				//this.tooltipManager.disable();
 				this.tooltipManager.enable();
 			});
 		} else {
+			this.tooltipManager.disable();
 			this.removeClusters();
 			this.tooltipManager.enable();
 			super.apply();
@@ -329,6 +363,13 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			this.clusterCountLayer(sourceId, avgExpr);
 			this.unclusteredLayer(sourceId);
 
+			if (!this.tooltipManager.has(`${sourceId}-cluster-icon`)) {
+				this.tooltipManager.register(`${sourceId}-cluster-icon`, clusterTooltip);
+			}
+			if (!this.tooltipManager.has(`${sourceId}-unclustered`)) {
+				this.tooltipManager.register(`${sourceId}-unclustered`, monitorTooltip);
+			}
+
 			this._clusterTypes.push(type);
 		}
 	}
@@ -340,7 +381,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			const sourceId = `${this.referenceId}-${type}`;
 			for (const layerId of [
 				`${sourceId}-cluster-icon`,
-				`${sourceId}-cluster-count`,
+				`${sourceId}-cluster-average`,
 				`${sourceId}-unclustered`
 			]) {
 				if (mapManager.map.getLayer(layerId)) {
@@ -392,7 +433,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 	private clusterCountLayer(sourceId: string, avgExpr: ExpressionSpecification) {
 		mapManager.map?.addLayer(
 			{
-				id: `${sourceId}-cluster-count`,
+				id: `${sourceId}-cluster-average`,
 				type: "symbol",
 				source: sourceId,
 				filter: ["has", "point_count"],
