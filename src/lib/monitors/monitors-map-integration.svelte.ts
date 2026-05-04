@@ -15,7 +15,7 @@ import { monitorsManager } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte.ts";
-import { getOrder, getTypeShape } from "./monitor-utils.ts";
+import { getCurrentLevel, getOrder, getTypeShape } from "./monitor-utils.ts";
 import DataBox from "$lib/components/DataBox.svelte";
 import MonitorTooltip from "./MonitorTooltip.svelte";
 import type { MonitorMapFeature, MonitorMarkerProperties } from "./types.ts";
@@ -68,31 +68,18 @@ function monitorTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | v
 
 	if (feature) {
 		const container = document.createElement("div");
-		const databox = mount(DataBox, {
+		const tooltipComponent = mount(MonitorTooltip, {
 			target: container,
 			props: {
-				color: "#FF0000",
-				header: databoxLabel,
-				subheading: "(averaged)",
-				value: feature.properties.value
+				feature: feature
 			}
 		});
 
-		const popup = new Popup({ closeButton: false, closeOnClick: false })
+		const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "none" })
 			.setLngLat(evt.lngLat)
 			.setDOMContent(container);
 
-		popup.on("close", () => unmount(databox));
-		//return new Popup({ closeButton: false, closeOnClick: false }).setLngLat(evt.lngLat).setHTML(`
-		//    <div>
-		//      <strong>${feature.properties.name}</strong>
-		//      <br/>
-		//      Value: ${feature.properties.value}PM2.5
-		//      <br/>
-		//      location: ${feature.properties.location}
-		//      <br/>
-		//      is_sjvair: ${feature.properties.is_sjvair}
-		//    </div>`);
+		popup.on("close", () => unmount(tooltipComponent));
 		return popup;
 	}
 }
@@ -142,10 +129,11 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				};
 
 				if (levels) {
-					const level = levels.find((lvl) => {
-						const value = parseInt(m.latest.value, 10);
-						return value >= lvl.range[0] && value <= lvl.range[1];
-					});
+					//const level = levels.find((lvl) => {
+					//	const value = parseInt(m.latest.value, 10);
+					//	return value >= lvl.range[0] && value <= lvl.range[1];
+					//});
+					const level = getCurrentLevel(m.latest.value, levels);
 
 					if (level) {
 						feature.properties.icon = getIconId(m, level);
@@ -181,9 +169,9 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 	// Groups features by monitor type for per-type cluster sources, applying display option
 	// filters so cluster aggregates only include visible monitors. sjvair purpleair is remapped
 	// to "airgradient" since they share the same shape (circle).
-	featuresByType: Map<string, MonitorMapFeature[]> = $derived.by(() => {
+	featuresByType: Record<string, MonitorMapFeature[]> = $derived.by(() => {
 		const opts = this.displayOptions;
-		const byType = new Map<string, MonitorMapFeature[]>();
+		const byType: Record<string, MonitorMapFeature[]> = {};
 
 		for (const feat of this.features) {
 			const p = feat.properties;
@@ -201,9 +189,9 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			if (!(typeVisible[p.type] ?? true)) continue;
 
 			const key = p.type === "purpleair" && p.is_sjvair ? "airgradient" : p.type;
-			const arr = byType.get(key) ?? [];
+			const arr = byType[key] ?? [];
 			arr.push(feat);
-			byType.set(key, arr);
+			byType[key] = arr;
 		}
 		return byType;
 	});
@@ -274,7 +262,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				if (!mapManager.map || !this.clustered) return;
 
 				for (const type of this._clusterTypes) {
-					mapManager.setDataSource(`${this.referenceId}-${type}`, featuresByType.get(type) ?? []);
+					mapManager.setDataSource(`${this.referenceId}-${type}`, featuresByType[type] ?? []);
 				}
 			});
 
@@ -282,7 +270,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			// base class already owns the map-load lifecycle. untrack on apply() prevents
 			// reactive reads inside it from leaking into this effect's dependency graph.
 			$effect(() => {
-				const clustered = this.clustered;
+				// Read to trigger reactivity on this.clustered
+				void this.clustered;
 				if (!untrack(() => mapManager.map)) return;
 				untrack(() => this.apply());
 			});
@@ -321,7 +310,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 	private applyClusters() {
 		if (!mapManager.map) return;
 
-		const sortedEntries = [...this.featuresByType.entries()].sort(([, a], [, b]) => {
+		const sortedEntries = Object.entries(this.featuresByType).sort(([, a], [, b]) => {
 			const maxOrder = (fs: MonitorMapFeature[]) =>
 				fs.reduce((m, f) => Math.max(m, f.properties.order), 0);
 			return maxOrder(a) - maxOrder(b);
