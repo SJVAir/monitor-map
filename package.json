@@ -52,6 +52,7 @@
     "@tstk/utils": "npm:@jsr/tstk__utils@^1.1.2",
     "@types/geojson": "^7946.0.16",
     "color2k": "^2.0.3",
+    "date-fns": "^4.1.0",
     "eslint": "^10.2.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.17.0",
