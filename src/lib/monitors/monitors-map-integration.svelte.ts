@@ -8,7 +8,7 @@ import {
 } from "@maptiler/sdk";
 import type { MonitorType } from "@sjvair/sdk";
 import { untrack } from "svelte";
-import type { Feature, Geometry } from "geojson";
+import type { Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
 import { monitorsManager } from "./monitors.svelte.ts";
@@ -17,20 +17,8 @@ import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte.ts";
 import { getOrder, getTypeShape } from "./monitor-utils.ts";
 import DataBox from "$lib/components/DataBox.svelte";
-
-export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
-
-export interface MonitorMarkerProperties {
-	icon: string;
-	id: string;
-	is_active: boolean;
-	is_sjvair?: boolean;
-	location: string;
-	name: string;
-	order: number;
-	type: MonitorType;
-	value: string;
-}
+import MonitorTooltip from "./MonitorTooltip.svelte";
+import type { MonitorMapFeature, MonitorMarkerProperties } from "./types.ts";
 
 const databoxLabel = $derived(monitorsManager.pollutant === "pm25" ? "PM2.5" : "Ozone");
 
