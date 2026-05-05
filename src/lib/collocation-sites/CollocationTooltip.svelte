@@ -71,7 +71,7 @@
 				</div>
 			</div>
 		{:else}
-			<h1>Reference monitor offline</h1>
+			<h1>Reference monitor disabled</h1>
 		{/if}
 		{#if data.collocated}
 			<div class="flex flex-row-reverse gap-2">
@@ -92,7 +92,7 @@
 				</div>
 			</div>
 		{:else}
-			<h1>Collocated monitor offline</h1>
+			<h1>Collocated monitor disabled</h1>
 		{/if}
 	</div>
 {/if}
