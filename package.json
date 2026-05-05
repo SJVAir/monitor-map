@@ -50,6 +50,8 @@
     "@tstk/decorators": "npm:@jsr/tstk__decorators@^1.0.5",
     "@tstk/types": "npm:@jsr/tstk__types@^1.1.0",
     "@tstk/utils": "npm:@jsr/tstk__utils@^1.1.2",
+    "@turf/area": "^7.3.5",
+    "@turf/helpers": "^7.3.5",
     "@types/geojson": "^7946.0.16",
     "color2k": "^2.0.3",
     "date-fns": "^4.1.0",
