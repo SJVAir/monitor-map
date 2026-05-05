@@ -20,6 +20,8 @@
 		clusterType: string;
 		count: number;
 		coverage?: number;
+		max: number;
+		min: number;
 	}
 
 	const { feature }: MonitorClusterTooltipProps = $props();
@@ -48,35 +50,40 @@
 				const monitorType = meta.monitorType(firstMonitor.type);
 
 				const coords = monitors.map((m) => m!.position!.coordinates);
+				const values = monitors.map((m) => parseFloat(m?.latest.value ?? "0"));
 
-				if (coords.length === 3) {
-					coords.push(coords[0]);
-				}
-				const polygon = {
-					type: "Feature",
-					geometry: {
-						type: "Polygon",
-						coordinates: [coords]
-					}
-				} as unknown as Geometry;
-
-				const coverage = area(polygon);
-				const avg = Math.round(
-					monitors.reduce((sum, m) => sum + parseFloat(m?.latest.value ?? "0"), 0) / monitors.length
-				);
+				const avg = Math.round(values.reduce((sum, value) => sum + value, 0) / monitors.length);
 
 				const level: SJVAirEntryLevel | undefined = getCurrentLevel(avg, entryType.asIter.levels!);
 
 				data = {
 					color: level?.color || "#d3d3d3",
 					count: feature.properties.point_count,
-					coverage: coverage > 0 ? convertArea(coverage, "meters", "miles") : undefined,
+					coverage: calculateArea(coords),
 					header: entryType.label,
 					clusterType: `${firstMonitor.is_sjvair ? "SJVAir " : ""}${monitorType.label} Monitors`,
 					subheading: "(Average)",
+					max: values.reduce((prev, current) => (prev > current ? prev : current)),
+					min: values.reduce((prev, current) => (prev < current ? prev : current)),
 					value: avg.toString()
 				};
 			});
+
+		function calculateArea(coords: Array<Array<number>>) {
+			if (coords.length === 3) {
+				coords.push(coords[0]);
+			}
+
+			const coverage = area({
+				type: "Feature",
+				geometry: {
+					type: "Polygon",
+					coordinates: [coords]
+				}
+			} as unknown as Geometry);
+
+			return coverage > 0 ? convertArea(coverage, "meters", "miles") : undefined;
+		}
 	});
 </script>
 
@@ -88,18 +95,16 @@
 			subheading={data.subheading}
 			value={data.value}
 		/>
-		<div class="flex flex-col items-center justify-center">
+		<div class="flex flex-col">
 			<!--
 			<p>{data.date.formatted}</p>
       -->
 			<h1 class="text-lg font-bold underline">{data.clusterType}</h1>
 			<p>{data.count} monitors covering {data.coverage?.toFixed(2)}m²</p>
-			<!--
-			<div class="mt-auto">
-				<p class="text-base leading-none">Last updated</p>
-				<p class="text-base leading-none">{data.date.diference}</p>
+			<div class="mt-auto self-start">
+				<p class="text-base leading-none">Max: {data.max}µg/m³</p>
+				<p class="text-base">Min: {data.min}µg/m³</p>
 			</div>
-      -->
 		</div>
 	</div>
 {/if}
