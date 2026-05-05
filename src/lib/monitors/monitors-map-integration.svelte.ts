@@ -419,7 +419,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 					"text-allow-overlap": true
 				},
 				paint: {
-					"text-color": ["case", ["<", avgExpr, 250.5], "#000000", "#FFFFFF"]
+					"text-color": ["case", ["<", avgExpr, 150.5], "#000000", "#FFFFFF"]
 				}
 			},
 			this.beforeLayer
