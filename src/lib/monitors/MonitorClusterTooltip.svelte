@@ -24,15 +24,14 @@
 		source
 			.getClusterLeaves(feature.properties.cluster_id, feature.properties.point_count, 0)
 			.then((features) => {
-				const sum = feature.properties.sumValues as number;
-				const count = feature.properties.point_count as number;
-				//const count = feature.properties.countValues as number;
-				const avg = Math.round(sum / Math.max(count, 1));
+				const avg = Math.round(
+					feature.properties.sumValues / Math.max(feature.properties.point_count, 1)
+				);
 
 				data = {
 					color: "#FF0000",
 					header: feature.properties.cluster_id.toString(),
-					subheading: feature.layer.id,
+					subheading: "(Average)",
 					value: avg.toString()
 				};
 			});
