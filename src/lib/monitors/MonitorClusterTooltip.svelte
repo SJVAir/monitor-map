@@ -1,18 +1,42 @@
 <script lang="ts">
-	import { format, formatDistanceToNow } from "date-fns";
+	//import { format, formatDistanceToNow } from "date-fns";
+	import { GeoJSONSource } from "@maptiler/sdk";
 	import DataBox from "$lib/components/DataBox.svelte";
+	import { mapManager } from "$lib/map/map.svelte";
 	import type { MonitorClusterMapFeature } from "./types";
-	import { monitorsManager } from "./monitors.svelte";
-	import { getCurrentLevel } from "./monitor-utils";
-	import type { SJVAirEntryLevel } from "@sjvair/sdk";
+	//import { monitorsManager } from "./monitors.svelte";
+	//import { getCurrentLevel } from "./monitor-utils";
+	//import type { SJVAirEntryLevel } from "@sjvair/sdk";
+	import type { ComponentProps } from "svelte";
 
-	interface MonitorTooltipProps {
+	interface MonitorClusterTooltipProps {
 		feature: MonitorClusterMapFeature;
 	}
 
-	const { feature }: MonitorTooltipProps = $props();
+	interface MonitorClusterTooltipData extends ComponentProps<typeof DataBox> {}
 
-	const data = $state(null);
+	const { feature }: MonitorClusterTooltipProps = $props();
+
+	let data: MonitorClusterTooltipData | undefined = $state();
+
+	$effect(() => {
+		const source = mapManager.map!.getSource(feature.source)! as GeoJSONSource;
+		source
+			.getClusterLeaves(feature.properties.cluster_id, feature.properties.point_count, 0)
+			.then((features) => {
+				const sum = feature.properties.sumValues as number;
+				const count = feature.properties.point_count as number;
+				//const count = feature.properties.countValues as number;
+				const avg = Math.round(sum / Math.max(count, 1));
+
+				data = {
+					color: "#FF0000",
+					header: feature.properties.cluster_id.toString(),
+					subheading: feature.layer.id,
+					value: avg.toString()
+				};
+			});
+	});
 	//const data = $derived.by(() => {
 	//	const monitor = monitorsManager.latest?.get(feature.properties.id);
 
@@ -50,6 +74,7 @@
 			subheading={data.subheading}
 			value={data.value}
 		/>
+		<!--
 		<div class="flex flex-col">
 			<p>{data.date.formatted}</p>
 			<h1 class="text-lg font-bold underline">{feature.properties.name}</h1>
@@ -58,5 +83,6 @@
 				<p class="text-base leading-none">{data.date.diference}</p>
 			</div>
 		</div>
+    -->
 	</div>
 {/if}
