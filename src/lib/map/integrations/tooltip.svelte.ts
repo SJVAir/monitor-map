@@ -79,7 +79,6 @@ class TooltipHandle {
 	private activeFeatureId: string | number | undefined = undefined;
 	private isEnabled: boolean = false;
 
-	// Arrow fields maintain a stable reference for map.on/map.off and correct `this` binding.
 	clearTooltip = () => {
 		if (TooltipManager.activeHandle !== this) return;
 		this.tooltip?.remove();
@@ -107,7 +106,8 @@ class TooltipHandle {
 			}
 
 			const activeHandle = TooltipManager.activeHandle;
-			if (activeHandle !== null && activeHandle !== this && activeHandle.priority >= this.priority) return;
+			if (activeHandle !== null && activeHandle !== this && activeHandle.priority >= this.priority)
+				return;
 
 			activeHandle?.clearTooltip();
 			this.activeFeatureId = undefined;
