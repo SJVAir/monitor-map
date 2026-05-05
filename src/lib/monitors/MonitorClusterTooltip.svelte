@@ -13,7 +13,9 @@
 		feature: MonitorClusterMapFeature;
 	}
 
-	interface MonitorClusterTooltipData extends ComponentProps<typeof DataBox> {}
+	interface MonitorClusterTooltipData extends ComponentProps<typeof DataBox> {
+		count: number;
+	}
 
 	const { feature }: MonitorClusterTooltipProps = $props();
 
@@ -30,6 +32,7 @@
 
 				data = {
 					color: "#FF0000",
+					count: feature.properties.point_count,
 					header: feature.properties.cluster_id.toString(),
 					subheading: "(Average)",
 					value: avg.toString()
