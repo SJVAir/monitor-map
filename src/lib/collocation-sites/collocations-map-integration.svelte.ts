@@ -120,7 +120,7 @@ class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSi
 		if (!mapManager.map) return;
 
 		if (!this.tooltipManager.has(this.referenceId)) {
-			this.tooltipManager.register(this.referenceId, collocationTooltip);
+			this.tooltipManager.register(this.referenceId, collocationTooltip, Number.MAX_SAFE_INTEGER);
 		}
 
 		this.tooltipManager.enable();
