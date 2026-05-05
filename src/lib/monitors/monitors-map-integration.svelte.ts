@@ -49,7 +49,7 @@ function clusterTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | v
 		}
 	});
 
-	const popup = new Popup({ closeButton: false, closeOnClick: false })
+	const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "none" })
 		.setLngLat(evt.lngLat)
 		.setDOMContent(container);
 
