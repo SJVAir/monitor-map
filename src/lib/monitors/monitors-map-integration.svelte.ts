@@ -24,8 +24,6 @@ import type {
 	MonitorMarkerProperties
 } from "./types.ts";
 
-const databoxLabel = $derived(monitorsManager.pollutant === "pm25" ? "PM2.5" : "Ozone");
-
 const filters = {
 	monitor(deviceType: MonitorType): ExpressionSpecification {
 		return ["==", ["get", "type"], deviceType];
@@ -42,20 +40,6 @@ function clusterTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | v
 	const feature = evt.features?.[0] as unknown as MonitorClusterMapFeature | undefined;
 
 	if (!feature) return;
-
-	console.log("feature:", feature);
-	//const source = mapManager.map!.getSource(feature.source)! as GeoJSONSource;
-
-	//source
-	//	.getClusterLeaves(feature.properties.cluster_id, feature.properties.point_count, 0)
-	//	.then((features) => {
-	//		console.log(features);
-	//	});
-
-	const sum = feature.properties.sumValues as number;
-	const count = feature.properties.point_count as number;
-	//const count = feature.properties.countValues as number;
-	const avg = Math.round(sum / Math.max(count, 1));
 
 	const container = document.createElement("div");
 	const clusterTooltip = mount(MonitorClusterTooltip, {
@@ -328,7 +312,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			return maxOrder(a) - maxOrder(b);
 		});
 
-		for (const [type, features] of sortedEntries) {
+		for (const [[type, features], index] of sortedEntries.map((e, i) => [e, i] as const)) {
 			const sourceId = `${this.referenceId}-${type}`;
 			const avgExpr: ExpressionSpecification = [
 				"/",
@@ -339,6 +323,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 			mapManager.map.addSource(sourceId, {
 				type: "geojson",
+				promoteId: "id",
 				data: { type: "FeatureCollection", features },
 				cluster: true,
 				clusterRadius: 40,
@@ -354,10 +339,10 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			this.unclusteredLayer(sourceId);
 
 			if (!this.tooltipManager.has(`${sourceId}-cluster-icon`)) {
-				this.tooltipManager.register(`${sourceId}-cluster-icon`, clusterTooltip);
+				this.tooltipManager.register(`${sourceId}-cluster-icon`, clusterTooltip, index);
 			}
 			if (!this.tooltipManager.has(`${sourceId}-unclustered`)) {
-				this.tooltipManager.register(`${sourceId}-unclustered`, monitorTooltip);
+				this.tooltipManager.register(`${sourceId}-unclustered`, monitorTooltip, index);
 			}
 
 			this._clusterTypes.push(type);
