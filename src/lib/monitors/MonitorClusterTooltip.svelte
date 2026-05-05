@@ -19,7 +19,7 @@
 	interface MonitorClusterTooltipData extends ComponentProps<typeof DataBox> {
 		clusterType: string;
 		count: number;
-		coverage?: number;
+		coverage?: string;
 		max: number;
 		min: number;
 	}
@@ -62,7 +62,7 @@
 					coverage: calculateArea(coords),
 					header: entryType.label,
 					clusterType: `${firstMonitor.is_sjvair ? "SJVAir " : ""}${monitorType.label} Monitors`,
-					subheading: "(Average)",
+					subheading: "(cluster avg)",
 					max: values.reduce((prev, current) => (prev > current ? prev : current)),
 					min: values.reduce((prev, current) => (prev < current ? prev : current)),
 					value: avg.toString()
@@ -70,6 +70,7 @@
 			});
 
 		function calculateArea(coords: Array<Array<number>>) {
+			// TODO: update to handle lines as well as area (only 2 in cluster)
 			if (coords.length === 3) {
 				coords.push(coords[0]);
 			}
@@ -82,7 +83,7 @@
 				}
 			} as unknown as Geometry);
 
-			return coverage > 0 ? convertArea(coverage, "meters", "miles") : undefined;
+			return coverage > 0 ? convertArea(coverage, "meters", "miles").toFixed(3) : undefined;
 		}
 	});
 </script>
@@ -96,14 +97,16 @@
 			value={data.value}
 		/>
 		<div class="flex flex-col">
-			<!--
-			<p>{data.date.formatted}</p>
-      -->
-			<h1 class="text-lg font-bold underline">{data.clusterType}</h1>
-			<p>{data.count} monitors covering {data.coverage?.toFixed(2)}m²</p>
-			<div class="mt-auto self-start">
-				<p class="text-base leading-none">Max: {data.max}µg/m³</p>
-				<p class="text-base">Min: {data.min}µg/m³</p>
+			<h1 class="text-lg font-bold">{data.clusterType}</h1>
+			<p>
+				{data.count} monitors
+				{#if data.coverage}
+					<span>covering {data.coverage}mi²</span>
+				{/if}
+			</p>
+			<div class="mt-auto">
+				<p class="text-base">Max: {data.max}µg/m³</p>
+				<p class="text-base leading-none">Min: {data.min}µg/m³</p>
 			</div>
 		</div>
 	</div>
