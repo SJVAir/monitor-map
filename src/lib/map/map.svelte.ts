@@ -20,7 +20,6 @@ class MapManager {
 		const source = mapManager.map?.getSource(sourceId);
 
 		if (isGeoJSONSource(source)) {
-			console.log(`Setting data for source ${sourceId} with ${features.length} features.`);
 			source.setData({
 				type: "FeatureCollection",
 				features
@@ -51,7 +50,6 @@ export const mapManager = new MapManager();
 export type { MapManager };
 
 export const initializeMap: Attachment<HTMLDivElement> = (container: string | HTMLElement) => {
-	console.log("initialising map!");
 	const map = new MaptilerMap({
 		container: container,
 		center: [-119.7987626619462, 36.76272050981146],
