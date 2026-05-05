@@ -1,23 +1,9 @@
 <script lang="ts">
-	import { MapStyle, MapStyleVariant, ReferenceMapStyle } from "@maptiler/sdk";
+	import { MapStyleVariant, ReferenceMapStyle } from "@maptiler/sdk";
 	import { mapManager, DefaultMapStyle } from "./map.svelte";
+	import { MAP_STYLE_OPTIONS } from "./utils.ts";
 	import { integrationsManager } from "./integrations/integrations-manager";
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
-
-	const allMapStyles: ReferenceMapStyle[] = (() => {
-		const latest = new Map<string, { version: number; style: ReferenceMapStyle }>();
-		for (const style of Object.values(MapStyle) as ReferenceMapStyle[]) {
-			const id = style.getId();
-			const match = id.match(/^(.+?)_V(\d+)$/i);
-			const baseName = match ? match[1] : id;
-			const version = match ? parseInt(match[2], 10) : 0;
-			const existing = latest.get(baseName);
-			if (!existing || version > existing.version) {
-				latest.set(baseName, { version, style });
-			}
-		}
-		return Array.from(latest.values()).map((e) => e.style);
-	})();
 
 	let currentMapStyle: MapStyleVariant = DefaultMapStyle;
 
@@ -57,7 +43,7 @@
 		bind:value={selectedReferenceStyle}
 		class="rounded border p-1"
 	>
-		{#each allMapStyles as mapStyle, idx (idx)}
+		{#each MAP_STYLE_OPTIONS as mapStyle, idx (idx)}
 			<option value={mapStyle}>{mapStyle.getName()}</option>
 		{/each}
 	</select>

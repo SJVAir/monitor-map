@@ -1,5 +1,5 @@
 import { Popup, type MapLayerEventType, type Map as MaptilerMap } from "@maptiler/sdk";
-import type { Feature, Geometry } from "geojson";
+import type { Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
 import {
@@ -10,15 +10,9 @@ import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { collocationSitesManager } from "./collocations.svelte.ts";
 import { monitorsManager } from "$lib/monitors/monitors.svelte.ts";
 import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte.ts";
-
-export type CollocationSiteMapFeature = Feature<Geometry, CollocationSiteMarkerProperties>;
-
-export interface CollocationSiteMarkerProperties {
-	icon: string;
-	colocated_id: string;
-	reference_id: string;
-	name: string;
-}
+import type { CollocationSiteMapFeature, CollocationSiteMarkerProperties } from "./types.ts";
+import { mount, unmount } from "svelte";
+import CollocationTooltip from "./CollocationTooltip.svelte";
 
 function collocationTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
 	//const feature = cast<CollocationSiteMapFeature, Array<CollocationSiteMapFeature>>(
@@ -28,18 +22,37 @@ function collocationTooltip(evt: MapLayerEventType["mousemove"] & object): Popup
 	//		return features[0];
 	//	}
 	//);
-	const feature = evt.features![0] as unknown as CollocationSiteMapFeature;
+	//const feature = evt.features![0] as unknown as CollocationSiteMapFeature;
 
-	if (feature) {
-		return new Popup({ closeButton: false, closeOnClick: false }).setLngLat(evt.lngLat).setHTML(`
-        <div>
-          <strong>${feature.properties.name}</strong>
-          <br/>
-          reference_id: ${feature.properties.reference_id}PM2.5
-          <br/>
-          colocated_id: ${feature.properties.colocated_id}
-        </div>`);
-	}
+	//if (feature) {
+	//	return new Popup({ closeButton: false, closeOnClick: false }).setLngLat(evt.lngLat).setHTML(`
+	//      <div>
+	//        <strong>${feature.properties.name}</strong>
+	//        <br/>
+	//        reference_id: ${feature.properties.reference_id}PM2.5
+	//        <br/>
+	//        colocated_id: ${feature.properties.colocated_id}
+	//      </div>`);
+	//}
+	const feature = evt.features?.[0] as unknown as CollocationSiteMapFeature | undefined;
+
+	if (!feature) return;
+
+	const container = document.createElement("div");
+	const clusterTooltip = mount(CollocationTooltip, {
+		target: container,
+		props: {
+			feature
+		}
+	});
+
+	const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "none" })
+		.setLngLat(evt.lngLat)
+		.setDOMContent(container);
+
+	popup.on("close", () => unmount(clusterTooltip));
+
+	return popup;
 }
 
 class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSiteMarkerProperties> {
@@ -107,7 +120,7 @@ class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSi
 		if (!mapManager.map) return;
 
 		if (!this.tooltipManager.has(this.referenceId)) {
-			this.tooltipManager.register(this.referenceId, collocationTooltip);
+			this.tooltipManager.register(this.referenceId, collocationTooltip, Number.MAX_SAFE_INTEGER);
 		}
 
 		this.tooltipManager.enable();

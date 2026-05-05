@@ -1,4 +1,14 @@
-import type { MonitorData } from "@sjvair/sdk";
+import type { MonitorData, SJVAirEntryLevel } from "@sjvair/sdk";
+
+export function getCurrentLevel(
+	value: string | number,
+	levels: Array<SJVAirEntryLevel>
+): SJVAirEntryLevel | undefined {
+	value = typeof value === "string" ? parseInt(value, 10) : value;
+	return levels.find((lvl) => {
+		return value >= lvl.range[0] && value <= lvl.range[1];
+	});
+}
 
 export function getOrder(monitor: MonitorData): number {
 	switch (monitor.type) {

@@ -13,9 +13,11 @@
 	import { baseLayerSeperator } from "$lib/map/integrations/base-layer-seperator";
 	import type { SomeMapIntegration } from "$lib/map/integrations/types";
 	import { collocationSitesManager } from "$lib/collocation-sites/collocations.svelte";
+	import { collocationSitesMapIntegration } from "$lib/collocation-sites/collocations-map-integration.svelte";
 
 	const integrations: Array<SomeMapIntegration> = [
 		baseLayerSeperator,
+		collocationSitesMapIntegration,
 		windMapIntegration,
 		monitorsMapIntegration
 	];
