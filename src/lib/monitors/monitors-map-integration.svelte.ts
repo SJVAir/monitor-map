@@ -16,9 +16,13 @@ import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.t
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte.ts";
 import { getCurrentLevel, getOrder, getTypeShape } from "./monitor-utils.ts";
-import DataBox from "$lib/components/DataBox.svelte";
 import MonitorTooltip from "./MonitorTooltip.svelte";
-import type { MonitorMapFeature, MonitorMarkerProperties } from "./types.ts";
+import MonitorClusterTooltip from "./MonitorClusterTooltip.svelte";
+import type {
+	MonitorClusterMapFeature,
+	MonitorMapFeature,
+	MonitorMarkerProperties
+} from "./types.ts";
 
 const databoxLabel = $derived(monitorsManager.pollutant === "pm25" ? "PM2.5" : "Ozone");
 
@@ -35,21 +39,29 @@ const filters = {
 };
 
 function clusterTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
-	const feature = evt.features?.[0];
+	const feature = evt.features?.[0] as unknown as MonitorClusterMapFeature | undefined;
+
 	if (!feature) return;
 
+	console.log("feature:", feature);
+	//const source = mapManager.map!.getSource(feature.source)! as GeoJSONSource;
+
+	//source
+	//	.getClusterLeaves(feature.properties.cluster_id, feature.properties.point_count, 0)
+	//	.then((features) => {
+	//		console.log(features);
+	//	});
+
 	const sum = feature.properties.sumValues as number;
-	const count = feature.properties.countValues as number;
+	const count = feature.properties.point_count as number;
+	//const count = feature.properties.countValues as number;
 	const avg = Math.round(sum / Math.max(count, 1));
 
 	const container = document.createElement("div");
-	const databox = mount(DataBox, {
+	const clusterTooltip = mount(MonitorClusterTooltip, {
 		target: container,
 		props: {
-			color: "#FF0000",
-			header: databoxLabel,
-			subheading: "(averaged)",
-			value: avg.toString()
+			feature
 		}
 	});
 
@@ -57,7 +69,7 @@ function clusterTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | v
 		.setLngLat(evt.lngLat)
 		.setDOMContent(container);
 
-	popup.on("close", () => unmount(databox));
+	popup.on("close", () => unmount(clusterTooltip));
 
 	return popup;
 }
@@ -321,7 +333,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			const avgExpr: ExpressionSpecification = [
 				"/",
 				["get", "sumValues"],
-				["max", ["get", "countValues"], 1]
+				["max", ["get", "point_count"], 1]
+				//["max", ["get", "countValues"], 1]
 			];
 
 			mapManager.map.addSource(sourceId, {
@@ -331,8 +344,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				clusterRadius: 40,
 				clusterMaxZoom: 9,
 				clusterProperties: {
-					sumValues: ["+", ["to-number", ["get", "value"]], 0],
-					countValues: ["+", 1, 0]
+					sumValues: ["+", ["to-number", ["get", "value"]], 0]
+					//countValues: ["+", 1, 0]
 				}
 			});
 
