@@ -1,8 +1,12 @@
 import type { Feature, Geometry } from "geojson";
 import type { MonitorType } from "@sjvair/sdk";
+import type { MapGeoJSONFeature } from "@maptiler/sdk";
 
 export type MonitorMapFeature = Feature<Geometry, MonitorMarkerProperties>;
-export type MonitorClusterMapFeature = Feature<Geometry, MonitorClusterMarkerProperties>;
+
+export interface MonitorClusterMapFeature extends MapGeoJSONFeature {
+	properties: MonitorClusterMarkerProperties;
+}
 
 export interface MonitorMarkerProperties {
 	icon: string;
