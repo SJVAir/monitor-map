@@ -192,20 +192,22 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		return byType;
 	});
 
-	mapLayer: Parameters<MaptilerMap["addLayer"]>[0] = {
-		id: this.referenceId,
-		type: "symbol",
-		source: this.referenceId,
-		filter: this.filters,
-		layout: {
-			"symbol-sort-key": ["coalesce", ["get", "order"], 0],
-			"icon-allow-overlap": true,
-			"icon-ignore-placement": true,
-			"icon-image": ["get", "icon"],
-			"icon-size": 1
-		},
-		paint: {}
-	};
+	get mapLayer(): Parameters<MaptilerMap["addLayer"]>[0] {
+		return {
+			id: this.referenceId,
+			type: "symbol",
+			source: this.referenceId,
+			filter: this.filters,
+			layout: {
+				"symbol-sort-key": ["coalesce", ["get", "order"], 0],
+				"icon-allow-overlap": true,
+				"icon-ignore-placement": true,
+				"icon-image": ["get", "icon"],
+				"icon-size": 1
+			},
+			paint: {}
+		};
+	}
 
 	get mapSource(): Parameters<MaptilerMap["addSource"]>[1] {
 		return {
