@@ -31,17 +31,23 @@
 
 <DisplayOption>
 	<p class="text-lg font-bold underline">Air Monitors</p>
-	{#if monitorsManager.pollutant}
-		<div class="p-1">
-			<SegmentedControl options={pollutants} bind:group={monitorsManager.pollutant} />
+	<div class="mb-2 w-full text-xs">
+		<div class="w-fit">
+			<ToggleSwitch
+				id="monitor-clusters"
+				label="Marker Clusters"
+				bind:value={monitorsMapIntegration.clustered}
+			></ToggleSwitch>
 		</div>
-	{/if}
-	<div class="mb-2 text-xs">
-		<ToggleSwitch
-			id="monitor-clusters"
-			label="Marker Clusters"
-			bind:value={monitorsMapIntegration.clustered}
-		></ToggleSwitch>
+		{#if monitorsManager.pollutant}
+			<div class="w-4/5">
+				<SegmentedControl
+					segmentLabel="Pollutant:"
+					options={pollutants}
+					bind:group={monitorsManager.pollutant}
+				/>
+			</div>
+		{/if}
 	</div>
 
 	{#each Object.entries(monitorsMapIntegration.displayOptions) as [id, option] (option.label)}
