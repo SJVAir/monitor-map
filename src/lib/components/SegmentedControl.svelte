@@ -21,7 +21,8 @@
 		const checked = inner.querySelector<HTMLInputElement>("input:checked");
 		if (!checked) return;
 
-		const padding = 16;
+		const fontSize = parseFloat(getComputedStyle(inner).fontSize);
+		const padding = fontSize; // 1em
 		const label = checked.closest("label") as HTMLLabelElement;
 		const innerRect = inner.getBoundingClientRect();
 		const labelRect = label.getBoundingClientRect();
@@ -36,11 +37,11 @@
 
 <div class="relative w-full">
 	{#if label}
-		<p class="text-lg font-bold underline">{label}</p>
+		<p>{label}</p>
 	{/if}
 	<div
 		bind:this={inner}
-		class="relative flex justify-between before:absolute before:top-0.5 before:bottom-0.5 before:left-0 before:z-0 before:w-(--highlight-width) before:translate-x-(--highlight-x-pos) before:rounded-md before:bg-[#5465FF] before:transition-transform before:duration-500 before:content-['']"
+		class="relative flex justify-between px-[.5em] before:absolute before:top-[0.125em] before:bottom-[0.125em] before:left-0 before:z-0 before:w-(--highlight-width) before:translate-x-(--highlight-x-pos) before:rounded-md before:bg-[#5465FF] before:transition-transform before:duration-500 before:content-['']"
 	>
 		{#each options as { label, value } (value)}
 			{@const inputId = `${value}-segmented-control-option`}
