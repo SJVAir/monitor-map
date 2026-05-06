@@ -6,7 +6,7 @@ import {
 	type MapLayerEventType,
 	type Map as MaptilerMap
 } from "@maptiler/sdk";
-import type { MonitorType } from "@sjvair/sdk";
+import type { MonitorType, SJVAirEntryLevel } from "@sjvair/sdk";
 import { untrack } from "svelte";
 import type { Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
@@ -192,6 +192,11 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		return byType;
 	});
 
+	clusterIconThresholds: Array<SJVAirEntryLevel> = $derived.by(() => {
+		if (!monitorsManager.meta || !monitorsManager.pollutant) return [];
+		return monitorsManager.meta.entryType(monitorsManager.pollutant).asIter.levels ?? [];
+	});
+
 	get mapLayer(): Parameters<MaptilerMap["addLayer"]>[0] {
 		return {
 			id: this.referenceId,
@@ -264,13 +269,47 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				}
 			});
 
-			// Re-apply when clustered mode switches. mapManager.map is untracked because the
-			// base class already owns the map-load lifecycle. untrack on apply() prevents
-			// reactive reads inside it from leaking into this effect's dependency graph.
+			// Push updated icon expressions to cluster layers when the pollutant changes
 			$effect(() => {
-				// Read to trigger reactivity on this.clustered
+				const thresholds = this.clusterIconThresholds;
+				if (!mapManager.map || !this.clustered || !thresholds.length) return;
+
+				const avgExpr: ExpressionSpecification = [
+					"/",
+					["get", "sumValues"],
+					["max", ["get", "point_count"], 1]
+				];
+
+				for (const type of this._clusterTypes) {
+					const sourceId = `${this.referenceId}-${type}`;
+					const iconLayerId = `${sourceId}-cluster-icon`;
+					const avgLayerId = `${sourceId}-cluster-average`;
+
+					if (mapManager.map.getLayer(iconLayerId)) {
+						mapManager.map.setLayoutProperty(
+							iconLayerId,
+							"icon-image",
+							this.buildClusterIconExpression(avgExpr, getTypeShape(type))
+						);
+					}
+					if (mapManager.map.getLayer(avgLayerId)) {
+						mapManager.map.setPaintProperty(avgLayerId, "text-color", [
+							"case",
+							["<=", avgExpr, this.clusterTextColorThreshold],
+							"#000000",
+							"#FFFFFF"
+						]);
+					}
+				}
+			});
+
+			// Re-apply when clustered mode switches or when data first arrives (cold load).
+			// featuresByType is tracked so this fires once data is available; untrack on apply()
+			// prevents reactive reads inside it from leaking into this effect's dependency graph.
+			$effect(() => {
 				void this.clustered;
-				if (!untrack(() => mapManager.map)) return;
+				const hasFeatures = Object.keys(this.featuresByType).length > 0;
+				if (!untrack(() => mapManager.map) || !hasFeatures) return;
 				untrack(() => this.apply());
 			});
 		});
@@ -373,6 +412,26 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		this._clusterTypes = [];
 	}
 
+	private get clusterTextColorThreshold(): number {
+		// Use the max of the 3rd level (unhealthy_sensitive) so text flips to white at unhealthy+
+		return this.clusterIconThresholds[2]?.range[1] ?? 150.5;
+	}
+
+	private buildClusterIconExpression(
+		avgExpr: ExpressionSpecification,
+		shape: string
+	): ExpressionSpecification {
+		const thresholds = this.clusterIconThresholds;
+		if (!thresholds.length) return `outside-default-${shape}` as unknown as ExpressionSpecification;
+
+		const expr: unknown[] = ["case"];
+		for (const level of thresholds.slice(0, -1)) {
+			expr.push(["<=", avgExpr, level.range[1]], `outside-${level.name}-${shape}`);
+		}
+		expr.push(`outside-${thresholds.at(-1)!.name}-${shape}`);
+		return expr as ExpressionSpecification;
+	}
+
 	private monitorTypeIconsLayer(sourceId: string, avgExpr: ExpressionSpecification, shape: string) {
 		mapManager.map?.addLayer(
 			{
@@ -381,20 +440,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				source: sourceId,
 				filter: ["has", "point_count"],
 				layout: {
-					"icon-image": [
-						"case",
-						["<", avgExpr, 9.1],
-						`outside-good-${shape}`,
-						["<", avgExpr, 35.5],
-						`outside-moderate-${shape}`,
-						["<", avgExpr, 55.5],
-						`outside-unhealthy_sensitive-${shape}`,
-						["<", avgExpr, 150.5],
-						`outside-unhealthy-${shape}`,
-						["<", avgExpr, 250.5],
-						`outside-very_unhealthy-${shape}`,
-						`outside-hazardous-${shape}`
-					],
+					"icon-image": this.buildClusterIconExpression(avgExpr, shape),
 					"icon-size": ["step", ["get", "point_count"], 1.3, 10, 1.6, 25, 2.0],
 					"icon-ignore-placement": true,
 					"icon-allow-overlap": true
@@ -421,7 +467,12 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 					"text-allow-overlap": true
 				},
 				paint: {
-					"text-color": ["case", ["<", avgExpr, 150.5], "#000000", "#FFFFFF"]
+					"text-color": [
+						"case",
+						["<=", avgExpr, this.clusterTextColorThreshold],
+						"#000000",
+						"#FFFFFF"
+					]
 				}
 			},
 			this.beforeLayer
