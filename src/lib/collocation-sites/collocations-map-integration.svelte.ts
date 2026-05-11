@@ -11,7 +11,7 @@ import { collocationSitesManager } from "./collocations.svelte.ts";
 import { monitorsManager } from "$lib/monitors/monitors.svelte.ts";
 import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte.ts";
 import type { CollocationSiteMapFeature, CollocationSiteMarkerProperties } from "./types.ts";
-import { mount, unmount } from "svelte";
+import { mount, unmount, untrack } from "svelte";
 import CollocationTooltip from "./CollocationTooltip.svelte";
 
 function collocationTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
@@ -48,29 +48,34 @@ class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSi
 		if (
 			!monitorsManager.meta ||
 			!monitorsManager.pollutant ||
-			!collocationSitesManager.collocationSites
+			!collocationSitesManager.collocationSites ||
+			monitorsMapIntegration.features.length === 0
 		) {
 			return [];
 		}
 
-		return collocationSitesManager.collocationSites.map((c) => {
-			const referenceMonitorFeature = monitorsMapIntegration.features.find(
-				(m) => m.properties.id === c.reference_id
-			);
+		return collocationSitesManager.collocationSites
+			.map((c) => {
+				const referenceMonitorFeature = monitorsMapIntegration.features.find(
+					(m) => m.properties.id === c.reference_id
+				);
 
-			const feature: CollocationSiteMapFeature = {
-				type: "Feature",
-				properties: {
-					icon: getCollocationIconId(referenceMonitorFeature!.properties.icon),
-					colocated_id: c.colocated_id,
-					reference_id: c.reference_id,
-					name: c.name
-				},
-				geometry: c.position! as Geometry
-			};
+				if (!referenceMonitorFeature) return;
 
-			return feature;
-		});
+				const feature: CollocationSiteMapFeature = {
+					type: "Feature",
+					properties: {
+						icon: getCollocationIconId(referenceMonitorFeature!.properties.icon),
+						colocated_id: c.colocated_id,
+						reference_id: c.reference_id,
+						name: c.name
+					},
+					geometry: c.position! as Geometry
+				};
+
+				return feature;
+			})
+			.filter((f) => f !== undefined);
 	});
 
 	mapLayer: Parameters<MaptilerMap["addLayer"]>[0] = {
@@ -102,8 +107,16 @@ class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSi
 
 		$effect.root(() => {
 			$effect(() => {
+				const features = this.features;
+				if (!mapManager.map || !this.enabled) return;
+				mapManager.setDataSource(this.referenceId, features);
+			});
+
+			$effect(() => {
 				if (monitorsManager.pollutant === "o3") {
-					this.remove();
+					untrack(() => this.remove());
+				} else if (untrack(() => this.enabled)) {
+					untrack(() => this.apply());
 				}
 			});
 		});
