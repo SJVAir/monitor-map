@@ -21,7 +21,7 @@
 	const displayOptionsToggle: Attachment<HTMLDivElement> = (target: HTMLDivElement) => {
 		function toggle(e: PointerEvent) {
 			if (hasTarget(e.target) && target.contains(e.target)) {
-				"trigger" in e.target.dataset ? close() : open();
+				return "trigger" in e.target.dataset ? close() : open();
 			} else {
 				close();
 			}
@@ -59,7 +59,7 @@
 	>
 		<div
 			data-trigger
-			class="absolute top-0 left-0 flex h-fit w-fit items-start justify-center gap-2 p-2"
+			class="absolute top-0 left-0 flex h-fit w-full items-start justify-between p-2"
 		>
 			{@render children?.()}
 		</div>
