@@ -3,14 +3,17 @@
 	import ToggleSwitch from "$lib/components/ToggleSwitch.svelte";
 	import { windMapIntegration } from "$lib/wind/wind.svelte";
 	import { collocationSitesMapIntegration } from "$lib/collocation-sites/collocations-map-integration.svelte";
+	import { monitorsManager } from "$lib/monitors/monitors.svelte";
 </script>
 
 <DisplayOption>
 	<p class="text-lg font-bold whitespace-nowrap underline">Map Layers</p>
 	<ToggleSwitch id="wind" label="Wind" bind:value={windMapIntegration.enabled}></ToggleSwitch>
-	<ToggleSwitch
-		id="collocation-sites"
-		label="Collocation Sites"
-		bind:value={collocationSitesMapIntegration.enabled}
-	></ToggleSwitch>
+	{#if monitorsManager.pollutant === "pm25"}
+		<ToggleSwitch
+			id="collocation-sites"
+			label="Collocation Sites"
+			bind:value={collocationSitesMapIntegration.enabled}
+		></ToggleSwitch>
+	{/if}
 </DisplayOption>

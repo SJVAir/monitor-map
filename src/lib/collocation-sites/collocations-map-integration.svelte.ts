@@ -15,25 +15,6 @@ import { mount, unmount } from "svelte";
 import CollocationTooltip from "./CollocationTooltip.svelte";
 
 function collocationTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
-	//const feature = cast<CollocationSiteMapFeature, Array<CollocationSiteMapFeature>>(
-	//	evt.features,
-	//	(features) => {
-	//		features.sort((a, b) => b.properties.order - a.properties.order);
-	//		return features[0];
-	//	}
-	//);
-	//const feature = evt.features![0] as unknown as CollocationSiteMapFeature;
-
-	//if (feature) {
-	//	return new Popup({ closeButton: false, closeOnClick: false }).setLngLat(evt.lngLat).setHTML(`
-	//      <div>
-	//        <strong>${feature.properties.name}</strong>
-	//        <br/>
-	//        reference_id: ${feature.properties.reference_id}PM2.5
-	//        <br/>
-	//        colocated_id: ${feature.properties.colocated_id}
-	//      </div>`);
-	//}
 	const feature = evt.features?.[0] as unknown as CollocationSiteMapFeature | undefined;
 
 	if (!feature) return;
@@ -114,6 +95,18 @@ class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSi
 				features: this.features
 			}
 		};
+	}
+
+	constructor() {
+		super();
+
+		$effect.root(() => {
+			$effect(() => {
+				if (monitorsManager.pollutant === "o3") {
+					this.remove();
+				}
+			});
+		});
 	}
 
 	apply() {
