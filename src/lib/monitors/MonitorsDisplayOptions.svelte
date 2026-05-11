@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MonitorsMeta } from "@sjvair/sdk";
+	import type { MonitorsMeta, SJVAirMonitorDeviceMeta } from "@sjvair/sdk";
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 	import SegmentedControl from "$lib/components/SegmentedControl.svelte";
 	import ToggleSwitch from "$lib/components/ToggleSwitch.svelte";
@@ -22,6 +22,24 @@
 		}
 	];
 
+	const monitorDisplayOptions = $derived.by(() => {
+		if (monitorsManager.pollutant && monitorsManager.pollutant === "pm25")
+			return Object.entries(monitorsMapIntegration.displayOptions);
+
+		const validOptions = Object.entries(monitorsMapIntegration.displayOptions).filter(
+			([key, opt]) =>
+				key === "inactive" ||
+				monitorsManager.meta?.asIter.monitors.some(
+					(m: SJVAirMonitorDeviceMeta) =>
+						m.label === opt.label &&
+						monitorsManager.pollutant &&
+						monitorsManager.pollutant in m.entries
+				)
+		);
+
+		return validOptions;
+	});
+
 	$effect(() => {
 		monitorsManager.list = [];
 		monitorsManager.latest = null;
@@ -40,17 +58,15 @@
 			></ToggleSwitch>
 		</div>
 		{#if monitorsManager.pollutant}
-			<div class="w-4/5">
-				<SegmentedControl
-					segmentLabel="Pollutant:"
-					options={pollutants}
-					bind:group={monitorsManager.pollutant}
-				/>
-			</div>
+			<SegmentedControl
+				segmentLabel="Pollutant:"
+				options={pollutants}
+				bind:group={monitorsManager.pollutant}
+			/>
 		{/if}
 	</div>
 
-	{#each Object.entries(monitorsMapIntegration.displayOptions) as [id, option] (option.label)}
+	{#each monitorDisplayOptions as [id, option] (option.label)}
 		{@const inputId = `${id}-monitor-display-option`}
 		<label for={inputId} class="cursor-pointer whitespace-nowrap select-none">
 			<input type="checkbox" id={inputId} name={option.label} bind:checked={option.value} />
