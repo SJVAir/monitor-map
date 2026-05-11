@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { navigate, route } from "./router";
 
-	const { id } = route.getParams("/monitor/:id");
+	let id = $derived(route.getParams("/monitor/:id").id);
 </script>
 
 <div class="flex flex-col w-full h-full bg-white overflow-y-auto">
