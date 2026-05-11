@@ -4,46 +4,22 @@
   "version": "3.0.0-alpha.1",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && npm run prepack",
+    "build": "vite build",
+    "build:lib": "vite build --config vite.config.lib.ts",
     "preview": "vite preview",
-    "prepare": "svelte-kit sync || echo ''",
-    "prepack": "svelte-kit sync && svelte-package && publint",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
     "format": "prettier --write .",
     "lint": "prettier --check . && eslint ."
   },
-  "files": [
-    "dist",
-    "!dist/**/*.test.*",
-    "!dist/**/*.spec.*"
-  ],
-  "sideEffects": [
-    "**/*.css"
-  ],
-  "svelte": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "svelte": "./dist/index.js"
-    }
-  },
-  "peerDependencies": {
-    "svelte": "^5.0.0"
-  },
   "devDependencies": {
     "@eslint/compat": "^2.0.5",
     "@eslint/js": "^10.0.1",
     "@maptiler/sdk": "^4.0.1",
     "@maptiler/weather": "^3.1.1",
     "@sjvair/sdk": "npm:@jsr/sjvair__sdk@^3.0.2",
-    "@sveltejs/adapter-auto": "^7.0.1",
-    "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/enhanced-img": "^0.10.4",
-    "@sveltejs/kit": "^2.59.1",
-    "@sveltejs/package": "^2.5.7",
     "@sveltejs/vite-plugin-svelte": "^7.1.0",
     "@tailwindcss/vite": "^4.2.4",
     "@tstk/builtin-extensions": "npm:@jsr/tstk__builtin-extensions@^1.0.8",
@@ -62,7 +38,6 @@
     "prettier": "^3.8.3",
     "prettier-plugin-svelte": "^3.5.1",
     "prettier-plugin-tailwindcss": "^0.8.0",
-    "publint": "^0.3.19",
     "svelte": "^5.55.5",
     "svelte-check": "^4.4.8",
     "tailwindcss": "^4.2.4",
@@ -70,6 +45,9 @@
     "typescript-eslint": "^8.59.2",
     "uplot": "^1.6.32",
     "vite": "^8.0.10"
+  },
+  "dependencies": {
+    "sv-router": "^0.16.1"
   },
   "keywords": [
     "svelte"
