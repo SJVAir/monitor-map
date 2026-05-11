@@ -47,7 +47,7 @@
 			{@const inputId = `${value}-segmented-control-option`}
 			<label
 				for={inputId}
-				class="relative z-1 cursor-pointer text-center transition-all duration-500 active:scale-95 has-checked:text-white"
+				class="relative z-1 cursor-pointer text-center transition-all duration-750 active:scale-95 has-checked:text-white"
 			>
 				<input type="radio" id={inputId} name={label} {value} bind:group class="hidden" />
 				{label}
