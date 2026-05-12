@@ -15,7 +15,8 @@ export { baseLayerSeperator } from "./map/integrations/base-layer-seperator";
 // Components
 export { default as Map } from "./map/Map.svelte";
 export { default as Menu } from "./map/Menu.svelte";
-export { default as LoadScreen } from "./LoadScreen.svelte";
+export { default as LoadScreen, loadScreenState, enable, disable } from "./LoadScreen.svelte";
+export type { LoadScreenState } from "./LoadScreen.svelte";
 export { default as MonitorsDisplayOptions } from "./monitors/MonitorsDisplayOptions.svelte";
 export { default as MapLayersDisplayOptions } from "./components/MapLayersDisplayOptions.svelte";
 export { default as MapStyleDisplayOptions } from "./map/MapStyleDisplayOptions.svelte";
@@ -24,6 +25,8 @@ export { default as SegmentedControl } from "./components/SegmentedControl.svelt
 
 // Types
 export type { SomeMapIntegration } from "./map/integrations/types";
+export type { MonitorsMapIntegration } from "./monitors/monitors-map-integration.svelte.ts";
+export type { WindMapIntegration } from "./wind/wind.svelte.ts";
 export type {
 	MonitorMapFeature,
 	MonitorMarkerProperties,

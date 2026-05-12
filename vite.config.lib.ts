@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
+import { enhancedImages } from "@sveltejs/enhanced-img";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
-	plugins: [svelte({ emitCss: false })],
+	plugins: [enhancedImages(), svelte({ emitCss: false })],
 	resolve: {
 		alias: {
 			$lib: fileURLToPath(new URL("./src/lib", import.meta.url))
@@ -16,7 +17,17 @@ export default defineConfig({
 			formats: ["es"]
 		},
 		rollupOptions: {
-			external: ["svelte", /^svelte\//],
+			external: [
+				"svelte",
+				/^svelte\//,
+				/^@maptiler\//,
+				/^@sjvair\//,
+				/^@tstk\//,
+				"color2k",
+				/^date-fns/,
+				/^@turf\//,
+				/^geojson/
+			],
 			output: {
 				preserveModules: true,
 				preserveModulesRoot: "src/lib",
@@ -24,7 +35,5 @@ export default defineConfig({
 				entryFileNames: "[name].js"
 			}
 		},
-		outDir: "dist/lib",
-		emptyOutDir: true
 	}
 });
