@@ -125,10 +125,6 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				};
 
 				if (levels) {
-					//const level = levels.find((lvl) => {
-					//	const value = parseInt(m.latest.value, 10);
-					//	return value >= lvl.range[0] && value <= lvl.range[1];
-					//});
 					const level = getCurrentLevel(m.latest.value, levels);
 
 					if (level) {
