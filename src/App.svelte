@@ -31,39 +31,6 @@
 	collocationSitesManager.init();
 
 	let panelOpen = $derived(route.pathname.startsWith("/monitor/"));
-	let panelContainerEl: HTMLDivElement;
-	let rafId: number | null = null;
-	let animProgress = 0;
-
-	function easeInOut(t: number): number {
-		return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-	}
-
-	function animatePanel(open: boolean) {
-		if (rafId !== null) cancelAnimationFrame(rafId);
-
-		const target = open ? 1 : 0;
-		const startProgress = animProgress;
-		const delta = target - startProgress;
-		// Scale duration so interrupted mid-animation reverses feel natural
-		const duration = TRANSITION_MS * Math.abs(delta);
-		const start = performance.now();
-
-		function frame(now: number) {
-			const t = duration > 0 ? Math.min((now - start) / duration, 1) : 1;
-			animProgress = startProgress + delta * easeInOut(t);
-			panelContainerEl.style.setProperty("--panel-progress", String(animProgress));
-			if (t < 1) {
-				rafId = requestAnimationFrame(frame);
-			} else {
-				animProgress = target;
-				rafId = null;
-				mapManager.map?.resize();
-			}
-		}
-
-		rafId = requestAnimationFrame(frame);
-	}
 
 	$effect(() => {
 		if (mapManager.map && monitorsManager.initialized) {
@@ -72,10 +39,13 @@
 	});
 
 	$effect(() => {
-		animatePanel(panelOpen);
-		return () => {
-			if (rafId !== null) cancelAnimationFrame(rafId);
-		};
+		if (panelOpen) {
+			// Container width snapped to open; resize after layout settles
+			requestAnimationFrame(() => mapManager.map?.resize());
+		} else {
+			// Container width snaps back after the transform transition ends
+			setTimeout(() => mapManager.map?.resize(), TRANSITION_MS);
+		}
 	});
 
 	onDestroy(() => {
@@ -83,7 +53,7 @@
 	});
 </script>
 
-<div class="shell">
+<div class="shell" class:panel-open={panelOpen}>
 	<LoadScreen />
 	<div class="relative flex-1 overflow-hidden">
 		<Map {integrations} />
@@ -95,7 +65,7 @@
 			</Menu>
 		</div>
 	</div>
-	<div class="panel-container" bind:this={panelContainerEl}>
+	<div class="panel-container">
 		<div class="panel-content">
 			<Router />
 		</div>
@@ -111,16 +81,24 @@
 	}
 
 	.panel-container {
-		--panel-progress: 0;
 		flex-shrink: 0;
 		overflow: hidden;
-		width: calc(var(--panel-progress) * 33.333vw);
+		width: 0;
+	}
+
+	.shell.panel-open .panel-container {
+		width: 33.333vw;
 	}
 
 	.panel-content {
 		width: 33.333vw;
 		height: 100%;
-		transform: translateX(calc((1 - var(--panel-progress)) * 100%));
+		transform: translateX(100%);
+		transition: transform 300ms ease-in-out;
+	}
+
+	.shell.panel-open .panel-content {
+		transform: translateX(0);
 	}
 
 	@media (max-width: 768px) {
@@ -130,13 +108,22 @@
 
 		.panel-container {
 			width: 100vw;
-			height: calc(var(--panel-progress) * 50vh);
+			height: 0;
+		}
+
+		.shell.panel-open .panel-container {
+			width: 100vw;
+			height: 50vh;
 		}
 
 		.panel-content {
 			width: 100vw;
 			height: 50vh;
-			transform: translateY(calc((1 - var(--panel-progress)) * 100%));
+			transform: translateY(100%);
+		}
+
+		.shell.panel-open .panel-content {
+			transform: translateY(0);
 		}
 	}
 </style>
