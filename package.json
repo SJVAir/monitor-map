@@ -29,6 +29,7 @@
     "@turf/area": "^7.3.5",
     "@turf/helpers": "^7.3.5",
     "@types/geojson": "^7946.0.16",
+    "@types/node": "^25.7.0",
     "color2k": "^2.0.3",
     "date-fns": "^4.1.0",
     "eslint": "^10.3.0",

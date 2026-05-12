@@ -13,6 +13,7 @@
 		"experimentalDecorators": false,
 		"target": "es2024",
 		"allowImportingTsExtensions": true,
+		"noEmit": true,
 		"lib": ["esnext", "dom", "dom.iterable"],
 		"paths": {
 			"$lib": ["./src/lib"],

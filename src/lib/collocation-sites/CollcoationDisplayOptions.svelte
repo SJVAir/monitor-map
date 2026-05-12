@@ -2,6 +2,7 @@
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 	import ToggleSwitch from "$lib/components/ToggleSwitch.svelte";
 	import { collocationSitesMapIntegration } from "./collocations-map-integration.svelte";
+	import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte.ts";
 </script>
 
 <DisplayOption>
