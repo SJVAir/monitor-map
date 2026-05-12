@@ -53,12 +53,12 @@
 			const t = duration > 0 ? Math.min((now - start) / duration, 1) : 1;
 			animProgress = startProgress + delta * easeInOut(t);
 			panelContainerEl.style.setProperty("--panel-progress", String(animProgress));
-			mapManager.map?.resize();
 			if (t < 1) {
 				rafId = requestAnimationFrame(frame);
 			} else {
 				animProgress = target;
 				rafId = null;
+				mapManager.map?.resize();
 			}
 		}
 
