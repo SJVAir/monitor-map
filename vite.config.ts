@@ -1,14 +1,17 @@
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import { enhancedImages } from "@sveltejs/enhanced-img";
-import { sveltekit } from "@sveltejs/kit/vite";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
-  plugins: [tailwindcss(), enhancedImages(), sveltekit()],
-  build: {
-    target: "es2024",
-  },
-  esbuild: {
-    target: "es2024",
-  }
+	plugins: [tailwindcss(), enhancedImages(), svelte()],
+	resolve: {
+		alias: {
+			$lib: fileURLToPath(new URL("./src/lib", import.meta.url))
+		}
+	},
+	build: {
+		target: "es2024"
+	}
 });

@@ -38,11 +38,13 @@ export class MapIconManager {
 		return this.applyImage("update", icon, map);
 	}
 
-	private applyImage(action: "add" | "update", icon: MapImageIcon, map: MaptilerMap): Promise<void> {
+	private applyImage(
+		action: "add" | "update",
+		icon: MapImageIcon,
+		map: MaptilerMap
+	): Promise<void> {
 		const apply = () =>
-			action === "add"
-				? map.addImage(icon.id, icon.image)
-				: map.updateImage(icon.id, icon.image);
+			action === "add" ? map.addImage(icon.id, icon.image) : map.updateImage(icon.id, icon.image);
 		if (!icon.image.complete) {
 			return new Promise((resolve, reject) => {
 				icon.image.onload = () => {
