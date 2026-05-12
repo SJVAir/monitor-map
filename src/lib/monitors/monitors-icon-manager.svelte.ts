@@ -31,7 +31,9 @@ export function getIconId<T extends MonitorData>(monitor: T, level: SJVAirEntryL
 export abstract class MonitorShapeIconManager extends MapIconManager {
 	protected abstract get idPrefix(): string;
 	protected abstract transformSvg(svg: string): string;
-	protected get iconSize(): number { return 24; }
+	protected get iconSize(): number {
+		return 24;
+	}
 
 	constructor() {
 		super();
@@ -85,6 +87,10 @@ export abstract class MonitorShapeIconManager extends MapIconManager {
 }
 
 export class MonitorsIconManager extends MonitorShapeIconManager {
-	protected get idPrefix(): string { return ""; }
-	protected transformSvg(svg: string): string { return svg; }
+	protected get idPrefix(): string {
+		return "";
+	}
+	protected transformSvg(svg: string): string {
+		return svg;
+	}
 }

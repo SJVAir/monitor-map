@@ -20,11 +20,6 @@
 			"$lib/*": ["./src/lib/*"]
 		}
 	},
-	"include": [
-		"src/**/*.ts",
-		"src/**/*.svelte",
-		"vite.config.ts",
-		"vite.config.lib.ts"
-	],
+	"include": ["src/**/*.ts", "src/**/*.svelte", "vite.config.ts", "vite.config.lib.ts"],
 	"exclude": ["node_modules", "dist"]
 }

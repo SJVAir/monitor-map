@@ -34,6 +34,6 @@ export default defineConfig({
 				dir: "dist/lib",
 				entryFileNames: "[name].js"
 			}
-		},
+		}
 	}
 });
