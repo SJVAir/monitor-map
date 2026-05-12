@@ -31,6 +31,39 @@
 	collocationSitesManager.init();
 
 	let panelOpen = $derived(route.pathname.startsWith("/monitor/"));
+	let panelContainerEl: HTMLDivElement;
+	let rafId: number | null = null;
+	let animProgress = 0;
+
+	function easeInOut(t: number): number {
+		return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+	}
+
+	function animatePanel(open: boolean) {
+		if (rafId !== null) cancelAnimationFrame(rafId);
+
+		const target = open ? 1 : 0;
+		const startProgress = animProgress;
+		const delta = target - startProgress;
+		// Scale duration so interrupted mid-animation reverses feel natural
+		const duration = TRANSITION_MS * Math.abs(delta);
+		const start = performance.now();
+
+		function frame(now: number) {
+			const t = duration > 0 ? Math.min((now - start) / duration, 1) : 1;
+			animProgress = startProgress + delta * easeInOut(t);
+			panelContainerEl.style.setProperty("--panel-progress", String(animProgress));
+			mapManager.map?.resize();
+			if (t < 1) {
+				rafId = requestAnimationFrame(frame);
+			} else {
+				animProgress = target;
+				rafId = null;
+			}
+		}
+
+		rafId = requestAnimationFrame(frame);
+	}
 
 	$effect(() => {
 		if (mapManager.map && monitorsManager.initialized) {
@@ -39,10 +72,10 @@
 	});
 
 	$effect(() => {
-		// Track panelOpen reactively; resize map after the CSS transition settles
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		panelOpen;
-		setTimeout(() => mapManager.map?.resize(), TRANSITION_MS);
+		animatePanel(panelOpen);
+		return () => {
+			if (rafId !== null) cancelAnimationFrame(rafId);
+		};
 	});
 
 	onDestroy(() => {
@@ -50,9 +83,9 @@
 	});
 </script>
 
-<div class="shell" class:panel-open={panelOpen}>
+<div class="shell">
 	<LoadScreen />
-	<div class="relative overflow-hidden">
+	<div class="relative flex-1 overflow-hidden">
 		<Map {integrations} />
 		<div class="absolute top-0 left-0 z-10 m-4">
 			<Menu>
@@ -62,33 +95,48 @@
 			</Menu>
 		</div>
 	</div>
-	<div class="overflow-hidden">
-		<Router />
+	<div class="panel-container" bind:this={panelContainerEl}>
+		<div class="panel-content">
+			<Router />
+		</div>
 	</div>
 </div>
 
 <style>
 	.shell {
-		display: grid;
+		display: flex;
+		position: relative;
 		width: 100vw;
 		height: 100vh;
-		grid-template-columns: 1fr 0fr;
-		transition: grid-template-columns 300ms ease-in-out, grid-template-rows 300ms ease-in-out;
 	}
 
-	.shell.panel-open {
-		grid-template-columns: 2fr 1fr;
+	.panel-container {
+		--panel-progress: 0;
+		flex-shrink: 0;
+		overflow: hidden;
+		width: calc(var(--panel-progress) * 33.333vw);
+	}
+
+	.panel-content {
+		width: 33.333vw;
+		height: 100%;
+		transform: translateX(calc((1 - var(--panel-progress)) * 100%));
 	}
 
 	@media (max-width: 768px) {
 		.shell {
-			grid-template-columns: 1fr;
-			grid-template-rows: 1fr 0fr;
+			flex-direction: column;
 		}
 
-		.shell.panel-open {
-			grid-template-columns: 1fr;
-			grid-template-rows: 1fr 1fr;
+		.panel-container {
+			width: 100vw;
+			height: calc(var(--panel-progress) * 50vh);
+		}
+
+		.panel-content {
+			width: 100vw;
+			height: 50vh;
+			transform: translateY(calc((1 - var(--panel-progress)) * 100%));
 		}
 	}
 </style>
