@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { navigate, route } from "./router";
 
-	let id = $derived(route.getParams("/monitor/:id").id);
+	let id = $derived(route.params.id ?? "");
 </script>
 
-<div class="flex flex-col w-full h-full bg-white overflow-y-auto">
-	<div class="flex items-center gap-3 p-4 border-b border-gray-200">
+<div class="flex h-full w-full flex-col overflow-y-auto bg-white">
+	<div class="flex items-center gap-3 border-b border-gray-200 p-4">
 		<button
-			class="px-2 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 cursor-pointer"
+			class="cursor-pointer rounded border border-gray-300 px-2 py-1 text-sm hover:bg-gray-50"
 			onclick={() => navigate("/")}
 		>
 			✕ Close

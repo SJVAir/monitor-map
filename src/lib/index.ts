@@ -15,13 +15,23 @@ export { baseLayerSeperator } from "./map/integrations/base-layer-seperator";
 // Components
 export { default as Map } from "./map/Map.svelte";
 export { default as Menu } from "./map/Menu.svelte";
-export { default as LoadScreen, loadScreenState, enable, disable } from "./LoadScreen.svelte";
+export {
+	default as LoadScreen,
+	loadScreenState,
+	enable as enableLoadScreen,
+	disable as disableLoadScreen
+} from "./LoadScreen.svelte";
 export type { LoadScreenState } from "./LoadScreen.svelte";
 export { default as MonitorsDisplayOptions } from "./monitors/MonitorsDisplayOptions.svelte";
 export { default as MapLayersDisplayOptions } from "./components/MapLayersDisplayOptions.svelte";
 export { default as MapStyleDisplayOptions } from "./map/MapStyleDisplayOptions.svelte";
 export { default as ToggleSwitch } from "./components/ToggleSwitch.svelte";
 export { default as SegmentedControl } from "./components/SegmentedControl.svelte";
+
+// Integration base classes (extend these to add custom map features)
+export { MapIntegration } from "./map/integrations/map-integration.svelte.ts";
+export { MapLayerIntegration } from "./map/integrations/map-layer-integration.svelte.ts";
+export { MapGeoJSONIntegration } from "./map/integrations/map-geojson-integration.svelte.ts";
 
 // Types
 export type { SomeMapIntegration } from "./map/integrations/types";
