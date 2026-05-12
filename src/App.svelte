@@ -32,20 +32,6 @@
 
 	let panelOpen = $derived(route.pathname.startsWith("/monitor/"));
 
-	// Svelte's class: directive cannot handle Tailwind arbitrary-value classes
-	// containing brackets or colons, so the responsive grid classes are computed here.
-	// Desktop (md+): transitions grid-template-columns — closed: 1fr 0fr, open: 2fr 1fr
-	// Mobile (<md):  transitions grid-template-rows   — closed: 1fr 0fr, open: 1fr 1fr
-	let shellClass = $derived(
-		[
-			"grid w-screen h-screen",
-			"transition-[grid-template-columns,grid-template-rows] duration-300 ease-in-out",
-			panelOpen
-				? "grid-cols-[2fr_1fr] max-md:grid-cols-[1fr] max-md:grid-rows-[1fr_1fr]"
-				: "grid-cols-[1fr_0fr] max-md:grid-cols-[1fr] max-md:grid-rows-[1fr_0fr]"
-		].join(" ")
-	);
-
 	$effect(() => {
 		if (mapManager.map && monitorsManager.initialized) {
 			mapManager.map.once("idle", () => disableLoadScreen());
@@ -64,7 +50,7 @@
 	});
 </script>
 
-<div class={shellClass}>
+<div class="shell" class:panel-open={panelOpen}>
 	<LoadScreen />
 	<div class="relative overflow-hidden">
 		<Map {integrations} />
@@ -80,3 +66,29 @@
 		<Router />
 	</div>
 </div>
+
+<style>
+	.shell {
+		display: grid;
+		width: 100vw;
+		height: 100vh;
+		grid-template-columns: 1fr 0fr;
+		transition: grid-template-columns 300ms ease-in-out, grid-template-rows 300ms ease-in-out;
+	}
+
+	.shell.panel-open {
+		grid-template-columns: 2fr 1fr;
+	}
+
+	@media (max-width: 768px) {
+		.shell {
+			grid-template-columns: 1fr;
+			grid-template-rows: 1fr 0fr;
+		}
+
+		.shell.panel-open {
+			grid-template-columns: 1fr;
+			grid-template-rows: 1fr 1fr;
+		}
+	}
+</style>
