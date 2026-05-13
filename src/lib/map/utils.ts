@@ -1,5 +1,7 @@
-import { MapStyle, type ReferenceMapStyle } from "@maptiler/sdk";
-import type { GeoJSONSource } from "@maptiler/sdk";
+import { mount, unmount } from "svelte";
+import type { Component } from "svelte";
+import { MapStyle, Popup } from "@maptiler/sdk";
+import type { ReferenceMapStyle, GeoJSONSource, LngLat } from "@maptiler/sdk";
 
 export const MAP_STYLE_OPTIONS: ReferenceMapStyle[] = (() => {
 	const latest = new Map<string, { version: number; style: ReferenceMapStyle }>();
@@ -20,4 +22,18 @@ export const MAP_STYLE_OPTIONS: ReferenceMapStyle[] = (() => {
 
 export function isGeoJSONSource(source: any): source is GeoJSONSource {
 	return source && source.type === "geojson";
+}
+
+export function mountPopup<Props extends Record<string, any>>(
+	Component: Component<Props>,
+	props: Props,
+	lngLat: LngLat
+): Popup {
+	const container = document.createElement("div");
+	const instance = mount(Component, { target: container, props });
+	const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "none" })
+		.setLngLat(lngLat)
+		.setDOMContent(container);
+	popup.on("close", () => unmount(instance));
+	return popup;
 }
