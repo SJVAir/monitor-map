@@ -1,5 +1,5 @@
 import { mount, unmount } from "svelte";
-import type { Component } from "svelte";
+import type { Component, ComponentProps } from "svelte";
 import { MapStyle, Popup } from "@maptiler/sdk";
 import type { ReferenceMapStyle, GeoJSONSource, LngLat } from "@maptiler/sdk";
 
@@ -24,13 +24,13 @@ export function isGeoJSONSource(source: any): source is GeoJSONSource {
 	return source && source.type === "geojson";
 }
 
-export function mountPopup<Props extends Record<string, any>>(
-	Component: Component<Props>,
-	props: Props,
+export function mountPopup<C extends Component<any>>(
+	component: C,
+	props: ComponentProps<C>,
 	lngLat: LngLat
 ): Popup {
 	const container = document.createElement("div");
-	const instance = mount(Component, { target: container, props });
+	const instance = mount(component, { target: container, props });
 	const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "none" })
 		.setLngLat(lngLat)
 		.setDOMContent(container);
