@@ -1,4 +1,3 @@
-import { mount, unmount } from "svelte";
 import {
 	Popup,
 	type ExpressionSpecification,
@@ -11,6 +10,7 @@ import { untrack } from "svelte";
 import type { Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
+import { mountPopup } from "$lib/map/utils.ts";
 import { monitorsManager } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
@@ -38,46 +38,15 @@ const filters = {
 
 function clusterTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
 	const feature = evt.features?.[0] as unknown as MonitorClusterMapFeature | undefined;
-
 	if (!feature) return;
-
-	const container = document.createElement("div");
-	const clusterTooltip = mount(MonitorClusterTooltip, {
-		target: container,
-		props: {
-			feature
-		}
-	});
-
-	const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "none" })
-		.setLngLat(evt.lngLat)
-		.setDOMContent(container);
-
-	popup.on("close", () => unmount(clusterTooltip));
-
-	return popup;
+	return mountPopup(MonitorClusterTooltip, { feature }, evt.lngLat);
 }
 
 function monitorTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
 	const features = evt.features as unknown as Array<MonitorMapFeature> | undefined;
 	const feature = features?.sort((a, b) => b.properties.order - a.properties.order)[0];
-
-	if (feature) {
-		const container = document.createElement("div");
-		const tooltipComponent = mount(MonitorTooltip, {
-			target: container,
-			props: {
-				feature: feature
-			}
-		});
-
-		const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "none" })
-			.setLngLat(evt.lngLat)
-			.setDOMContent(container);
-
-		popup.on("close", () => unmount(tooltipComponent));
-		return popup;
-	}
+	if (!feature) return;
+	return mountPopup(MonitorTooltip, { feature }, evt.lngLat);
 }
 
 class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
