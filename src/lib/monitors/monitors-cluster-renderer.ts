@@ -1,12 +1,15 @@
 import type {
 	ExpressionSpecification,
 	FilterSpecification,
+	GeoJSONSource,
 	MapLayerEventType,
 	Popup
 } from "@maptiler/sdk";
+import type { Point } from "geojson";
 import type { SJVAirEntryLevel } from "@sjvair/sdk";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { mountPopup } from "$lib/map/utils.ts";
+import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { getTypeShape } from "./monitor-utils.ts";
 import type { MonitorClusterMapFeature, MonitorMapFeature } from "./types.ts";
@@ -46,7 +49,7 @@ export class MonitorsClusterRenderer {
 
 	constructor(private ctx: MonitorsClusterContext) {}
 
-	apply(): void {
+	apply(monitorClickHandler: ClickHandler): void {
 		if (!mapManager.map) return;
 
 		const sortedEntries = Object.entries(this.ctx.featuresByType).sort(([, a], [, b]) => {
@@ -83,6 +86,9 @@ export class MonitorsClusterRenderer {
 				this.ctx.tooltipManager.register(unclustered, monitorTooltip, index);
 			}
 
+			clickManager.register([unclustered], monitorClickHandler);
+			clickManager.register([icon], this.makeClusterClickHandler(sourceId));
+
 			this._clusterTypes.push(type);
 		}
 	}
@@ -93,6 +99,8 @@ export class MonitorsClusterRenderer {
 		for (const type of this._clusterTypes) {
 			const sourceId = `${this.ctx.referenceId}-${type}`;
 			const layers = this.clusterLayerIds(sourceId);
+			clickManager.unregister([layers.unclustered]);
+			clickManager.unregister([layers.icon]);
 			for (const layerId of Object.values(layers)) {
 				if (mapManager.map.getLayer(layerId)) {
 					mapManager.map.removeLayer(layerId);
@@ -148,6 +156,18 @@ export class MonitorsClusterRenderer {
 				mapManager.map.setPaintProperty(average, "text-color", this.clusterTextColorExpr(AVG_EXPR));
 			}
 		}
+	}
+
+	private makeClusterClickHandler(sourceId: string): ClickHandler {
+		return async (features) => {
+			const feature = features[0];
+			if (!feature?.properties?.cluster_id) return;
+			const source = mapManager.map?.getSource(sourceId) as GeoJSONSource | undefined;
+			if (!source) return;
+			const zoom = await source.getClusterExpansionZoom(feature.properties.cluster_id);
+			const coords = (feature.geometry as Point).coordinates as [number, number];
+			mapManager.map?.easeTo({ center: coords, zoom });
+		};
 	}
 
 	private clusterLayerIds(sourceId: string): {
