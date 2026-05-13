@@ -6,9 +6,9 @@ import {
 } from "@maptiler/sdk";
 import type { MonitorType, SJVAirEntryLevel } from "@sjvair/sdk";
 import { untrack } from "svelte";
-import type { Geometry, Point } from "geojson";
+import type { Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
-import { clickManager } from "$lib/map/integrations/click-manager.ts";
+import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
 import { monitorsManager } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
@@ -49,16 +49,19 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		inside: new MapDisplayOption("Inside", false)
 	};
 
+	/** Set by the app to handle navigation when a monitor is clicked. Receives the monitor ID. */
 	onMonitorClick: ((id: string) => void) | null = null;
 
-	private handleMonitorClick = (features: MapGeoJSONFeature[]): void => {
+	private handleMonitorClick: ClickHandler = (features) => {
+		if (!this.onMonitorClick) return;
 		const sorted = [...features].sort(
 			(a, b) => (b.properties?.order ?? 0) - (a.properties?.order ?? 0)
 		);
 		const top = sorted[0];
 		if (!top?.properties?.id) return;
-		this.onMonitorClick?.(top.properties.id as string);
-		const coords = (top.geometry as Point).coordinates as [number, number];
+		this.onMonitorClick(top.properties.id as string);
+		if (top.geometry.type !== "Point") return;
+		const coords = top.geometry.coordinates as [number, number];
 		mapManager.map?.easeTo({
 			center: coords,
 			zoom: Math.max(mapManager.map.getZoom(), 12)
