@@ -1,5 +1,5 @@
 import {
-	Popup,
+	type Popup,
 	type ExpressionSpecification,
 	type FilterSpecification,
 	type MapLayerEventType,

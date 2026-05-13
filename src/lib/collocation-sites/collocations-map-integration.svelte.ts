@@ -1,4 +1,4 @@
-import { Popup, type MapLayerEventType, type Map as MaptilerMap } from "@maptiler/sdk";
+import { type Popup, type MapLayerEventType, type Map as MaptilerMap } from "@maptiler/sdk";
 import type { Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
