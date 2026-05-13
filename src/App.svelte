@@ -2,7 +2,7 @@
 	import "./app.css";
 	import { onDestroy } from "svelte";
 	import { Router } from "sv-router";
-	import { route } from "./router";
+	import { navigate, route } from "./router";
 	import LoadScreen, { disable as disableLoadScreen } from "$lib/LoadScreen.svelte";
 	import Map from "$lib/map/Map.svelte";
 	import Menu from "$lib/map/Menu.svelte";
@@ -29,6 +29,7 @@
 
 	monitorsManager.init();
 	collocationSitesManager.init();
+	monitorsMapIntegration.onMonitorClick = (id: string) => navigate("/monitor/:id", { params: { id } });
 
 	let panelOpen = $derived(route.pathname.startsWith("/monitor/"));
 
