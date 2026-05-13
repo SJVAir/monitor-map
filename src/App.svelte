@@ -29,7 +29,7 @@
 
 	monitorsManager.init();
 	collocationSitesManager.init();
-	monitorsMapIntegration.onMonitorClick = (id: string) => navigate("/monitor/:id", { params: { id } });
+	monitorsMapIntegration.onMonitorClick = (id: string) => { navigate("/monitor/:id", { params: { id } }).catch(console.error); };
 
 	let panelOpen = $derived(route.pathname.startsWith("/monitor/"));
 
