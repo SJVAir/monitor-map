@@ -24,7 +24,6 @@ function collocationTooltip(evt: MapLayerEventType["mousemove"] & object): Popup
 class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSiteMarkerProperties> {
 	referenceId: string = "collocation-sites";
 	enabled: boolean = $state(false);
-	clustered: boolean = $state(true);
 
 	icons: CollocationIconManager = new CollocationIconManager();
 	tooltipManager: TooltipManager = new TooltipManager();
