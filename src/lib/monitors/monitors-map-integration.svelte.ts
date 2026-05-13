@@ -259,12 +259,11 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 						);
 					}
 					if (mapManager.map.getLayer(average)) {
-						mapManager.map.setPaintProperty(average, "text-color", [
-							"case",
-							["<=", AVG_EXPR, this.clusterTextColorThreshold],
-							"#000000",
-							"#FFFFFF"
-						]);
+						mapManager.map.setPaintProperty(
+							average,
+							"text-color",
+							this.clusterTextColorExpr(AVG_EXPR)
+						);
 					}
 				}
 			});
@@ -376,12 +375,20 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		return this.clusterIconThresholds[2]?.range[1] ?? 150.5;
 	}
 
-	private clusterLayerIds(sourceId: string): { icon: string; average: string; unclustered: string } {
+	private clusterLayerIds(sourceId: string): {
+		icon: string;
+		average: string;
+		unclustered: string;
+	} {
 		return {
 			icon: `${sourceId}-cluster-icon`,
 			average: `${sourceId}-cluster-average`,
 			unclustered: `${sourceId}-unclustered`
 		};
+	}
+
+	private clusterTextColorExpr(avgExpr: ExpressionSpecification): ExpressionSpecification {
+		return ["case", ["<=", avgExpr, this.clusterTextColorThreshold], "#000000", "#FFFFFF"];
 	}
 
 	private buildClusterIconExpression(
@@ -436,12 +443,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 					"text-allow-overlap": true
 				},
 				paint: {
-					"text-color": [
-						"case",
-						["<=", avgExpr, this.clusterTextColorThreshold],
-						"#000000",
-						"#FFFFFF"
-					]
+					"text-color": this.clusterTextColorExpr(avgExpr)
 				}
 			},
 			this.beforeLayer
