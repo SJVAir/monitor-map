@@ -1,8 +1,6 @@
 import {
-	type Popup,
 	type ExpressionSpecification,
 	type FilterSpecification,
-	type MapLayerEventType,
 	type Map as MaptilerMap
 } from "@maptiler/sdk";
 import type { MonitorType, SJVAirEntryLevel } from "@sjvair/sdk";
@@ -10,19 +8,13 @@ import { untrack } from "svelte";
 import type { Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
-import { mountPopup } from "$lib/map/utils.ts";
 import { monitorsManager } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte.ts";
-import { getCurrentLevel, getOrder, getTypeShape } from "./monitor-utils.ts";
-import MonitorTooltip from "./MonitorTooltip.svelte";
-import MonitorClusterTooltip from "./MonitorClusterTooltip.svelte";
-import type {
-	MonitorClusterMapFeature,
-	MonitorMapFeature,
-	MonitorMarkerProperties
-} from "./types.ts";
+import { getCurrentLevel, getOrder } from "./monitor-utils.ts";
+import { MonitorsClusterRenderer, monitorTooltip } from "./monitors-cluster-renderer.ts";
+import type { MonitorMapFeature, MonitorMarkerProperties } from "./types.ts";
 
 const filters = {
 	monitor(deviceType: MonitorType): ExpressionSpecification {
@@ -36,25 +28,6 @@ const filters = {
 	}
 };
 
-const AVG_EXPR: ExpressionSpecification = [
-	"/",
-	["get", "sumValues"],
-	["max", ["get", "point_count"], 1]
-];
-
-function clusterTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
-	const feature = evt.features?.[0] as unknown as MonitorClusterMapFeature | undefined;
-	if (!feature) return;
-	return mountPopup(MonitorClusterTooltip, { feature }, evt.lngLat);
-}
-
-function monitorTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
-	const features = evt.features as unknown as Array<MonitorMapFeature> | undefined;
-	const feature = features?.sort((a, b) => b.properties.order - a.properties.order)[0];
-	if (!feature) return;
-	return mountPopup(MonitorTooltip, { feature }, evt.lngLat);
-}
-
 class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
 	referenceId: string = "monitors";
 	enabled: boolean = $state(true);
@@ -62,8 +35,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 	icons: MonitorsIconManager = new MonitorsIconManager();
 	tooltipManager: TooltipManager = new TooltipManager();
-
-	private _clusterTypes: string[] = [];
+	private renderer: MonitorsClusterRenderer = new MonitorsClusterRenderer(this);
 
 	displayOptions = {
 		purpleair: new MapDisplayOption("PurpleAir", true),
@@ -101,7 +73,6 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 				if (levels) {
 					const level = getCurrentLevel(m.latest.value, levels);
-
 					if (level) {
 						feature.properties.icon = getIconId(m, level);
 					}
@@ -133,9 +104,6 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		return ["all", monitorFilters, locationFilters, statusFilters];
 	});
 
-	// Groups features by monitor type for per-type cluster sources, applying display option
-	// filters so cluster aggregates only include visible monitors. sjvair purpleair is remapped
-	// to "airgradient" since they share the same shape (circle).
 	featuresByType: Record<string, MonitorMapFeature[]> = $derived.by(() => {
 		const opts = this.displayOptions;
 		const byType: Record<string, MonitorMapFeature[]> = {};
@@ -206,17 +174,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				if (!mapManager.map) return;
 
 				if (this.clustered) {
-					for (const type of this._clusterTypes) {
-						const sourceId = `${this.referenceId}-${type}`;
-						const { unclustered } = this.clusterLayerIds(sourceId);
-						if (mapManager.map.getLayer(unclustered)) {
-							mapManager.map.setFilter(unclustered, [
-								"all",
-								filter as ExpressionSpecification,
-								["!", ["has", "point_count"]]
-							]);
-						}
-					}
+					this.renderer.syncFilter();
 				} else {
 					if (mapManager.map.getLayer(this.referenceId)) {
 						mapManager.map.setFilter(this.referenceId, filter);
@@ -233,39 +191,16 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 			// Keep cluster source data in sync when features or display options change
 			$effect(() => {
-				const featuresByType = this.featuresByType;
+				void this.featuresByType;
 				if (!mapManager.map || !this.clustered) return;
-
-				for (const type of this._clusterTypes) {
-					const sourceId = `${this.referenceId}-${type}`;
-					mapManager.setDataSource(sourceId, featuresByType[type] ?? []);
-				}
+				this.renderer.syncFeatures();
 			});
 
 			// Push updated icon expressions to cluster layers when the pollutant changes
 			$effect(() => {
 				const thresholds = this.clusterIconThresholds;
 				if (!mapManager.map || !this.clustered || !thresholds.length) return;
-
-				for (const type of this._clusterTypes) {
-					const sourceId = `${this.referenceId}-${type}`;
-					const { icon, average } = this.clusterLayerIds(sourceId);
-
-					if (mapManager.map.getLayer(icon)) {
-						mapManager.map.setLayoutProperty(
-							icon,
-							"icon-image",
-							this.buildClusterIconExpression(AVG_EXPR, getTypeShape(type))
-						);
-					}
-					if (mapManager.map.getLayer(average)) {
-						mapManager.map.setPaintProperty(
-							average,
-							"text-color",
-							this.clusterTextColorExpr(AVG_EXPR)
-						);
-					}
-				}
+				this.renderer.syncThresholds();
 			});
 
 			// Re-apply when clustered mode switches or when data first arrives (cold load).
@@ -291,184 +226,22 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			if (mapManager.map.getLayer(this.referenceId)) mapManager.map.removeLayer(this.referenceId);
 			if (mapManager.map.getSource(this.referenceId)) mapManager.map.removeSource(this.referenceId);
 			this.tooltipManager.disable();
-			this.removeClusters();
+			this.renderer.remove();
 			this.icons.loadIcons().then(() => {
-				this.applyClusters();
+				this.renderer.apply();
 				this.tooltipManager.enable();
 			});
 		} else {
 			this.tooltipManager.disable();
-			this.removeClusters();
+			this.renderer.remove();
 			this.tooltipManager.enable();
 			super.apply();
 		}
 	}
 
 	remove() {
-		this.removeClusters();
+		this.renderer.remove();
 		super.remove();
-	}
-
-	private applyClusters() {
-		if (!mapManager.map) return;
-
-		const sortedEntries = Object.entries(this.featuresByType).sort(([, a], [, b]) => {
-			const maxOrder = (fs: MonitorMapFeature[]) =>
-				fs.reduce((m, f) => Math.max(m, f.properties.order), 0);
-			return maxOrder(a) - maxOrder(b);
-		});
-
-		for (const [[type, features], index] of sortedEntries.map((e, i) => [e, i] as const)) {
-			const sourceId = `${this.referenceId}-${type}`;
-
-			mapManager.map.addSource(sourceId, {
-				type: "geojson",
-				promoteId: "id",
-				data: { type: "FeatureCollection", features },
-				cluster: true,
-				clusterRadius: 40,
-				clusterMaxZoom: 9,
-				clusterProperties: {
-					sumValues: ["+", ["to-number", ["get", "value"]], 0]
-					//countValues: ["+", 1, 0]
-				}
-			});
-
-			this.monitorTypeIconsLayer(sourceId, AVG_EXPR, getTypeShape(type));
-			this.clusterCountLayer(sourceId, AVG_EXPR);
-			this.unclusteredLayer(sourceId);
-
-			const { icon, unclustered } = this.clusterLayerIds(sourceId);
-
-			if (!this.tooltipManager.has(icon)) {
-				this.tooltipManager.register(icon, clusterTooltip, index);
-			}
-			if (!this.tooltipManager.has(unclustered)) {
-				this.tooltipManager.register(unclustered, monitorTooltip, index);
-			}
-
-			this._clusterTypes.push(type);
-		}
-	}
-
-	private removeClusters() {
-		if (!mapManager.map) return;
-
-		for (const type of this._clusterTypes) {
-			const sourceId = `${this.referenceId}-${type}`;
-			const layers = this.clusterLayerIds(sourceId);
-			for (const layerId of Object.values(layers)) {
-				if (mapManager.map.getLayer(layerId)) {
-					mapManager.map.removeLayer(layerId);
-				}
-			}
-			if (mapManager.map.getSource(sourceId)) {
-				mapManager.map.removeSource(sourceId);
-			}
-		}
-
-		this._clusterTypes = [];
-	}
-
-	private get clusterTextColorThreshold(): number {
-		// Use the max of the 3rd level (unhealthy_sensitive) so text flips to white at unhealthy+
-		return this.clusterIconThresholds[2]?.range[1] ?? 150.5;
-	}
-
-	private clusterLayerIds(sourceId: string): {
-		icon: string;
-		average: string;
-		unclustered: string;
-	} {
-		return {
-			icon: `${sourceId}-cluster-icon`,
-			average: `${sourceId}-cluster-average`,
-			unclustered: `${sourceId}-unclustered`
-		};
-	}
-
-	private clusterTextColorExpr(avgExpr: ExpressionSpecification): ExpressionSpecification {
-		return ["case", ["<=", avgExpr, this.clusterTextColorThreshold], "#000000", "#FFFFFF"];
-	}
-
-	private buildClusterIconExpression(
-		avgExpr: ExpressionSpecification,
-		shape: string
-	): ExpressionSpecification {
-		const thresholds = this.clusterIconThresholds;
-		if (!thresholds.length) return `outside-default-${shape}` as unknown as ExpressionSpecification;
-
-		const expr: unknown[] = ["case"];
-		for (const level of thresholds.slice(0, -1)) {
-			expr.push(["<=", avgExpr, level.range[1]], `outside-${level.name}-${shape}`);
-		}
-		expr.push(`outside-${thresholds.at(-1)!.name}-${shape}`);
-		return expr as ExpressionSpecification;
-	}
-
-	private monitorTypeIconsLayer(sourceId: string, avgExpr: ExpressionSpecification, shape: string) {
-		const { icon } = this.clusterLayerIds(sourceId);
-		mapManager.map?.addLayer(
-			{
-				id: icon,
-				type: "symbol",
-				source: sourceId,
-				filter: ["has", "point_count"],
-				layout: {
-					"icon-image": this.buildClusterIconExpression(avgExpr, shape),
-					"icon-size": ["step", ["get", "point_count"], 1.3, 10, 1.6, 25, 2.0],
-					"icon-ignore-placement": true,
-					"icon-allow-overlap": true
-				},
-				paint: {
-					"icon-opacity": 0.8
-				}
-			},
-			this.beforeLayer
-		);
-	}
-
-	private clusterCountLayer(sourceId: string, avgExpr: ExpressionSpecification) {
-		const { average } = this.clusterLayerIds(sourceId);
-		mapManager.map?.addLayer(
-			{
-				id: average,
-				type: "symbol",
-				source: sourceId,
-				filter: ["has", "point_count"],
-				layout: {
-					"text-field": ["to-string", ["round", avgExpr]],
-					"text-size": 12,
-					"text-ignore-placement": true,
-					"text-allow-overlap": true
-				},
-				paint: {
-					"text-color": this.clusterTextColorExpr(avgExpr)
-				}
-			},
-			this.beforeLayer
-		);
-	}
-
-	private unclusteredLayer(sourceId: string) {
-		const { unclustered } = this.clusterLayerIds(sourceId);
-		mapManager.map?.addLayer(
-			{
-				id: unclustered,
-				type: "symbol",
-				source: sourceId,
-				filter: ["all", this.filters as ExpressionSpecification, ["!", ["has", "point_count"]]],
-				layout: {
-					"symbol-sort-key": ["coalesce", ["get", "order"], 0],
-					"icon-allow-overlap": true,
-					"icon-ignore-placement": true,
-					"icon-image": ["get", "icon"],
-					"icon-size": 1
-				},
-				paint: {}
-			},
-			this.beforeLayer
-		);
 	}
 }
 
