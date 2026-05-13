@@ -104,6 +104,9 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		return ["all", monitorFilters, locationFilters, statusFilters];
 	});
 
+	// Groups features by monitor type for per-type cluster sources, applying display option
+	// filters so cluster aggregates only include visible monitors. sjvair purpleair is remapped
+	// to "airgradient" since they share the same shape (circle).
 	featuresByType: Record<string, MonitorMapFeature[]> = $derived.by(() => {
 		const opts = this.displayOptions;
 		const byType: Record<string, MonitorMapFeature[]> = {};

@@ -107,6 +107,7 @@ export class MonitorsClusterRenderer {
 	}
 
 	syncFeatures(): void {
+		if (!mapManager.map) return;
 		for (const type of this._clusterTypes) {
 			const sourceId = `${this.ctx.referenceId}-${type}`;
 			mapManager.setDataSource(sourceId, this.ctx.featuresByType[type] ?? []);
