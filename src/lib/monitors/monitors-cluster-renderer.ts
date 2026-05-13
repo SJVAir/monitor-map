@@ -144,16 +144,16 @@ export class MonitorsClusterRenderer {
 				);
 			}
 			if (mapManager.map.getLayer(average)) {
-				mapManager.map.setPaintProperty(
-					average,
-					"text-color",
-					this.clusterTextColorExpr(AVG_EXPR)
-				);
+				mapManager.map.setPaintProperty(average, "text-color", this.clusterTextColorExpr(AVG_EXPR));
 			}
 		}
 	}
 
-	private clusterLayerIds(sourceId: string): { icon: string; average: string; unclustered: string } {
+	private clusterLayerIds(sourceId: string): {
+		icon: string;
+		average: string;
+		unclustered: string;
+	} {
 		return {
 			icon: `${sourceId}-cluster-icon`,
 			average: `${sourceId}-cluster-average`,
@@ -162,6 +162,7 @@ export class MonitorsClusterRenderer {
 	}
 
 	private get clusterTextColorThreshold(): number {
+		// Use the max of the 3rd level (unhealthy_sensitive) so text flips to white at unhealthy+
 		return this.ctx.clusterIconThresholds[2]?.range[1] ?? 150.5;
 	}
 
@@ -174,8 +175,7 @@ export class MonitorsClusterRenderer {
 		shape: string
 	): ExpressionSpecification {
 		const thresholds = this.ctx.clusterIconThresholds;
-		if (!thresholds.length)
-			return `outside-default-${shape}` as unknown as ExpressionSpecification;
+		if (!thresholds.length) return `outside-default-${shape}` as unknown as ExpressionSpecification;
 
 		const expr: unknown[] = ["case"];
 		for (const level of thresholds.slice(0, -1)) {
