@@ -207,9 +207,10 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 				if (this.clustered) {
 					for (const type of this._clusterTypes) {
-						const layerId = `${this.referenceId}-${type}-unclustered`;
-						if (mapManager.map.getLayer(layerId)) {
-							mapManager.map.setFilter(layerId, [
+						const sourceId = `${this.referenceId}-${type}`;
+						const { unclustered } = this.clusterLayerIds(sourceId);
+						if (mapManager.map.getLayer(unclustered)) {
+							mapManager.map.setFilter(unclustered, [
 								"all",
 								filter as ExpressionSpecification,
 								["!", ["has", "point_count"]]
@@ -236,7 +237,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				if (!mapManager.map || !this.clustered) return;
 
 				for (const type of this._clusterTypes) {
-					mapManager.setDataSource(`${this.referenceId}-${type}`, featuresByType[type] ?? []);
+					const sourceId = `${this.referenceId}-${type}`;
+					mapManager.setDataSource(sourceId, featuresByType[type] ?? []);
 				}
 			});
 
@@ -247,18 +249,17 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 				for (const type of this._clusterTypes) {
 					const sourceId = `${this.referenceId}-${type}`;
-					const iconLayerId = `${sourceId}-cluster-icon`;
-					const avgLayerId = `${sourceId}-cluster-average`;
+					const { icon, average } = this.clusterLayerIds(sourceId);
 
-					if (mapManager.map.getLayer(iconLayerId)) {
+					if (mapManager.map.getLayer(icon)) {
 						mapManager.map.setLayoutProperty(
-							iconLayerId,
+							icon,
 							"icon-image",
 							this.buildClusterIconExpression(AVG_EXPR, getTypeShape(type))
 						);
 					}
-					if (mapManager.map.getLayer(avgLayerId)) {
-						mapManager.map.setPaintProperty(avgLayerId, "text-color", [
+					if (mapManager.map.getLayer(average)) {
+						mapManager.map.setPaintProperty(average, "text-color", [
 							"case",
 							["<=", AVG_EXPR, this.clusterTextColorThreshold],
 							"#000000",
@@ -338,11 +339,13 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			this.clusterCountLayer(sourceId, AVG_EXPR);
 			this.unclusteredLayer(sourceId);
 
-			if (!this.tooltipManager.has(`${sourceId}-cluster-icon`)) {
-				this.tooltipManager.register(`${sourceId}-cluster-icon`, clusterTooltip, index);
+			const { icon, unclustered } = this.clusterLayerIds(sourceId);
+
+			if (!this.tooltipManager.has(icon)) {
+				this.tooltipManager.register(icon, clusterTooltip, index);
 			}
-			if (!this.tooltipManager.has(`${sourceId}-unclustered`)) {
-				this.tooltipManager.register(`${sourceId}-unclustered`, monitorTooltip, index);
+			if (!this.tooltipManager.has(unclustered)) {
+				this.tooltipManager.register(unclustered, monitorTooltip, index);
 			}
 
 			this._clusterTypes.push(type);
@@ -354,11 +357,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 		for (const type of this._clusterTypes) {
 			const sourceId = `${this.referenceId}-${type}`;
-			for (const layerId of [
-				`${sourceId}-cluster-icon`,
-				`${sourceId}-cluster-average`,
-				`${sourceId}-unclustered`
-			]) {
+			const layers = this.clusterLayerIds(sourceId);
+			for (const layerId of Object.values(layers)) {
 				if (mapManager.map.getLayer(layerId)) {
 					mapManager.map.removeLayer(layerId);
 				}
@@ -374,6 +374,14 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 	private get clusterTextColorThreshold(): number {
 		// Use the max of the 3rd level (unhealthy_sensitive) so text flips to white at unhealthy+
 		return this.clusterIconThresholds[2]?.range[1] ?? 150.5;
+	}
+
+	private clusterLayerIds(sourceId: string): { icon: string; average: string; unclustered: string } {
+		return {
+			icon: `${sourceId}-cluster-icon`,
+			average: `${sourceId}-cluster-average`,
+			unclustered: `${sourceId}-unclustered`
+		};
 	}
 
 	private buildClusterIconExpression(
@@ -392,9 +400,10 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 	}
 
 	private monitorTypeIconsLayer(sourceId: string, avgExpr: ExpressionSpecification, shape: string) {
+		const { icon } = this.clusterLayerIds(sourceId);
 		mapManager.map?.addLayer(
 			{
-				id: `${sourceId}-cluster-icon`,
+				id: icon,
 				type: "symbol",
 				source: sourceId,
 				filter: ["has", "point_count"],
@@ -413,9 +422,10 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 	}
 
 	private clusterCountLayer(sourceId: string, avgExpr: ExpressionSpecification) {
+		const { average } = this.clusterLayerIds(sourceId);
 		mapManager.map?.addLayer(
 			{
-				id: `${sourceId}-cluster-average`,
+				id: average,
 				type: "symbol",
 				source: sourceId,
 				filter: ["has", "point_count"],
@@ -439,9 +449,10 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 	}
 
 	private unclusteredLayer(sourceId: string) {
+		const { unclustered } = this.clusterLayerIds(sourceId);
 		mapManager.map?.addLayer(
 			{
-				id: `${sourceId}-unclustered`,
+				id: unclustered,
 				type: "symbol",
 				source: sourceId,
 				filter: ["all", this.filters as ExpressionSpecification, ["!", ["has", "point_count"]]],
