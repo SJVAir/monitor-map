@@ -1,12 +1,14 @@
 import {
 	type ExpressionSpecification,
 	type FilterSpecification,
+	type MapGeoJSONFeature,
 	type Map as MaptilerMap
 } from "@maptiler/sdk";
 import type { MonitorType, SJVAirEntryLevel } from "@sjvair/sdk";
 import { untrack } from "svelte";
-import type { Geometry } from "geojson";
+import type { Geometry, Point } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
+import { clickManager } from "$lib/map/integrations/click-manager.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
 import { monitorsManager } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
@@ -45,6 +47,22 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		airnow: new MapDisplayOption("AirNow", true),
 		inactive: new MapDisplayOption("Inactive", false),
 		inside: new MapDisplayOption("Inside", false)
+	};
+
+	onMonitorClick: ((id: string) => void) | null = null;
+
+	private handleMonitorClick = (features: MapGeoJSONFeature[]): void => {
+		const sorted = [...features].sort(
+			(a, b) => (b.properties?.order ?? 0) - (a.properties?.order ?? 0)
+		);
+		const top = sorted[0];
+		if (!top?.properties?.id) return;
+		this.onMonitorClick?.(top.properties.id as string);
+		const coords = (top.geometry as Point).coordinates as [number, number];
+		mapManager.map?.easeTo({
+			center: coords,
+			zoom: Math.max(mapManager.map.getZoom(), 12)
+		});
 	};
 
 	features: Array<MonitorMapFeature> = $derived.by(() => {
@@ -228,21 +246,25 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		if (this.clustered) {
 			if (mapManager.map.getLayer(this.referenceId)) mapManager.map.removeLayer(this.referenceId);
 			if (mapManager.map.getSource(this.referenceId)) mapManager.map.removeSource(this.referenceId);
+			clickManager.unregister([this.referenceId]);
 			this.tooltipManager.disable();
 			this.renderer.remove();
 			this.icons.loadIcons().then(() => {
-				this.renderer.apply();
+				this.renderer.apply(this.handleMonitorClick);
 				this.tooltipManager.enable();
 			});
 		} else {
 			this.tooltipManager.disable();
 			this.renderer.remove();
 			this.tooltipManager.enable();
+			clickManager.unregister([this.referenceId]);
 			super.apply();
+			clickManager.register([this.referenceId], this.handleMonitorClick);
 		}
 	}
 
 	remove() {
+		clickManager.unregister([this.referenceId]);
 		this.renderer.remove();
 		super.remove();
 	}
