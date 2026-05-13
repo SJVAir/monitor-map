@@ -36,6 +36,12 @@ const filters = {
 	}
 };
 
+const AVG_EXPR: ExpressionSpecification = [
+	"/",
+	["get", "sumValues"],
+	["max", ["get", "point_count"], 1]
+];
+
 function clusterTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
 	const feature = evt.features?.[0] as unknown as MonitorClusterMapFeature | undefined;
 	if (!feature) return;
@@ -239,12 +245,6 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				const thresholds = this.clusterIconThresholds;
 				if (!mapManager.map || !this.clustered || !thresholds.length) return;
 
-				const avgExpr: ExpressionSpecification = [
-					"/",
-					["get", "sumValues"],
-					["max", ["get", "point_count"], 1]
-				];
-
 				for (const type of this._clusterTypes) {
 					const sourceId = `${this.referenceId}-${type}`;
 					const iconLayerId = `${sourceId}-cluster-icon`;
@@ -254,13 +254,13 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 						mapManager.map.setLayoutProperty(
 							iconLayerId,
 							"icon-image",
-							this.buildClusterIconExpression(avgExpr, getTypeShape(type))
+							this.buildClusterIconExpression(AVG_EXPR, getTypeShape(type))
 						);
 					}
 					if (mapManager.map.getLayer(avgLayerId)) {
 						mapManager.map.setPaintProperty(avgLayerId, "text-color", [
 							"case",
-							["<=", avgExpr, this.clusterTextColorThreshold],
+							["<=", AVG_EXPR, this.clusterTextColorThreshold],
 							"#000000",
 							"#FFFFFF"
 						]);
@@ -320,12 +320,6 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 		for (const [[type, features], index] of sortedEntries.map((e, i) => [e, i] as const)) {
 			const sourceId = `${this.referenceId}-${type}`;
-			const avgExpr: ExpressionSpecification = [
-				"/",
-				["get", "sumValues"],
-				["max", ["get", "point_count"], 1]
-				//["max", ["get", "countValues"], 1]
-			];
 
 			mapManager.map.addSource(sourceId, {
 				type: "geojson",
@@ -340,8 +334,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				}
 			});
 
-			this.monitorTypeIconsLayer(sourceId, avgExpr, getTypeShape(type));
-			this.clusterCountLayer(sourceId, avgExpr);
+			this.monitorTypeIconsLayer(sourceId, AVG_EXPR, getTypeShape(type));
+			this.clusterCountLayer(sourceId, AVG_EXPR);
 			this.unclusteredLayer(sourceId);
 
 			if (!this.tooltipManager.has(`${sourceId}-cluster-icon`)) {
