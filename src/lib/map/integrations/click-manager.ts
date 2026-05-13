@@ -1,4 +1,3 @@
-// src/lib/map/integrations/click-manager.ts
 import type { MapGeoJSONFeature, MapMouseEvent } from "@maptiler/sdk";
 import { mapManager } from "../map.svelte.ts";
 
@@ -13,8 +12,16 @@ class ClickManager {
 	private registrations: ClickRegistration[] = [];
 	private isListening = false;
 
+	/** Must be called after `mapManager.map` is initialized (i.e. from within `apply()`). */
 	register(layerIds: string[], handler: ClickHandler): void {
-		this.registrations.push({ layerIds, handler });
+		const incomingSet = new Set(layerIds);
+		const existing = this.registrations.find((r) => r.layerIds.some((id) => incomingSet.has(id)));
+		if (existing) {
+			existing.layerIds = layerIds;
+			existing.handler = handler;
+		} else {
+			this.registrations.push({ layerIds, handler });
+		}
 		this.ensureListener();
 	}
 
@@ -35,8 +42,8 @@ class ClickManager {
 	}
 
 	private removeListener(): void {
-		if (!this.isListening || !mapManager.map) return;
-		mapManager.map.off("click", this.handleClick);
+		if (!this.isListening) return;
+		mapManager.map?.off("click", this.handleClick);
 		this.isListening = false;
 	}
 
