@@ -114,6 +114,10 @@ export class MonitorsClusterRenderer {
 		this._clusterTypes = [];
 	}
 
+	get sourceIds(): string[] {
+		return this._clusterTypes.map((type) => `${this.ctx.referenceId}-${type}`);
+	}
+
 	syncFeatures(): void {
 		if (!mapManager.map) return;
 		for (const type of this._clusterTypes) {
@@ -271,7 +275,7 @@ export class MonitorsClusterRenderer {
 					"icon-allow-overlap": true,
 					"icon-ignore-placement": true,
 					"icon-image": ["get", "icon"],
-					"icon-size": 1
+					"icon-size": ["case", ["boolean", ["feature-state", "selected"], false], 1.3, 1]
 				},
 				paint: {}
 			},
