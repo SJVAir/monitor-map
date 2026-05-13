@@ -160,13 +160,17 @@ export class MonitorsClusterRenderer {
 
 	private makeClusterClickHandler(sourceId: string): ClickHandler {
 		return async (features) => {
-			const feature = features[0];
-			if (!feature?.properties?.cluster_id) return;
-			const source = mapManager.map?.getSource(sourceId) as GeoJSONSource | undefined;
-			if (!source) return;
-			const zoom = await source.getClusterExpansionZoom(feature.properties.cluster_id);
-			const coords = (feature.geometry as Point).coordinates as [number, number];
-			mapManager.map?.easeTo({ center: coords, zoom });
+			try {
+				const feature = features[0];
+				if (!feature?.properties?.cluster_id) return;
+				const source = mapManager.map?.getSource(sourceId) as GeoJSONSource | undefined;
+				if (!source) return;
+				const zoom = await source.getClusterExpansionZoom(feature.properties.cluster_id);
+				const coords = (feature.geometry as Point).coordinates as [number, number];
+				mapManager.map?.easeTo({ center: coords, zoom });
+			} catch (err) {
+				console.error("ClickManager: cluster expansion zoom failed", err);
+			}
 		};
 	}
 
