@@ -27,9 +27,7 @@ class ClickManager {
 
 	unregister(layerIds: string[]): void {
 		const set = new Set(layerIds);
-		this.registrations = this.registrations.filter(
-			(r) => !r.layerIds.some((id) => set.has(id))
-		);
+		this.registrations = this.registrations.filter((r) => !r.layerIds.some((id) => set.has(id)));
 		if (this.registrations.length === 0) {
 			this.removeListener();
 		}
@@ -63,3 +61,4 @@ class ClickManager {
 }
 
 export const clickManager = new ClickManager();
+export type { ClickManager };
