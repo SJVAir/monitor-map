@@ -272,8 +272,10 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			this.tooltipManager.enable();
 			clickManager.unregister([this.referenceId]);
 			super.apply();
-			clickManager.register([this.referenceId], this.handleMonitorClick);
-			this.icons.loadIcons().then(() => this.applySelectedState());
+			this.icons.loadIcons().then(() => {
+				clickManager.register([this.referenceId], this.handleMonitorClick);
+				this.applySelectedState();
+			});
 		}
 	}
 
