@@ -1,8 +1,16 @@
 import { EvStation } from "../types";
-import { accessDetailCodeTypes, creditCardTypes, evConnectorTypes, evNetworkTypes, facilityTypes } from "./DataMaps";
+import {
+  accessDetailCodeTypes,
+  creditCardTypes,
+  evConnectorTypes,
+  evNetworkTypes,
+  facilityTypes,
+} from "./DataMaps";
 import * as ZipCodes from "./ZipCodes";
 
-const zipCodes = Object.values(ZipCodes).reduce((prev, curr) => prev.concat(curr)).join(",");
+const zipCodes = Object.values(ZipCodes)
+  .reduce((prev, curr) => prev.concat(curr))
+  .join(",");
 
 export async function fetchLvl3Stations(): Promise<Array<EvStation>> {
   return fetchEvStations("dc_fast");
@@ -13,7 +21,9 @@ export async function fetchLvl2Stations(): Promise<Array<EvStation>> {
 }
 
 function getEVStationsURL(chargingLevel: "2" | "dc_fast"): URL {
-  const url = new URL(`https://developer.nrel.gov/api/alt-fuel-stations/v1.json`);
+  const url = new URL(
+    `https://developer.nlr.gov/api/alt-fuel-stations/v1.json`,
+  );
   url.searchParams.set("fuel_type", "ELEC");
   url.searchParams.set("state", "CA");
   url.searchParams.set("status", "E");
@@ -25,40 +35,51 @@ function getEVStationsURL(chargingLevel: "2" | "dc_fast"): URL {
   return url;
 }
 
-async function fetchEvStations(chargingLevel: "2" | "dc_fast"): Promise<Array<EvStation>> {
+async function fetchEvStations(
+  chargingLevel: "2" | "dc_fast",
+): Promise<Array<EvStation>> {
   const url = getEVStationsURL(chargingLevel);
   return await fetch(url)
-    .then(async res => await res.json())
-    .then(data => {
+    .then(async (res) => await res.json())
+    .then((data) => {
       const fuelStations: Array<EvStation> = data.fuel_stations!;
-      return fuelStations.map(station => {
+      return (
+        fuelStations
+          .map((station) => {
+            if (station.access_detail_code) {
+              station.access_detail_code = accessDetailCodeTypes.get(
+                station.access_detail_code,
+              );
+            }
 
-        if (station.access_detail_code) {
-          station.access_detail_code = accessDetailCodeTypes.get(station.access_detail_code);
-        }
+            if (station.cards_accepted) {
+              station.cards_accepted = station.cards_accepted
+                .split(" ")
+                .map((c) => creditCardTypes.get(c))
+                .join(", ");
+            }
 
-        if (station.cards_accepted) {
-          station.cards_accepted = station.cards_accepted.split(" ")
-            .map(c => creditCardTypes.get(c))
-            .join(", ")
-        }
+            if (
+              station.ev_connector_types &&
+              station.ev_connector_types.length
+            ) {
+              station.ev_connector_types = station.ev_connector_types.map((t) =>
+                evConnectorTypes.get(t),
+              );
+            }
 
-        if (station.ev_connector_types && station.ev_connector_types.length) {
-          station.ev_connector_types = station.ev_connector_types.map(t => evConnectorTypes.get(t))
-        }
+            if (station.ev_network) {
+              station.ev_network = evNetworkTypes.get(station.ev_network);
+            }
 
-        if (station.ev_network) {
-          station.ev_network = evNetworkTypes.get(station.ev_network);
-        }
+            if (station.facility_type) {
+              station.facility_type = facilityTypes.get(station.facility_type);
+            }
 
-
-        if (station.facility_type) {
-          station.facility_type = facilityTypes.get(station.facility_type)
-        }
-
-        return station;
-      })
-        // remove stations with invalid coordinates
-        .filter(station => station.id !== 226154);
+            return station;
+          })
+          // remove stations with invalid coordinates
+          .filter((station) => station.id !== 226154)
+      );
     });
 }
