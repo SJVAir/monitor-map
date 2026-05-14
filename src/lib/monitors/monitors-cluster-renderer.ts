@@ -114,8 +114,8 @@ export class MonitorsClusterRenderer {
 		this._clusterTypes = [];
 	}
 
-	get sourceIds(): string[] {
-		return this._clusterTypes.map((type) => `${this.ctx.referenceId}-${type}`);
+	get unclusteredLayerIds(): string[] {
+		return this._clusterTypes.map((type) => `${this.ctx.referenceId}-${type}-unclustered`);
 	}
 
 	syncFeatures(): void {
@@ -275,7 +275,7 @@ export class MonitorsClusterRenderer {
 					"icon-allow-overlap": true,
 					"icon-ignore-placement": true,
 					"icon-image": ["get", "icon"],
-					"icon-size": ["case", ["boolean", ["feature-state", "selected"], false], 1.3, 1]
+					"icon-size": 1
 				},
 				paint: {}
 			},

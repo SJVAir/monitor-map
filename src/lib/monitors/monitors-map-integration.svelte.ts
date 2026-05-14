@@ -173,7 +173,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				"icon-allow-overlap": true,
 				"icon-ignore-placement": true,
 				"icon-image": ["get", "icon"],
-				"icon-size": ["case", ["boolean", ["feature-state", "selected"], false], 1.3, 1]
+				"icon-size": 1
 			},
 			paint: {}
 		};
@@ -285,16 +285,13 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 	private applySelectedState(): void {
 		if (!mapManager.map) return;
-		const sources = this.clustered ? this.renderer.sourceIds : [this.referenceId];
-		for (const source of sources) {
-			if (!mapManager.map.getSource(source)) continue;
-			mapManager.map.removeFeatureState({ source }, "selected");
-			if (this.selectedMonitorId) {
-				mapManager.map.setFeatureState(
-					{ source, id: this.selectedMonitorId },
-					{ selected: true }
-				);
-			}
+		const layerIds = this.clustered ? this.renderer.unclusteredLayerIds : [this.referenceId];
+		const iconSize = this.selectedMonitorId
+			? (["match", ["get", "id"], this.selectedMonitorId, 1.3, 1] as ExpressionSpecification)
+			: 1;
+		for (const layerId of layerIds) {
+			if (!mapManager.map.getLayer(layerId)) continue;
+			mapManager.map.setLayoutProperty(layerId, "icon-size", iconSize);
 		}
 	}
 }
