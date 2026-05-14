@@ -49,10 +49,10 @@
 		}
 	});
 
+	// Clear selected icon scale when the detail panel closes
 	$effect(() => {
-		if (!panelOpen) {
-			monitorsMapIntegration.selectedMonitorId = null;
-		}
+		if (panelOpen) return;
+		monitorsMapIntegration.selectedMonitorId = null;
 	});
 
 	onDestroy(() => {
