@@ -49,6 +49,12 @@
 		}
 	});
 
+	$effect(() => {
+		if (!panelOpen) {
+			monitorsMapIntegration.selectedMonitorId = null;
+		}
+	});
+
 	onDestroy(() => {
 		monitorsManager.autoUpdate.stop();
 	});
