@@ -51,6 +51,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 
 	/** Set by the app to handle navigation when a monitor is clicked. Receives the monitor ID. */
 	onMonitorClick: ((id: string) => void) | null = null;
+	selectedMonitorId: string | null = $state(null);
 
 	private handleMonitorClick: ClickHandler = (features) => {
 		if (!this.onMonitorClick) return;
@@ -59,7 +60,8 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		);
 		const top = sorted[0];
 		if (!top?.properties?.id) return;
-		this.onMonitorClick(top.properties.id as string);
+		this.selectedMonitorId = top.properties.id as string;
+		this.onMonitorClick(this.selectedMonitorId);
 		if (top.geometry.type !== "Point") return;
 		const coords = top.geometry.coordinates as [number, number];
 		mapManager.map?.easeTo({
@@ -171,7 +173,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				"icon-allow-overlap": true,
 				"icon-ignore-placement": true,
 				"icon-image": ["get", "icon"],
-				"icon-size": 1
+				"icon-size": ["case", ["boolean", ["feature-state", "selected"], false], 1.3, 1]
 			},
 			paint: {}
 		};
@@ -236,6 +238,13 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 				if (!untrack(() => mapManager.map) || !hasFeatures) return;
 				untrack(() => this.apply());
 			});
+
+			// Sync selected icon scale via feature state
+			$effect(() => {
+				void this.selectedMonitorId;
+				if (!mapManager.map) return;
+				untrack(() => this.applySelectedState());
+			});
 		});
 	}
 
@@ -255,6 +264,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			this.icons.loadIcons().then(() => {
 				this.renderer.apply(this.handleMonitorClick);
 				this.tooltipManager.enable();
+				this.applySelectedState();
 			});
 		} else {
 			this.tooltipManager.disable();
@@ -263,6 +273,7 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 			clickManager.unregister([this.referenceId]);
 			super.apply();
 			clickManager.register([this.referenceId], this.handleMonitorClick);
+			this.icons.loadIcons().then(() => this.applySelectedState());
 		}
 	}
 
@@ -270,6 +281,21 @@ class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperti
 		clickManager.unregister([this.referenceId]);
 		this.renderer.remove();
 		super.remove();
+	}
+
+	private applySelectedState(): void {
+		if (!mapManager.map) return;
+		const sources = this.clustered ? this.renderer.sourceIds : [this.referenceId];
+		for (const source of sources) {
+			if (!mapManager.map.getSource(source)) continue;
+			mapManager.map.removeFeatureState({ source }, "selected");
+			if (this.selectedMonitorId) {
+				mapManager.map.setFeatureState(
+					{ source, id: this.selectedMonitorId },
+					{ selected: true }
+				);
+			}
+		}
 	}
 }
 
