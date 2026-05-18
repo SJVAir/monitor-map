@@ -119,6 +119,20 @@
 				{/if}
 			</div>
 			<MonitorWidgetModal monitorId={monitor.id} />
+			<div class="w-full">
+				<h3 class="font-semibold">Data Provided Courtesy Of:</h3>
+				<ul>
+					{#each monitor.data_providers as provider, idx (idx)}
+						<li>
+							{#if provider.url}
+								<a class="text-link" href={provider.url} target="_blank">{provider.name}</a>
+							{:else}
+								<span>{provider.name}</span>
+							{/if}
+						</li>
+					{/each}
+				</ul>
+			</div>
 		{/if}
 	</div>
 </div>
