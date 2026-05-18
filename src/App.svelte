@@ -6,7 +6,7 @@
 	import LoadScreen, { disable as disableLoadScreen } from "$lib/LoadScreen.svelte";
 	import Map from "$lib/map/Map.svelte";
 	import Menu from "$lib/map/Menu.svelte";
-	import MonitorsDisplayOptions from "$lib/monitors/MonitorsDisplayOptions.svelte";
+	import MonitorsDisplayOptions from "$lib/monitors/components/MonitorsDisplayOptions.svelte";
 	import MapLayersDisplayOptions from "$lib/components/MapLayersDisplayOptions.svelte";
 	import MapStyleDisplayOptions from "$lib/map/MapStyleDisplayOptions.svelte";
 	import { mapManager } from "$lib/map/map.svelte";
@@ -29,7 +29,9 @@
 
 	monitorsManager.init();
 	collocationSitesManager.init();
-	monitorsMapIntegration.onMonitorClick = (id: string) => { navigate("/monitor/:id", { params: { id } }).catch(console.error); };
+	monitorsMapIntegration.onMonitorClick = (id: string) => {
+		navigate("/monitor/:id", { params: { id } }).catch(console.error);
+	};
 
 	let panelOpen = $derived(route.pathname.startsWith("/monitor/"));
 
