@@ -3,8 +3,8 @@
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 	import SegmentedControl from "$lib/components/SegmentedControl.svelte";
 	import ToggleSwitch from "$lib/components/ToggleSwitch.svelte";
-	import { monitorsManager } from "./monitors.svelte";
-	import { monitorsMapIntegration } from "./monitors-map-integration.svelte";
+	import { monitorsManager } from "../monitors.svelte";
+	import { monitorsMapIntegration } from "../monitors-map-integration.svelte";
 
 	interface PollutantDisplayOptions {
 		label: string;
