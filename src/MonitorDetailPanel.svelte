@@ -2,6 +2,7 @@
 	import type { ComponentProps } from "svelte";
 	import type { SJVAirEntryLevel } from "@sjvair/sdk";
 	import DataBox from "$lib/components/DataBox.svelte";
+	import MonitorWidgetModal from "$lib/monitors/components/MonitorWidgetModal.svelte";
 	import { monitorsManager } from "$lib";
 	import { navigate, route } from "./router";
 	import { fetchTempByCoords } from "$lib/weather.ts";
@@ -102,19 +103,22 @@
 			</div>
 		{/if}
 	</div>
-	<div class="mt-10 flex flex-col overflow-y-auto p-4">
-		<div class="flex justify-around">
-			{#if tempData}
-				<DataBox color={tempData.color} header="Temperature" value={tempData.value} />
-			{/if}
-			{#if entryData}
-				<DataBox
-					color={entryData.color}
-					header={entryData.header}
-					subheading={entryData.subheading}
-					value={entryData.value}
-				/>
-			{/if}
-		</div>
+	<div class="mt-10 flex flex-col items-center justify-center gap-12 overflow-y-auto p-4">
+		{#if monitor}
+			<div class="flex w-full justify-around">
+				{#if tempData}
+					<DataBox color={tempData.color} header="Temperature" value={tempData.value} />
+				{/if}
+				{#if entryData}
+					<DataBox
+						color={entryData.color}
+						header={entryData.header}
+						subheading={entryData.subheading}
+						value={entryData.value}
+					/>
+				{/if}
+			</div>
+			<MonitorWidgetModal monitorId={monitor.id} />
+		{/if}
 	</div>
 </div>
