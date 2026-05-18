@@ -10,6 +10,12 @@
 
 	type TempDataBox = Pick<ComponentProps<typeof DataBox>, "color" | "value">;
 
+	interface BadgeOpts {
+		bgClass?: string;
+		iconColorClass?: string;
+		labelColorClass?: string;
+		href?: string;
+	}
 	//let id = $derived(route.params.id ?? "");
 	const monitor = $derived(monitorsManager.latest?.get(route.params.id ?? ""));
 	let tempData: TempDataBox | undefined = $state();
@@ -51,6 +57,23 @@
 	});
 </script>
 
+{#snippet badge(icon: string, label: string, opts: BadgeOpts = {})}
+	<span
+		class="flex items-center justify-center gap-1 rounded-sm border px-1 py-0.5
+    {opts.bgClass ?? 'bg-neutral-100'}"
+	>
+		<span class={["svg-icon block", icon, opts.iconColorClass ?? "bg-black/70"]}></span>
+		{#if opts.href}
+			<a class="text-link text-xs" href={opts.href} target="_blank" translate="no">{label}</a>
+		{:else}
+			<span
+				class={["text-xs whitespace-nowrap", opts.labelColorClass ?? "text-black/70"]}
+				translate="no">{label}</span
+			>
+		{/if}
+	</span>
+{/snippet}
+
 <div class="flex h-full w-full flex-col overflow-y-auto bg-white">
 	<div
 		class="flex flex-col items-center justify-center gap-8 border-b border-gray-200 p-4 shadow-lg"
@@ -63,15 +86,19 @@
 		</button>
 		{#if monitor}
 			<h2 class="text-center text-3xl font-semibold">{monitor.name}</h2>
-			<div class="flex">
-				<span class="border">
-					<span
-						class="block size-4 bg-blue-500 mask-[url(/icons/lungs.svg)] mask-size-[1rem_1rem] mask-center mask-no-repeat"
-					></span>
-					<a href={monitor.data_source.url} target="_blank" translate="no"
-						>{monitor.data_source.name}</a
-					>
-				</span>
+			<div class="flex gap-4">
+				{#if monitor.is_sjvair}
+					{@render badge("lungs", "SJVAir", {
+						bgClass: "bg-aqua-haze",
+						iconColorClass: "bg-sky-600",
+						labelColorClass: "text-sky-600"
+					})}
+				{/if}
+
+				{@render badge("rss-feed", monitor.data_source.name, { href: monitor.data_source.url })}
+				{@render badge("router", monitor.device)}
+				{@render badge("location-on", monitor.county)}
+				{@render badge("location-searching", monitor.location)}
 			</div>
 		{/if}
 	</div>
