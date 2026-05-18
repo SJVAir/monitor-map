@@ -1,1 +1,40 @@
 @import "tailwindcss";
+
+@theme {
+	--color-brand: rgb(62, 142, 208);
+	--color-pantone-blue: #3549b6;
+	--color-link: #485fc7;
+	--color-aqua-haze: #eff5fb;
+}
+
+.svg-icon {
+	height: 1em;
+	width: 1em;
+	mask-size: 1em 1em;
+	mask-repeat: no-repeat;
+	mask-position: center;
+
+	&.content-copy {
+		mask-image: url(/static/icons/content_copy.svg);
+	}
+
+	&.location-on {
+		mask-image: url(/static/icons/location_on.svg);
+	}
+
+	&.location-searching {
+		mask-image: url(/static/icons/location_searching.svg);
+	}
+
+	&.lungs {
+		mask-image: url(/static/icons/lungs.svg);
+	}
+
+	&.router {
+		mask-image: url(/static/icons/router.svg);
+	}
+
+	&.rss-feed {
+		mask-image: url(/static/icons/rss_feed.svg);
+	}
+}
