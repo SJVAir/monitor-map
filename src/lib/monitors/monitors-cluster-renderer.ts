@@ -13,8 +13,8 @@ import { clickManager, type ClickHandler } from "$lib/map/integrations/click-man
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { getTypeShape } from "./monitor-utils.ts";
 import type { MonitorClusterMapFeature, MonitorMapFeature } from "./types.ts";
-import MonitorTooltip from "./MonitorTooltip.svelte";
-import MonitorClusterTooltip from "./MonitorClusterTooltip.svelte";
+import MonitorTooltip from "./components/MonitorTooltip.svelte";
+import MonitorClusterTooltip from "./components/MonitorClusterTooltip.svelte";
 
 const AVG_EXPR: ExpressionSpecification = [
 	"/",
