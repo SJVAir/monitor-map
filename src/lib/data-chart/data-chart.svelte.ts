@@ -7,4 +7,4 @@ class DataChartManager {
 	loading: boolean = $state(false);
 }
 
-export type { DataChartManager };
+export { DataChartManager };
