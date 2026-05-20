@@ -13,10 +13,7 @@ export function createDateRange(start?: DateValue, end?: DateValue): DateRange {
 
 	const startDate = startOfDay(new Date(start.year, start.month - 1, start.day));
 	let endDate = new Date(end.year, end.month - 1, end.day);
-
-	if (!isToday(endDate)) {
-		endDate = endOfDay(endDate);
-	}
+	endDate = isToday(endDate) ? new Date() : endOfDay(endDate);
 
 	return {
 		start: startDate.toISOString(),
