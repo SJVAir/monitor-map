@@ -39,7 +39,9 @@
 		const rebuild = () => {
 			uplotInstance?.destroy?.();
 			el.innerHTML = "";
-			const flatData = manager.chartData.slice(1).flat() as number[];
+			const flatData = (manager.chartData.slice(1).flat() as (number | null)[]).filter(
+					(v): v is number => v !== null
+				);
 			const maxDiff = Math.max(...flatData) - Math.min(...flatData);
 			const { width, height } = el.getBoundingClientRect();
 			const opts = getChartConfig(monitor.type, maxDiff, width, height * 0.8);
@@ -112,7 +114,7 @@
 
 		<div class="mt-2 flex items-center justify-evenly gap-8">
 			<div>
-				<label class="text-sm font-normal">Date Range</label>
+				<span class="text-sm font-normal">Date Range</span>
 				<RangeCalendar bind:value={calendarValue} />
 			</div>
 			<div>
