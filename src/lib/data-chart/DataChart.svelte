@@ -43,7 +43,7 @@
 					(v): v is number => v !== null
 				);
 			const maxDiff = Math.max(...flatData) - Math.min(...flatData);
-			const { width, height } = el.getBoundingClientRect();
+			const { width, height } = el.parentElement!.getBoundingClientRect();
 			const opts = getChartConfig(monitor.type, maxDiff, width, height * 0.8);
 			uplotInstance = new uPlot(opts, manager.chartData, el);
 		};

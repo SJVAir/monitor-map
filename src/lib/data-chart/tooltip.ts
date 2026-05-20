@@ -139,6 +139,8 @@ export function tooltipsPlugin() {
 	function setCursor(u: uPlot) {
 		const { left, top, idx } = u.cursor;
 
+		if (idx == null) return;
+
 		uPlotCursorConfig.set(left!, top!);
 
 		ttContainer.style.left = `${left! + 15}px`;
