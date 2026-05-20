@@ -23,8 +23,8 @@ Exports a module-level `clickManager` singleton (same pattern as `mapManager`).
 type ClickHandler = (features: MapGeoJSONFeature[], evt: MapMouseEvent) => void;
 
 interface ClickRegistration {
-  layerIds: string[];
-  handler: ClickHandler;
+	layerIds: string[];
+	handler: ClickHandler;
 }
 ```
 
@@ -50,6 +50,7 @@ interface ClickRegistration {
 `MonitorsClusterRenderer` already owns the full lifecycle of all cluster-mode layers. Click registration lives here too.
 
 **`apply()`** — after adding each monitor type's three layers, register two click handlers with `clickManager`:
+
 - `[monitors-${type}-unclustered]` → `monitorClickHandler`
 - `[monitors-${type}-cluster-icon]` → `clusterClickHandler(sourceId)`
 
@@ -70,6 +71,7 @@ Mode switching is already safe: `apply()` calls `this.renderer.remove()` before 
 ### Individual monitor click
 
 Handler receives features from the winning unclustered layer. Steps:
+
 1. Sort features by `properties.order` descending (same as `monitorTooltip`).
 2. Take `sorted[0]`.
 3. Call `navigate('/monitor/${feature.properties.id}')`.
@@ -79,6 +81,7 @@ Handler receives features from the winning unclustered layer. Steps:
 ### Cluster click
 
 Handler receives features from the winning cluster-icon layer. Steps:
+
 1. Take `features[0]`.
 2. Read `feature.properties.cluster_id`.
 3. Get the GeoJSON source for this type: `map.getSource(sourceId)`.
@@ -87,10 +90,10 @@ Handler receives features from the winning cluster-icon layer. Steps:
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `src/lib/map/integrations/click-manager.ts` | New — `ClickManager` class and `clickManager` singleton |
-| `src/lib/monitors/monitors-cluster-renderer.ts` | Register/unregister click handlers in `apply()`/`remove()` |
+| File                                                  | Change                                                                  |
+| ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| `src/lib/map/integrations/click-manager.ts`           | New — `ClickManager` class and `clickManager` singleton                 |
+| `src/lib/monitors/monitors-cluster-renderer.ts`       | Register/unregister click handlers in `apply()`/`remove()`              |
 | `src/lib/monitors/monitors-map-integration.svelte.ts` | Register/unregister click handler in non-clustered `apply()`/`remove()` |
 
 ## Out of Scope

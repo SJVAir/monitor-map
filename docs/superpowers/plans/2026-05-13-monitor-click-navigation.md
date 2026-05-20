@@ -421,12 +421,14 @@ npm run dev
 - [ ] **Step 2: Verify unclustered monitor click (zoom out first)**
 
 Zoom to a level where monitors are unclustered (zoom ≥ 10 typically). Click any monitor icon. Confirm:
+
 - The URL changes to `/monitor/<id>`
 - The map zooms in (or stays at the current zoom if already ≥ 12) and centers on the clicked monitor
 
 - [ ] **Step 3: Verify cluster click**
 
 Zoom out until clusters appear. Click a cluster bubble. Confirm:
+
 - The map zooms to exactly the level where the cluster splits (it should not navigate to any route)
 - If still clustered after zooming, click again — each click should zoom one cluster level in
 

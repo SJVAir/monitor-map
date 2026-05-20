@@ -75,9 +75,9 @@ Inside `MonitorsMapIntegration`'s constructor `$effect.root`:
 
 ```ts
 $effect(() => {
-  void this.selectedMonitorId;
-  if (!mapManager.map) return;
-  untrack(() => this.applySelectedState());
+	void this.selectedMonitorId;
+	if (!mapManager.map) return;
+	untrack(() => this.applySelectedState());
 });
 ```
 
@@ -88,6 +88,7 @@ Fires on every `selectedMonitorId` change and re-applies feature state.
 When switching between clustered and non-clustered modes, `apply()` destroys and recreates sources, wiping feature state. `applySelectedState()` is called at the end of both async `apply()` paths:
 
 **Clustered path** (inside `icons.loadIcons().then(...)`):
+
 ```ts
 this.renderer.apply(this.handleMonitorClick);
 this.tooltipManager.enable();
@@ -95,6 +96,7 @@ this.applySelectedState();
 ```
 
 **Non-clustered path** (after `super.apply()`, using a second `loadIcons().then()` which resolves as a microtask after the source/layer are added):
+
 ```ts
 super.apply();
 clickManager.register([this.referenceId], this.handleMonitorClick);
@@ -103,11 +105,11 @@ this.icons.loadIcons().then(() => untrack(() => this.applySelectedState()));
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
+| File                                                  | Change                                                                                                                                  |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/lib/monitors/monitors-map-integration.svelte.ts` | `selectedMonitorId` state, `applySelectedState()`, update `handleMonitorClick`, update `apply()` both branches, add selection `$effect` |
-| `src/lib/monitors/monitors-cluster-renderer.ts` | `sourceIds` getter, update `unclusteredLayer()` icon-size expression |
-| `src/App.svelte` | `$effect` to clear `selectedMonitorId` when route leaves `/monitor/:id` |
+| `src/lib/monitors/monitors-cluster-renderer.ts`       | `sourceIds` getter, update `unclusteredLayer()` icon-size expression                                                                    |
+| `src/App.svelte`                                      | `$effect` to clear `selectedMonitorId` when route leaves `/monitor/:id`                                                                 |
 
 ## Out of Scope
 

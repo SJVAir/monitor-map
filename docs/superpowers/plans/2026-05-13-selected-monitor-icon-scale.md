@@ -12,17 +12,18 @@
 
 ## File Map
 
-| File | Change |
-|------|--------|
-| `src/lib/monitors/monitors-cluster-renderer.ts` | Add `sourceIds` getter; update `unclusteredLayer()` icon-size expression |
+| File                                                  | Change                                                                                                                         |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `src/lib/monitors/monitors-cluster-renderer.ts`       | Add `sourceIds` getter; update `unclusteredLayer()` icon-size expression                                                       |
 | `src/lib/monitors/monitors-map-integration.svelte.ts` | Add `selectedMonitorId` state; add `applySelectedState()`; update `handleMonitorClick`, `mapLayer`, `apply()`, and constructor |
-| `src/App.svelte` | Add `$effect` to clear `selectedMonitorId` when panel closes |
+| `src/App.svelte`                                      | Add `$effect` to clear `selectedMonitorId` when panel closes                                                                   |
 
 ---
 
 ## Task 1: Update MonitorsClusterRenderer
 
 **Files:**
+
 - Modify: `src/lib/monitors/monitors-cluster-renderer.ts`
 
 - [ ] **Step 1: Add `sourceIds` getter**
@@ -82,6 +83,7 @@ git commit -m "feat: add sourceIds getter and feature-state icon-size to unclust
 ## Task 2: Update MonitorsMapIntegration
 
 **Files:**
+
 - Modify: `src/lib/monitors/monitors-map-integration.svelte.ts`
 
 - [ ] **Step 1: Add `selectedMonitorId` property**
@@ -166,12 +168,12 @@ private applySelectedState(): void {
 Inside the `$effect.root(() => { ... })` block in the constructor, add this effect after the last existing `$effect` (after the "Re-apply when clustered mode switches" block, around line 238):
 
 ```typescript
-			// Sync selected icon scale via feature state
-			$effect(() => {
-				void this.selectedMonitorId;
-				if (!mapManager.map) return;
-				untrack(() => this.applySelectedState());
-			});
+// Sync selected icon scale via feature state
+$effect(() => {
+	void this.selectedMonitorId;
+	if (!mapManager.map) return;
+	untrack(() => this.applySelectedState());
+});
 ```
 
 - [ ] **Step 6: Update `apply()` to re-apply selection after sources are ready**
@@ -231,6 +233,7 @@ git commit -m "feat: add selectedMonitorId state and applySelectedState for icon
 ## Task 3: Clear selection in App.svelte when panel closes
 
 **Files:**
+
 - Modify: `src/App.svelte`
 
 - [ ] **Step 1: Add deselection effect**
