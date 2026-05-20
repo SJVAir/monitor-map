@@ -3,6 +3,7 @@
 	import type { SJVAirEntryLevel } from "@sjvair/sdk";
 	import DataBox from "$lib/components/DataBox.svelte";
 	import MonitorWidgetModal from "$lib/monitors/components/MonitorWidgetModal.svelte";
+	import DataChart from "$lib/data-chart/DataChart.svelte";
 	import { monitorsManager } from "$lib";
 	import { navigate, route } from "./router";
 	import { fetchTempByCoords } from "$lib/weather.ts";
@@ -132,6 +133,9 @@
 						</li>
 					{/each}
 				</ul>
+			</div>
+			<div class="w-full">
+				<DataChart {monitor} />
 			</div>
 		{/if}
 	</div>
