@@ -2,7 +2,7 @@ import { format, fromUnixTime } from "date-fns";
 import { monitorsManager } from "../monitors/monitors.svelte";
 
 function getColors(): Array<[number, string]> {
-	return (monitorsManager.levels ?? []).map((level) => [level.range[0], level.color]) as Array<
+	return (monitorsManager.levels ?? []).map((level) => [level.range[0], level.color.replace(/^#/, "")]) as Array<
 		[number, string]
 	>;
 }
