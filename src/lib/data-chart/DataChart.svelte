@@ -97,7 +97,7 @@
 <div class="backdrop" class:expanded>
 	<div class="chart-panel" class:expanded>
 		<button
-			class="absolute right-1 top-1 cursor-pointer rounded px-1 py-0.5 hover:bg-gray-100"
+			class="absolute top-1 right-1 cursor-pointer rounded px-1 py-0.5 hover:bg-gray-100"
 			onclick={() => (expanded = !expanded)}
 			title={expanded ? "Collapse" : "Expand Chart"}
 		>
@@ -140,10 +140,7 @@
 					{message}
 				</div>
 			{/if}
-			<h2
-				class="text-center text-xl font-bold"
-				class:invisible={manager.loading || noChartData}
-			>
+			<h2 class="text-center text-xl font-bold" class:invisible={manager.loading || noChartData}>
 				{pollutantLabel} Readings
 			</h2>
 			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
@@ -161,8 +158,7 @@
 				onclick={downloadCSV}
 			>
 				<!-- TODO: Get real icon -->
-				⬇
-				Download
+				⬇ Download
 			</button>
 		</div>
 	</div>

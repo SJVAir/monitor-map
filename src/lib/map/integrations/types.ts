@@ -4,8 +4,8 @@ import type { MapGeoJSONIntegration } from "./map-geojson-integration.svelte";
 
 export type TooltipPopup = <T extends TooltipController>(
 	mapCtrl: T
-) => (evt: MapLayerEventType["mousemove"] & Object) => void;
-export type SomeMapIntegration = MapIntegration | MapGeoJSONIntegration<any>;
+) => (evt: MapLayerEventType["mousemove"] & object) => void;
+export type SomeMapIntegration = MapIntegration | MapGeoJSONIntegration<Record<string, unknown>>;
 
 interface TooltipController {
 	tooltip: Popup | null;

@@ -1,7 +1,6 @@
 import {
 	type ExpressionSpecification,
 	type FilterSpecification,
-	type MapGeoJSONFeature,
 	type Map as MaptilerMap
 } from "@maptiler/sdk";
 import type { MonitorType, SJVAirEntryLevel } from "@sjvair/sdk";

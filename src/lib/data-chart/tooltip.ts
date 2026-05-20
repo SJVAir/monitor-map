@@ -73,7 +73,7 @@ export function tooltipsPlugin() {
 	let seriesList: Array<HTMLParagraphElement | undefined>;
 
 	function init(u: uPlot, opts: uPlot.Options) {
-		let over = u.over;
+		const over = u.over;
 
 		ttHeader = document.createElement("p");
 		ttHeader.classList.add("card-header");
@@ -116,7 +116,7 @@ export function tooltipsPlugin() {
 			ttContainer.style.display = "block";
 			seriesList.forEach((line, i) => {
 				if (i == 0) return;
-				let s = u.series[i];
+				const s = u.series[i];
 				line!.style.display = s.show ? "block" : "none";
 			});
 		}
@@ -147,11 +147,11 @@ export function tooltipsPlugin() {
 		seriesList.forEach((tt, i) => {
 			if (i == 0) return;
 
-			let s = u.series[i];
+			const s = u.series[i];
 
 			if (s.show) {
-				let xVal = u.data[0][idx as number];
-				let yVal = u.data[i][idx as number]!;
+				const xVal = u.data[0][idx as number];
+				const yVal = u.data[i][idx as number]!;
 
 				if (yVal === null) {
 					tt!.style.display = "none";

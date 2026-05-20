@@ -12,18 +12,19 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|------|--------|----------------|
-| `src/lib/map/integrations/click-manager.ts` | **Create** | `ClickManager` class + `clickManager` singleton |
-| `src/lib/monitors/monitors-cluster-renderer.ts` | **Modify** | Register/unregister click handlers per type in `apply()`/`remove()` |
+| File                                                  | Action     | Responsibility                                                                           |
+| ----------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------- |
+| `src/lib/map/integrations/click-manager.ts`           | **Create** | `ClickManager` class + `clickManager` singleton                                          |
+| `src/lib/monitors/monitors-cluster-renderer.ts`       | **Modify** | Register/unregister click handlers per type in `apply()`/`remove()`                      |
 | `src/lib/monitors/monitors-map-integration.svelte.ts` | **Modify** | `onMonitorClick` callback, `handleMonitorClick` method, non-clustered click registration |
-| `src/App.svelte` | **Modify** | Wire `navigate('/monitor/:id')` into `monitorsMapIntegration.onMonitorClick` |
+| `src/App.svelte`                                      | **Modify** | Wire `navigate('/monitor/:id')` into `monitorsMapIntegration.onMonitorClick`             |
 
 ---
 
 ## Task 1: Create ClickManager
 
 **Files:**
+
 - Create: `src/lib/map/integrations/click-manager.ts`
 
 - [ ] **Step 1: Create the file**
@@ -51,9 +52,7 @@ class ClickManager {
 
 	unregister(layerIds: string[]): void {
 		const set = new Set(layerIds);
-		this.registrations = this.registrations.filter(
-			(r) => !r.layerIds.some((id) => set.has(id))
-		);
+		this.registrations = this.registrations.filter((r) => !r.layerIds.some((id) => set.has(id)));
 		if (this.registrations.length === 0) {
 			this.removeListener();
 		}
@@ -109,6 +108,7 @@ git commit -m "feat: add ClickManager singleton for global map click dispatch"
 ## Task 2: Add click handlers to MonitorsClusterRenderer
 
 **Files:**
+
 - Modify: `src/lib/monitors/monitors-cluster-renderer.ts`
 
 - [ ] **Step 1: Add imports**
@@ -162,46 +162,46 @@ apply(monitorClickHandler: ClickHandler): void {
 Then, inside the `for` loop in `apply()`, directly after the existing tooltip registration block, add:
 
 ```typescript
-		clickManager.register([unclustered], monitorClickHandler);
-		clickManager.register([icon], this.makeClusterClickHandler(sourceId));
+clickManager.register([unclustered], monitorClickHandler);
+clickManager.register([icon], this.makeClusterClickHandler(sourceId));
 ```
 
 The full loop body (after your edits) should look like this:
 
 ```typescript
-	for (const [[type, features], index] of sortedEntries.map((e, i) => [e, i] as const)) {
-		const sourceId = `${this.ctx.referenceId}-${type}`;
+for (const [[type, features], index] of sortedEntries.map((e, i) => [e, i] as const)) {
+	const sourceId = `${this.ctx.referenceId}-${type}`;
 
-		mapManager.map.addSource(sourceId, {
-			type: "geojson",
-			promoteId: "id",
-			data: { type: "FeatureCollection", features },
-			cluster: true,
-			clusterRadius: 40,
-			clusterMaxZoom: 9,
-			clusterProperties: {
-				sumValues: ["+", ["to-number", ["get", "value"]], 0]
-			}
-		});
-
-		this.monitorTypeIconsLayer(sourceId, AVG_EXPR, getTypeShape(type));
-		this.clusterCountLayer(sourceId, AVG_EXPR);
-		this.unclusteredLayer(sourceId);
-
-		const { icon, unclustered } = this.clusterLayerIds(sourceId);
-
-		if (!this.ctx.tooltipManager.has(icon)) {
-			this.ctx.tooltipManager.register(icon, clusterTooltip, index);
+	mapManager.map.addSource(sourceId, {
+		type: "geojson",
+		promoteId: "id",
+		data: { type: "FeatureCollection", features },
+		cluster: true,
+		clusterRadius: 40,
+		clusterMaxZoom: 9,
+		clusterProperties: {
+			sumValues: ["+", ["to-number", ["get", "value"]], 0]
 		}
-		if (!this.ctx.tooltipManager.has(unclustered)) {
-			this.ctx.tooltipManager.register(unclustered, monitorTooltip, index);
-		}
+	});
 
-		clickManager.register([unclustered], monitorClickHandler);
-		clickManager.register([icon], this.makeClusterClickHandler(sourceId));
+	this.monitorTypeIconsLayer(sourceId, AVG_EXPR, getTypeShape(type));
+	this.clusterCountLayer(sourceId, AVG_EXPR);
+	this.unclusteredLayer(sourceId);
 
-		this._clusterTypes.push(type);
+	const { icon, unclustered } = this.clusterLayerIds(sourceId);
+
+	if (!this.ctx.tooltipManager.has(icon)) {
+		this.ctx.tooltipManager.register(icon, clusterTooltip, index);
 	}
+	if (!this.ctx.tooltipManager.has(unclustered)) {
+		this.ctx.tooltipManager.register(unclustered, monitorTooltip, index);
+	}
+
+	clickManager.register([unclustered], monitorClickHandler);
+	clickManager.register([icon], this.makeClusterClickHandler(sourceId));
+
+	this._clusterTypes.push(type);
+}
 ```
 
 - [ ] **Step 4: Unregister click handlers in `remove()`**
@@ -251,6 +251,7 @@ git commit -m "feat: register monitor and cluster click handlers in MonitorsClus
 ## Task 3: Wire click handling into MonitorsMapIntegration
 
 **Files:**
+
 - Modify: `src/lib/monitors/monitors-map-integration.svelte.ts`
 
 - [ ] **Step 1: Add imports**
@@ -367,6 +368,7 @@ git commit -m "feat: add onMonitorClick callback and wire click registration in 
 ## Task 4: Wire navigation in App.svelte
 
 **Files:**
+
 - Modify: `src/App.svelte`
 
 - [ ] **Step 1: Import `navigate` from the router**

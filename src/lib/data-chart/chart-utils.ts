@@ -25,13 +25,13 @@ const pm25SeriesConfig = {
 	...baseYSeriesConfig,
 	label: "Real Time",
 	width: 2,
-	stroke: (u: uPlot, _: number) => scaleGradient(u, "y", 1, getColors(), true)
+	stroke: (u: uPlot) => scaleGradient(u, "y", 1, getColors(), true)
 };
 
 const pm25Avg60SeriesConfig = {
 	...baseYSeriesConfig,
 	label: "60 Minute Average",
-	stroke: (u: uPlot, _: number) => autograd(u, PM25_AVG_60_STROKE)
+	stroke: (u: uPlot) => autograd(u, PM25_AVG_60_STROKE)
 };
 
 export function getChartConfig(
@@ -50,7 +50,7 @@ export function getChartConfig(
 		width,
 		height,
 		cursor: uPlotCursorConfig.get(),
-		//@ts-ignore: select missing pseudo "required" options
+		// @ts-expect-error: select missing pseudo "required" options
 		select: {
 			show: false
 		},
@@ -94,7 +94,8 @@ export function getChartConfig(
 			{
 				label: monitorsManager.pollutant === "pm25" ? "PM 2.5" : "Ozone",
 				side: 3,
-				values: (_: any, ticks: any) => ticks.map((v: any) => v.toFixed(maxDiff < 5 ? 1 : 0))
+				values: (_: uPlot, ticks: number[]) =>
+					ticks.map((v: number) => v.toFixed(maxDiff < 5 ? 1 : 0))
 			}
 		],
 		hooks: {
@@ -104,7 +105,7 @@ export function getChartConfig(
 }
 
 function getSeriesConfigs(monitorType: MonitorType) {
-	let singleSeriesConfig = Object.assign({}, pm25Avg60SeriesConfig);
+	const singleSeriesConfig = Object.assign({}, pm25Avg60SeriesConfig);
 	singleSeriesConfig.width = 2;
 
 	switch (monitorType) {
@@ -133,13 +134,13 @@ function scaleGradient(
 	scaleStops: Array<[number, string]>,
 	discrete = false
 ) {
-	let scale = u.scales[scaleKey];
+	const scale = u.scales[scaleKey];
 
 	let minStopIdx!: number;
 	let maxStopIdx!: number;
 
 	for (let i = 0; i < scaleStops.length; i++) {
-		let stopVal = scaleStops[i][0];
+		const stopVal = scaleStops[i][0];
 
 		if (stopVal <= scale.min! || minStopIdx === undefined) {
 			minStopIdx = i;
@@ -160,12 +161,12 @@ function scaleGradient(
 	if (minStopVal === -Infinity) minStopVal = scale.min! || 0;
 	if (maxStopVal === Infinity) maxStopVal = scale.max! || 0;
 
-	let minStopPos = u.valToPos(minStopVal, scaleKey, true);
-	let maxStopPos = u.valToPos(maxStopVal, scaleKey, true);
+	const minStopPos = u.valToPos(minStopVal, scaleKey, true);
+	const maxStopPos = u.valToPos(maxStopVal, scaleKey, true);
 
 	if (!minStopPos || !maxStopPos) return;
 
-	let range = minStopPos - maxStopPos;
+	const range = minStopPos - maxStopPos;
 	let x0, y0, x1, y1;
 
 	if (ori == 1) {
@@ -178,14 +179,18 @@ function scaleGradient(
 		x1 = maxStopPos;
 	}
 
-	let grd = u.ctx.createLinearGradient(x0, y0, x1, y1);
+	const grd = u.ctx.createLinearGradient(x0, y0, x1, y1);
 	let prevColor!: string;
 
 	for (let i = minStopIdx; i <= maxStopIdx; i++) {
-		let s = scaleStops[i];
-		let stopPos =
-			i == minStopIdx ? minStopPos : i == maxStopIdx ? maxStopPos : u.valToPos(s[0], scaleKey, true);
-		let pct = (minStopPos - stopPos) / range;
+		const s = scaleStops[i];
+		const stopPos =
+			i == minStopIdx
+				? minStopPos
+				: i == maxStopIdx
+					? maxStopPos
+					: u.valToPos(s[0], scaleKey, true);
+		const pct = (minStopPos - stopPos) / range;
 
 		if (discrete && i > minStopIdx) {
 			grd.addColorStop(pct, prevColor);

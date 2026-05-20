@@ -5,7 +5,7 @@ import { MapLayerIntegration } from "./map-layer-integration.svelte.ts";
 import { mapManager } from "../map.svelte.ts";
 
 export abstract class MapGeoJSONIntegration<
-	T extends Record<string, any>
+	T = Record<string, unknown>
 > extends MapLayerIntegration {
 	abstract icons: MapIconManager;
 	abstract features: Array<Feature<Geometry, T>>;
