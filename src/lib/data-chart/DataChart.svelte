@@ -19,7 +19,7 @@
 	let calendarValue = $state<CalendarRange | undefined>();
 	let calendarOpen = $state(false);
 	let dateRangeContainer: HTMLElement | undefined = $state();
-	let triggerRebuild: (() => void) | undefined;
+	let triggerRebuild: (() => void) | undefined = $state();
 
 	const dateRangeLabel = $derived(
 		format(parseISO(manager.dateRange.start), "MMM d") +
@@ -53,7 +53,7 @@
 	});
 
 	$effect(() => {
-		manager.chartData;
+		manager.chartData; // re-run whenever chart data updates
 		triggerRebuild?.();
 	});
 
