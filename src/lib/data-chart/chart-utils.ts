@@ -8,7 +8,9 @@ const PM25_AVG_60_STROKE = "3572b0";
 
 function getColors(): Array<[number, string]> {
 	const levels = monitorsManager.levels ?? [];
-	const colors = levels.map((level) => [level.range[0], level.color.replace(/^#/, "")]) as Array<[number, string]>;
+	const colors = levels.map((level) => [level.range[0], level.color.replace(/^#/, "")]) as Array<
+		[number, string]
+	>;
 	colors.push([Infinity, "000000"]);
 	return colors;
 }
