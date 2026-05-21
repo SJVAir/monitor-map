@@ -22,8 +22,8 @@
 
 	const dateRangeLabel = $derived(
 		format(parseISO(manager.dateRange.start), "MMM d") +
-		" – " +
-		format(parseISO(manager.dateRange.end), "MMM d, yyyy")
+			" – " +
+			format(parseISO(manager.dateRange.end), "MMM d, yyyy")
 	);
 
 	const noChartData = $derived(!manager.chartData.length);
@@ -111,7 +111,9 @@
 
 	function downloadChart(e: MouseEvent) {
 		if (!e.shiftKey) return;
-		const canvas = (e.currentTarget as HTMLElement).querySelector("canvas") as HTMLCanvasElement | null;
+		const canvas = (e.currentTarget as HTMLElement).querySelector(
+			"canvas"
+		) as HTMLCanvasElement | null;
 		if (!canvas) return;
 		const link = document.createElement("a");
 		const monitorName = monitor.name.split(" ").join("-");
@@ -149,7 +151,9 @@
 					{dateRangeLabel}
 				</button>
 				{#if calendarOpen}
-					<div class="absolute top-full left-0 z-50 mt-1 rounded border border-gray-200 bg-white p-2 shadow-lg">
+					<div
+						class="absolute top-full left-0 z-50 mt-1 rounded border border-gray-200 bg-white p-2 shadow-lg"
+					>
 						<RangeCalendar bind:value={calendarValue} />
 					</div>
 				{/if}
@@ -229,6 +233,20 @@
 		background: white;
 		padding: 1rem;
 		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+	}
+	.chart-area {
+		display: flex;
+		flex-direction: column;
+		height: 375px;
+	}
+	.chart-panel.expanded .chart-area {
+		flex: 1;
+		min-height: 0;
+		height: auto;
+	}
+	.chart-canvas {
+		flex: 1;
+		min-height: 0;
 	}
 	.spin {
 		display: inline-block;
