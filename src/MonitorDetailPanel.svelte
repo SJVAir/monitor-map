@@ -18,7 +18,6 @@
 		labelColorClass?: string;
 		href?: string;
 	}
-	//let id = $derived(route.params.id ?? "");
 	const monitor = $derived(monitorsManager.latest?.get(route.params.id ?? ""));
 	let tempData: TempDataBox | undefined = $state();
 	const entryData: ComponentProps<typeof DataBox> | undefined = $derived.by(() => {

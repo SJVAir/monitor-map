@@ -52,12 +52,11 @@
 	});
 
 	const chartAttachment: Attachment<HTMLElement> = (el) => {
-		if (!manager.chartData.length) return;
-
 		let instance: uPlot | undefined;
 		let rafId: number;
 
 		const rebuild = () => {
+			if (!manager.chartData.length) return;
 			const { width, height } = el.getBoundingClientRect();
 			if (!width || !height) return;
 			const flatData = (manager.chartData.slice(1).flat() as (number | null)[]).filter(
