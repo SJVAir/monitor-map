@@ -19,6 +19,7 @@
 	let calendarValue = $state<CalendarRange | undefined>();
 	let calendarOpen = $state(false);
 	let dateRangeContainer: HTMLElement | undefined = $state();
+	let triggerRebuild: (() => void) | undefined;
 
 	const dateRangeLabel = $derived(
 		format(parseISO(manager.dateRange.start), "MMM d") +
@@ -51,6 +52,11 @@
 		return () => document.removeEventListener("click", handleDocClick);
 	});
 
+	$effect(() => {
+		manager.chartData;
+		triggerRebuild?.();
+	});
+
 	const chartAttachment: Attachment<HTMLElement> = (el) => {
 		let instance: uPlot | undefined;
 		let rafId: number;
@@ -70,6 +76,8 @@
 			instance = new uPlot(opts, manager.chartData, el);
 		};
 
+		triggerRebuild = rebuild;
+
 		const ro = new ResizeObserver(() => {
 			cancelAnimationFrame(rafId);
 			rafId = requestAnimationFrame(rebuild);
@@ -77,6 +85,7 @@
 		ro.observe(el);
 
 		return () => {
+			triggerRebuild = undefined;
 			cancelAnimationFrame(rafId);
 			ro.disconnect();
 			instance?.destroy?.();
