@@ -11,13 +11,13 @@ Fix broken layout in `DataChart.svelte`: replace the always-visible RangeCalenda
 
 ## Root Causes
 
-| Bug | Cause |
-|---|---|
-| Chart area wrong height | `<button h-full>` inside a `min-height`-only parent; `height: 100%` resolves to `auto` with no explicit parent height |
-| ResizeObserver missing | uPlot dimensions only set once at mount; no response to window resize or panel expand |
-| Component too tall | Full two-month `<RangeCalendar>` rendered inline above the chart |
-| Download button floats oddly | `self-end` on a flex-column item with no explicit parent height |
-| `setTimeout` expand hack | Workaround for missing ResizeObserver |
+| Bug                          | Cause                                                                                                                 |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Chart area wrong height      | `<button h-full>` inside a `min-height`-only parent; `height: 100%` resolves to `auto` with no explicit parent height |
+| ResizeObserver missing       | uPlot dimensions only set once at mount; no response to window resize or panel expand                                 |
+| Component too tall           | Full two-month `<RangeCalendar>` rendered inline above the chart                                                      |
+| Download button floats oddly | `self-end` on a flex-column item with no explicit parent height                                                       |
+| `setTimeout` expand hack     | Workaround for missing ResizeObserver                                                                                 |
 
 ---
 
@@ -25,12 +25,12 @@ Fix broken layout in `DataChart.svelte`: replace the always-visible RangeCalenda
 
 A single `flex items-center gap-2` row at the top of `.chart-panel`. Left to right:
 
-| Slot | Element |
-|---|---|
-| Left | Expand / collapse button (`⛶` / `✕`) |
-| Center-left | Date-range toggle — shows current range, e.g. `"May 20 – May 21, 2026"`; opens/closes calendar popover |
-| Center-right | `↻ Update` button |
-| Right | `⬇ Download` CSV button |
+| Slot         | Element                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------ |
+| Left         | Expand / collapse button (`⛶` / `✕`)                                                                   |
+| Center-left  | Date-range toggle — shows current range, e.g. `"May 20 – May 21, 2026"`; opens/closes calendar popover |
+| Center-right | `↻ Update` button                                                                                      |
+| Right        | `⬇ Download` CSV button                                                                                |
 
 The separate bottom download row (`self-end mr-8`) is removed. All controls live in one toolbar.
 
@@ -50,9 +50,9 @@ let calendarOpen = $state(false);
 
 ```ts
 const dateRangeLabel = $derived(
-  format(parseISO(manager.dateRange.start), "MMM d") +
-  " – " +
-  format(parseISO(manager.dateRange.end), "MMM d, yyyy")
+	format(parseISO(manager.dateRange.start), "MMM d") +
+		" – " +
+		format(parseISO(manager.dateRange.end), "MMM d, yyyy")
 );
 ```
 
@@ -72,39 +72,41 @@ div.chart-area   (height: 375px in normal mode; flex-1 + min-height: 0 in expand
 
 ```ts
 const chartAttachment: Attachment<HTMLElement> = (el) => {
-  if (!manager.chartData.length) return;
+	if (!manager.chartData.length) return;
 
-  let instance: uPlot | undefined;
-  let rafId: number;
+	let instance: uPlot | undefined;
+	let rafId: number;
 
-  const rebuild = () => {
-    const { width, height } = el.getBoundingClientRect();
-    if (!width || !height) return;
-    instance?.destroy?.();
-    el.innerHTML = "";
-    const flatData = (manager.chartData.slice(1).flat() as (number | null)[])
-      .filter((v): v is number => v !== null);
-    const maxDiff = Math.max(...flatData) - Math.min(...flatData);
-    const opts = getChartConfig(monitor.type, maxDiff, width, height);
-    instance = new uPlot(opts, manager.chartData, el);
-  };
+	const rebuild = () => {
+		const { width, height } = el.getBoundingClientRect();
+		if (!width || !height) return;
+		instance?.destroy?.();
+		el.innerHTML = "";
+		const flatData = (manager.chartData.slice(1).flat() as (number | null)[]).filter(
+			(v): v is number => v !== null
+		);
+		const maxDiff = Math.max(...flatData) - Math.min(...flatData);
+		const opts = getChartConfig(monitor.type, maxDiff, width, height);
+		instance = new uPlot(opts, manager.chartData, el);
+	};
 
-  const ro = new ResizeObserver(() => {
-    cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(rebuild);
-  });
-  ro.observe(el);
+	const ro = new ResizeObserver(() => {
+		cancelAnimationFrame(rafId);
+		rafId = requestAnimationFrame(rebuild);
+	});
+	ro.observe(el);
 
-  return () => {
-    cancelAnimationFrame(rafId);
-    ro.disconnect();
-    instance?.destroy?.();
-    el.innerHTML = "";
-  };
+	return () => {
+		cancelAnimationFrame(rafId);
+		ro.disconnect();
+		instance?.destroy?.();
+		el.innerHTML = "";
+	};
 };
 ```
 
 Key points:
+
 - Dimensions read directly from `el.getBoundingClientRect()` — no `parentElement` indirection
 - `requestAnimationFrame` debounces rapid resize events (window drag, CSS transitions) to one rebuild per frame
 - The `setTimeout` expand hack is removed entirely
@@ -117,37 +119,51 @@ Key points:
 No structural change to the backdrop overlay.
 
 ```css
-.backdrop { width: 100%; }
+.backdrop {
+	width: 100%;
+}
 .backdrop.expanded {
-  position: fixed; inset: 0; z-index: 9000;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
-  display: flex; align-items: center; justify-content: center;
+	position: fixed;
+	inset: 0;
+	z-index: 9000;
+	background-color: rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(8px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .chart-panel {
-  position: relative;
-  display: flex; flex-direction: column;
-  gap: 1rem;
-  padding: 0.5rem 0 1rem;
-  width: 100%;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	padding: 0.5rem 0 1rem;
+	width: 100%;
 }
 .chart-panel.expanded {
-  width: 90%; height: 68vh;
-  border-radius: 0.5rem; background: white; padding: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+	width: 90%;
+	height: 68vh;
+	border-radius: 0.5rem;
+	background: white;
+	padding: 1rem;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .chart-area {
-  display: flex; flex-direction: column;
-  height: 375px;
+	display: flex;
+	flex-direction: column;
+	height: 375px;
 }
 .chart-panel.expanded .chart-area {
-  flex: 1; min-height: 0; height: auto;
+	flex: 1;
+	min-height: 0;
+	height: auto;
 }
 
 .chart-canvas {
-  flex: 1; min-height: 0;
+	flex: 1;
+	min-height: 0;
 }
 ```
 

@@ -12,8 +12,8 @@
 
 ## File Structure
 
-| File | Change |
-|---|---|
+| File                                  | Change                                 |
+| ------------------------------------- | -------------------------------------- |
 | `src/lib/data-chart/DataChart.svelte` | All changes — script, template, styles |
 
 ---
@@ -21,18 +21,20 @@
 ## Task 1: Script — add `calendarOpen`, `dateRangeLabel`, outside-click effect
 
 **Files:**
+
 - Modify: `src/lib/data-chart/DataChart.svelte`
 
 - [ ] **Step 1: Add `calendarOpen` state and `dateRangeLabel` derived**
 
 Add these two declarations directly after `let calendarValue = $state<CalendarRange | undefined>();`:
+
 ```ts
 let calendarOpen = $state(false);
 
 const dateRangeLabel = $derived(
 	format(parseISO(manager.dateRange.start), "MMM d") +
-	" – " +
-	format(parseISO(manager.dateRange.end), "MMM d, yyyy")
+		" – " +
+		format(parseISO(manager.dateRange.end), "MMM d, yyyy")
 );
 ```
 
@@ -57,6 +59,7 @@ $effect(() => {
 - [ ] **Step 3: Update `onUpdate` to close the calendar on submit**
 
 Replace the existing `onUpdate` function:
+
 ```ts
 function onUpdate() {
 	if (calendarValue?.start && calendarValue?.end) {
@@ -80,6 +83,7 @@ Expected: no new errors. (`uplotInstance` still exists at this point — it's re
 ## Task 2: Script — replace `chartAttachment`, remove `uplotInstance`, update `downloadChart`
 
 **Files:**
+
 - Modify: `src/lib/data-chart/DataChart.svelte`
 
 - [ ] **Step 1: Remove `uplotInstance`, replace `chartAttachment`, and update `downloadChart` together**
@@ -87,6 +91,7 @@ Expected: no new errors. (`uplotInstance` still exists at this point — it's re
 These three changes must happen in one step because they all reference each other. Make the following three edits:
 
 **Remove** the module-level variable:
+
 ```ts
 let uplotInstance: uPlot | undefined;
 ```
@@ -130,10 +135,13 @@ const chartAttachment: Attachment<HTMLElement> = (el) => {
 ```
 
 **Replace** the existing `downloadChart` function (queries the canvas element from the click target instead of using `uplotInstance`):
+
 ```ts
 function downloadChart(e: MouseEvent) {
 	if (!e.shiftKey) return;
-	const canvas = (e.currentTarget as HTMLElement).querySelector("canvas") as HTMLCanvasElement | null;
+	const canvas = (e.currentTarget as HTMLElement).querySelector(
+		"canvas"
+	) as HTMLCanvasElement | null;
 	if (!canvas) return;
 	const link = document.createElement("a");
 	const monitorName = monitor.name.split(" ").join("-");
@@ -165,6 +173,7 @@ git commit -m "Refactor DataChart script: ResizeObserver, calendarOpen state, da
 ## Task 3: Template — toolbar row
 
 **Files:**
+
 - Modify: `src/lib/data-chart/DataChart.svelte`
 
 - [ ] **Step 1: Replace the expand button + controls div with a single toolbar row**
@@ -207,6 +216,7 @@ Remove this block from the template (the expand `<button>` and the `<div class="
 ```
 
 And the bottom:
+
 ```svelte
 <div class="mr-8 self-end">
 	<button
@@ -245,7 +255,9 @@ Replace with this single toolbar (placed as the first child inside `<div class="
 			{dateRangeLabel}
 		</button>
 		{#if calendarOpen}
-			<div class="absolute top-full left-0 z-50 mt-1 rounded border border-gray-200 bg-white p-2 shadow-lg">
+			<div
+				class="absolute top-full left-0 z-50 mt-1 rounded border border-gray-200 bg-white p-2 shadow-lg"
+			>
 				<RangeCalendar bind:value={calendarValue} />
 			</div>
 		{/if}
@@ -285,11 +297,13 @@ Expected: no errors.
 ## Task 4: Template — chart area restructure
 
 **Files:**
+
 - Modify: `src/lib/data-chart/DataChart.svelte`
 
 - [ ] **Step 1: Replace the chart area div + inner button with `.chart-area` + `.chart-canvas`**
 
 Remove:
+
 ```svelte
 <div class="relative min-h-93.75 flex-1">
 	{#if manager.loading || noChartData}
@@ -316,6 +330,7 @@ Remove:
 ```
 
 Replace with:
+
 ```svelte
 <div class="chart-area relative">
 	{#if manager.loading || noChartData}
@@ -354,6 +369,7 @@ Expected: no errors.
 ## Task 5: CSS — add `.chart-area` and `.chart-canvas`, update expanded styles
 
 **Files:**
+
 - Modify: `src/lib/data-chart/DataChart.svelte`
 
 - [ ] **Step 1: Replace the entire `<style>` block**
@@ -440,6 +456,7 @@ git commit -m "Refactor DataChart template and styles: toolbar, calendar popover
 ## Task 6: Browser verification
 
 **Files:**
+
 - None
 
 - [ ] **Step 1: Start the dev server (if not running)**
@@ -453,6 +470,7 @@ npm run dev
 Open `http://localhost:5173/monitor/-B6kEcmkQ6-pYr15lHCiMg` (POM - Del Rey, PurpleAir).
 
 Verify:
+
 - Data boxes (Temperature, PM 2.5) are visible above the chart
 - The chart panel shows a single toolbar row with: expand button · date-range toggle · Update button · Download button
 - The calendar is NOT visible until the date-range toggle is clicked
@@ -462,6 +480,7 @@ Verify:
 - [ ] **Step 3: Test calendar popover**
 
 Click the date-range toggle button. Verify:
+
 - The RangeCalendar appears in a card below the toggle
 - Clicking outside the card closes it
 - Clicking the toggle again closes it
@@ -470,11 +489,13 @@ Click the date-range toggle button. Verify:
 - [ ] **Step 4: Test window resize**
 
 Resize the browser window (drag the window edge). Verify:
+
 - The chart redraws at the new width within one animation frame — no stale dimensions
 
 - [ ] **Step 5: Test expand/collapse**
 
 Click the `⛶` expand button. Verify:
+
 - The fullscreen overlay appears
 - The chart fills the panel at the new larger size (ResizeObserver handles this automatically)
 - Clicking `✕` collapses back and chart redraws at original size
