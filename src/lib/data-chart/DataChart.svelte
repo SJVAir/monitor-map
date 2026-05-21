@@ -53,7 +53,7 @@
 	});
 
 	$effect(() => {
-		manager.chartData; // re-run whenever chart data updates
+		void manager.chartData; // re-run whenever chart data updates
 		triggerRebuild?.();
 	});
 
@@ -131,11 +131,75 @@
 		link.href = canvas.toDataURL();
 		link.click();
 	}
+
+	function myAction(node: HTMLElement, expanded: boolean) {
+		const parent = node.parentElement;
+		const sibling = node.nextElementSibling;
+
+		function update(expanded: boolean) {
+			if (parent) {
+				if (expanded) {
+					// Start action logic (e.g., add event listeners)
+					document.body.moveBefore(node, document.body.firstElementChild);
+				} else {
+					// Stop action logic (e.g., remove event listeners)
+					parent.moveBefore(node, sibling);
+				}
+			}
+		}
+
+		update(expanded);
+
+		return {
+			update,
+			destroy() {
+				/* Clean up everything */
+			}
+		};
+	}
 </script>
 
-<div class="backdrop" class:expanded>
+<div use:myAction={expanded} class="backdrop" class:expanded>
 	<div class="chart-panel" class:expanded>
-		<div class="flex items-center gap-2 p-1">
+		<div class="flex items-center justify-between gap-2 p-1">
+			<div class="flex flex-wrap items-center justify-center gap-1">
+				<div class="relative" bind:this={dateRangeContainer}>
+					<button
+						class="cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50"
+						aria-expanded={calendarOpen}
+						onclick={() => (calendarOpen = !calendarOpen)}
+					>
+						{dateRangeLabel}
+					</button>
+					{#if calendarOpen}
+						<div
+							class="absolute top-full left-0 z-50 mt-1 rounded border border-gray-200 bg-white p-2 shadow-lg"
+						>
+							<RangeCalendar bind:value={calendarValue} />
+						</div>
+					{/if}
+				</div>
+
+				<button
+					class="flex cursor-pointer items-center gap-1 rounded border border-blue-400 bg-blue-500 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-600"
+					onclick={onUpdate}
+				>
+					<span class:spin={manager.loading}>
+						<!-- TODO: Get real icon -->
+						↻
+					</span>
+					Update
+				</button>
+			</div>
+
+			<button
+				class="cursor-pointer rounded border border-green-400 bg-green-500 px-2 py-1 text-xs font-semibold text-white hover:bg-green-600"
+				onclick={downloadCSV}
+			>
+				<!-- TODO: Get real icon -->
+				⬇ Download
+			</button>
+
 			<button
 				class="cursor-pointer rounded px-1 py-0.5 hover:bg-gray-100"
 				onclick={() => (expanded = !expanded)}
@@ -148,42 +212,6 @@
 					<!-- TODO: Get real icon -->
 					⛶
 				{/if}
-			</button>
-
-			<div class="relative" bind:this={dateRangeContainer}>
-				<button
-					class="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50"
-					aria-expanded={calendarOpen}
-					onclick={() => (calendarOpen = !calendarOpen)}
-				>
-					{dateRangeLabel}
-				</button>
-				{#if calendarOpen}
-					<div
-						class="absolute top-full left-0 z-50 mt-1 rounded border border-gray-200 bg-white p-2 shadow-lg"
-					>
-						<RangeCalendar bind:value={calendarValue} />
-					</div>
-				{/if}
-			</div>
-
-			<button
-				class="flex items-center gap-1 rounded border border-blue-400 bg-blue-500 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-600"
-				onclick={onUpdate}
-			>
-				<span class:spin={manager.loading}>
-					<!-- TODO: Get real icon -->
-					↻
-				</span>
-				Update
-			</button>
-
-			<button
-				class="ml-auto flex items-center gap-1 rounded border border-green-400 bg-green-500 px-2 py-1 text-xs font-semibold text-white hover:bg-green-600"
-				onclick={downloadCSV}
-			>
-				<!-- TODO: Get real icon -->
-				⬇ Download
 			</button>
 		</div>
 
@@ -201,13 +229,13 @@
 			<h2 class="text-center text-xl font-bold" class:invisible={manager.loading || noChartData}>
 				{pollutantLabel} Readings
 			</h2>
-			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-			<div
+			<button
+				aria-label="Download"
 				class="chart-canvas"
 				class:invisible={manager.loading || noChartData}
 				onclick={downloadChart}
 				{@attach chartAttachment}
-			></div>
+			></button>
 		</div>
 	</div>
 </div>
