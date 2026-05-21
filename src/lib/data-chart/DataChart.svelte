@@ -125,37 +125,53 @@
 
 <div class="backdrop" class:expanded>
 	<div class="chart-panel" class:expanded>
-		<button
-			class="absolute top-1 right-1 cursor-pointer rounded px-1 py-0.5 hover:bg-gray-100"
-			onclick={() => (expanded = !expanded)}
-			title={expanded ? "Collapse" : "Expand Chart"}
-		>
-			{#if expanded}
-				<!-- TODO: Get real icon -->
-				✕
-			{:else}
-				<!-- TODO: Get real icon -->
-				⛶
-			{/if}
-		</button>
+		<div class="flex items-center gap-2 p-1">
+			<button
+				class="cursor-pointer rounded px-1 py-0.5 hover:bg-gray-100"
+				onclick={() => (expanded = !expanded)}
+				title={expanded ? "Collapse" : "Expand Chart"}
+			>
+				{#if expanded}
+					<!-- TODO: Get real icon -->
+					✕
+				{:else}
+					<!-- TODO: Get real icon -->
+					⛶
+				{/if}
+			</button>
 
-		<div class="mt-2 flex items-center justify-evenly gap-8">
-			<div>
-				<span class="text-sm font-normal">Date Range</span>
-				<RangeCalendar bind:value={calendarValue} />
-			</div>
-			<div>
+			<div class="relative" id="date-range-container">
 				<button
-					class="flex items-center gap-1 rounded border border-blue-400 bg-blue-500 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-600"
-					onclick={onUpdate}
+					class="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50"
+					onclick={() => (calendarOpen = !calendarOpen)}
 				>
-					<span class:spin={manager.loading}>
-						<!-- TODO: Get real icon -->
-						↻
-					</span>
-					Update
+					{dateRangeLabel}
 				</button>
+				{#if calendarOpen}
+					<div class="absolute top-full left-0 z-50 mt-1 rounded border border-gray-200 bg-white p-2 shadow-lg">
+						<RangeCalendar bind:value={calendarValue} />
+					</div>
+				{/if}
 			</div>
+
+			<button
+				class="flex items-center gap-1 rounded border border-blue-400 bg-blue-500 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-600"
+				onclick={onUpdate}
+			>
+				<span class:spin={manager.loading}>
+					<!-- TODO: Get real icon -->
+					↻
+				</span>
+				Update
+			</button>
+
+			<button
+				class="ml-auto flex items-center gap-1 rounded border border-green-400 bg-green-500 px-2 py-1 text-xs font-semibold text-white hover:bg-green-600"
+				onclick={downloadCSV}
+			>
+				<!-- TODO: Get real icon -->
+				⬇ Download
+			</button>
 		</div>
 
 		<div class="relative min-h-93.75 flex-1">
@@ -179,16 +195,6 @@
 				onclick={downloadChart}
 				{@attach chartAttachment}
 			></button>
-		</div>
-
-		<div class="mr-8 self-end">
-			<button
-				class="flex items-center gap-1 rounded border border-green-400 bg-green-500 px-2 py-1 text-xs font-semibold text-white hover:bg-green-600"
-				onclick={downloadCSV}
-			>
-				<!-- TODO: Get real icon -->
-				⬇ Download
-			</button>
 		</div>
 	</div>
 </div>
