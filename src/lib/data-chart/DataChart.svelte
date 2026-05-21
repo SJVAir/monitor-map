@@ -17,7 +17,14 @@
 	const manager = new DataChartManager();
 	let expanded = $state(false);
 	let calendarValue = $state<CalendarRange | undefined>();
+	let calendarOpen = $state(false);
 	let uplotInstance: uPlot | undefined;
+
+	const dateRangeLabel = $derived(
+		format(parseISO(manager.dateRange.start), "MMM d") +
+		" – " +
+		format(parseISO(manager.dateRange.end), "MMM d, yyyy")
+	);
 
 	const noChartData = $derived(!manager.chartData.length);
 	const message = $derived(
@@ -33,6 +40,18 @@
 		if (monitor) loadChartData();
 	});
 
+	$effect(() => {
+		if (!calendarOpen) return;
+		function handleDocClick(e: MouseEvent) {
+			const container = document.getElementById("date-range-container");
+			if (container && !container.contains(e.target as Node)) {
+				calendarOpen = false;
+			}
+		}
+		document.addEventListener("click", handleDocClick);
+		return () => document.removeEventListener("click", handleDocClick);
+	});
+
 	const chartAttachment: Attachment<HTMLElement> = (el) => {
 		if (!manager.chartData.length) return;
 
@@ -40,8 +59,8 @@
 			uplotInstance?.destroy?.();
 			el.innerHTML = "";
 			const flatData = (manager.chartData.slice(1).flat() as (number | null)[]).filter(
-					(v): v is number => v !== null
-				);
+				(v): v is number => v !== null
+			);
 			const maxDiff = Math.max(...flatData) - Math.min(...flatData);
 			const { width, height } = el.parentElement!.getBoundingClientRect();
 			const opts = getChartConfig(monitor.type, maxDiff, width, height * 0.8);
@@ -71,6 +90,7 @@
 		if (calendarValue?.start && calendarValue?.end) {
 			manager.dateRange = createDateRange(calendarValue.start, calendarValue.end);
 		}
+		calendarOpen = false;
 		loadChartData();
 	}
 
@@ -131,7 +151,7 @@
 			</div>
 		</div>
 
-		<div class="relative min-h-[375px] flex-1">
+		<div class="relative min-h-93.75 flex-1">
 			{#if manager.loading || noChartData}
 				<div
 					class="absolute inset-0 flex flex-col items-center justify-center text-center text-2xl font-bold"
@@ -145,13 +165,13 @@
 			<h2 class="text-center text-xl font-bold" class:invisible={manager.loading || noChartData}>
 				{pollutantLabel} Readings
 			</h2>
-			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-			<div
+			<button
+				aria-label="Download"
 				class="h-full w-full"
 				class:invisible={manager.loading || noChartData}
 				onclick={downloadChart}
 				{@attach chartAttachment}
-			></div>
+			></button>
 		</div>
 
 		<div class="mr-8 self-end">
