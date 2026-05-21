@@ -104,7 +104,7 @@
 			</div>
 		{/if}
 	</div>
-	<div class="mt-10 flex flex-col items-center justify-center gap-12 overflow-y-auto p-5">
+	<div class="mt-10 flex flex-col items-center gap-12 overflow-y-auto p-5">
 		{#if monitor}
 			<div class="flex w-full justify-around">
 				{#if tempData}
@@ -121,6 +121,10 @@
 			</div>
 			<MonitorWidgetModal monitorId={monitor.id} />
 			<div class="w-full">
+				<DataChart {monitor} />
+			</div>
+
+			<div class="w-full">
 				<h3 class="font-semibold">Data Provided Courtesy Of:</h3>
 				<ul>
 					{#each monitor.data_providers as provider, idx (idx)}
@@ -133,9 +137,6 @@
 						</li>
 					{/each}
 				</ul>
-			</div>
-			<div class="w-full">
-				<DataChart {monitor} />
 			</div>
 		{/if}
 	</div>
