@@ -18,6 +18,7 @@
 	let expanded = $state(false);
 	let calendarValue = $state<CalendarRange | undefined>();
 	let calendarOpen = $state(false);
+	let dateRangeContainer: HTMLElement | undefined = $state();
 
 	const dateRangeLabel = $derived(
 		format(parseISO(manager.dateRange.start), "MMM d") +
@@ -42,8 +43,7 @@
 	$effect(() => {
 		if (!calendarOpen) return;
 		function handleDocClick(e: MouseEvent) {
-			const container = document.getElementById("date-range-container");
-			if (container && !container.contains(e.target as Node)) {
+			if (dateRangeContainer && !dateRangeContainer.contains(e.target as Node)) {
 				calendarOpen = false;
 			}
 		}
@@ -140,9 +140,10 @@
 				{/if}
 			</button>
 
-			<div class="relative" id="date-range-container">
+			<div class="relative" bind:this={dateRangeContainer}>
 				<button
 					class="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50"
+					aria-expanded={calendarOpen}
 					onclick={() => (calendarOpen = !calendarOpen)}
 				>
 					{dateRangeLabel}
