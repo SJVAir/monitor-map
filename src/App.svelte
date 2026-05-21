@@ -2,11 +2,11 @@
 	import "./app.css";
 	import { onDestroy } from "svelte";
 	import { Router } from "sv-router";
-	import { route } from "./router";
+	import { navigate, route } from "./router";
 	import LoadScreen, { disable as disableLoadScreen } from "$lib/LoadScreen.svelte";
 	import Map from "$lib/map/Map.svelte";
 	import Menu from "$lib/map/Menu.svelte";
-	import MonitorsDisplayOptions from "$lib/monitors/MonitorsDisplayOptions.svelte";
+	import MonitorsDisplayOptions from "$lib/monitors/components/MonitorsDisplayOptions.svelte";
 	import MapLayersDisplayOptions from "$lib/components/MapLayersDisplayOptions.svelte";
 	import MapStyleDisplayOptions from "$lib/map/MapStyleDisplayOptions.svelte";
 	import { mapManager } from "$lib/map/map.svelte";
@@ -29,6 +29,9 @@
 
 	monitorsManager.init();
 	collocationSitesManager.init();
+	monitorsMapIntegration.onMonitorClick = (id: string) => {
+		navigate("/monitor/:id", { params: { id } }).catch(console.error);
+	};
 
 	let panelOpen = $derived(route.pathname.startsWith("/monitor/"));
 
@@ -46,6 +49,12 @@
 			// Container width snaps back after the transform transition ends
 			setTimeout(() => mapManager.map?.resize(), TRANSITION_MS);
 		}
+	});
+
+	// Clear selected icon scale when the detail panel closes
+	$effect(() => {
+		if (panelOpen) return;
+		monitorsMapIntegration.selectedMonitorId = null;
 	});
 
 	onDestroy(() => {

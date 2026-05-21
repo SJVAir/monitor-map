@@ -1,4 +1,4 @@
-import { Popup, type MapLayerEventType, type Map as MaptilerMap } from "@maptiler/sdk";
+import { type Popup, type MapLayerEventType, type Map as MaptilerMap } from "@maptiler/sdk";
 import type { Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
@@ -11,35 +11,19 @@ import { collocationSitesManager } from "./collocations.svelte.ts";
 import { monitorsManager } from "$lib/monitors/monitors.svelte.ts";
 import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte.ts";
 import type { CollocationSiteMapFeature, CollocationSiteMarkerProperties } from "./types.ts";
-import { mount, unmount, untrack } from "svelte";
+import { untrack } from "svelte";
 import CollocationTooltip from "./CollocationTooltip.svelte";
+import { mountPopup } from "$lib/map/utils.ts";
 
 function collocationTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
 	const feature = evt.features?.[0] as unknown as CollocationSiteMapFeature | undefined;
-
 	if (!feature) return;
-
-	const container = document.createElement("div");
-	const clusterTooltip = mount(CollocationTooltip, {
-		target: container,
-		props: {
-			feature
-		}
-	});
-
-	const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "none" })
-		.setLngLat(evt.lngLat)
-		.setDOMContent(container);
-
-	popup.on("close", () => unmount(clusterTooltip));
-
-	return popup;
+	return mountPopup(CollocationTooltip, { feature }, evt.lngLat);
 }
 
 class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSiteMarkerProperties> {
 	referenceId: string = "collocation-sites";
 	enabled: boolean = $state(false);
-	clustered: boolean = $state(true);
 
 	icons: CollocationIconManager = new CollocationIconManager();
 	tooltipManager: TooltipManager = new TooltipManager();

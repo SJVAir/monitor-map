@@ -1,16 +1,15 @@
 <script lang="ts">
-	//import { format, formatDistanceToNow } from "date-fns";
+	import type { Geometry } from "geojson";
 	import { GeoJSONSource } from "@maptiler/sdk";
+	import type { SJVAirEntryLevel } from "@sjvair/sdk";
+	import type { ComponentProps } from "svelte";
 	import { area } from "@turf/area";
 	import { convertArea } from "@turf/helpers";
 	import DataBox from "$lib/components/DataBox.svelte";
 	import { mapManager } from "$lib/map/map.svelte";
-	import type { MonitorClusterMapFeature, MonitorMapFeature } from "./types";
-	import { monitorsManager } from "./monitors.svelte";
-	import { getCurrentLevel } from "./monitor-utils";
-	import type { SJVAirEntryLevel } from "@sjvair/sdk";
-	import type { ComponentProps } from "svelte";
-	import type { Geometry } from "geojson";
+	import type { MonitorClusterMapFeature, MonitorMapFeature } from "../types";
+	import { monitorsManager } from "../monitors.svelte";
+	import { getCurrentLevel } from "../monitor-utils";
 
 	interface MonitorClusterTooltipProps {
 		feature: MonitorClusterMapFeature;

@@ -22,7 +22,7 @@ export {
 	disable as disableLoadScreen
 } from "./LoadScreen.svelte";
 export type { LoadScreenState } from "./LoadScreen.svelte";
-export { default as MonitorsDisplayOptions } from "./monitors/MonitorsDisplayOptions.svelte";
+export { default as MonitorsDisplayOptions } from "./monitors/components/MonitorsDisplayOptions.svelte";
 export { default as MapLayersDisplayOptions } from "./components/MapLayersDisplayOptions.svelte";
 export { default as MapStyleDisplayOptions } from "./map/MapStyleDisplayOptions.svelte";
 export { default as ToggleSwitch } from "./components/ToggleSwitch.svelte";

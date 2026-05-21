@@ -1,10 +1,10 @@
 <script lang="ts">
+	import type { SJVAirEntryLevel } from "@sjvair/sdk";
 	import { format, formatDistanceToNow } from "date-fns";
 	import DataBox from "$lib/components/DataBox.svelte";
-	import type { MonitorMapFeature } from "./types";
-	import { monitorsManager } from "./monitors.svelte";
-	import { getCurrentLevel } from "./monitor-utils";
-	import type { SJVAirEntryLevel } from "@sjvair/sdk";
+	import { monitorsManager } from "../monitors.svelte";
+	import { getCurrentLevel } from "../monitor-utils";
+	import type { MonitorMapFeature } from "../types";
 
 	interface MonitorTooltipProps {
 		feature: MonitorMapFeature;
