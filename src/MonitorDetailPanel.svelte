@@ -103,7 +103,8 @@
 			</div>
 		{/if}
 	</div>
-	<div class="mt-10 flex flex-col items-center gap-12 overflow-y-auto p-5">
+
+	<div class="flex flex-col items-center gap-12 overflow-y-auto p-5 pt-10">
 		{#if monitor}
 			<div class="flex w-full justify-around">
 				{#if tempData}
