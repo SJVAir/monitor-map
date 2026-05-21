@@ -175,7 +175,7 @@
 			</button>
 		</div>
 
-		<div class="relative min-h-93.75 flex-1">
+		<div class="chart-area relative">
 			{#if manager.loading || noChartData}
 				<div
 					class="absolute inset-0 flex flex-col items-center justify-center text-center text-2xl font-bold"
@@ -189,13 +189,13 @@
 			<h2 class="text-center text-xl font-bold" class:invisible={manager.loading || noChartData}>
 				{pollutantLabel} Readings
 			</h2>
-			<button
-				aria-label="Download"
-				class="h-full w-full"
+			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+			<div
+				class="chart-canvas"
 				class:invisible={manager.loading || noChartData}
 				onclick={downloadChart}
 				{@attach chartAttachment}
-			></button>
+			></div>
 		</div>
 	</div>
 </div>
