@@ -18,7 +18,6 @@
 	let expanded = $state(false);
 	let calendarValue = $state<CalendarRange | undefined>();
 	let calendarOpen = $state(false);
-	let uplotInstance: uPlot | undefined;
 
 	const dateRangeLabel = $derived(
 		format(parseISO(manager.dateRange.start), "MMM d") +
@@ -55,27 +54,33 @@
 	const chartAttachment: Attachment<HTMLElement> = (el) => {
 		if (!manager.chartData.length) return;
 
+		let instance: uPlot | undefined;
+		let rafId: number;
+
 		const rebuild = () => {
-			uplotInstance?.destroy?.();
-			el.innerHTML = "";
+			const { width, height } = el.getBoundingClientRect();
+			if (!width || !height) return;
 			const flatData = (manager.chartData.slice(1).flat() as (number | null)[]).filter(
 				(v): v is number => v !== null
 			);
+			if (!flatData.length) return;
+			instance?.destroy?.();
+			el.innerHTML = "";
 			const maxDiff = Math.max(...flatData) - Math.min(...flatData);
-			const { width, height } = el.parentElement!.getBoundingClientRect();
-			const opts = getChartConfig(monitor.type, maxDiff, width, height * 0.8);
-			uplotInstance = new uPlot(opts, manager.chartData, el);
+			const opts = getChartConfig(monitor.type, maxDiff, width, height);
+			instance = new uPlot(opts, manager.chartData, el);
 		};
 
-		if (expanded) {
-			setTimeout(rebuild, 0);
-		} else {
-			rebuild();
-		}
+		const ro = new ResizeObserver(() => {
+			cancelAnimationFrame(rafId);
+			rafId = requestAnimationFrame(rebuild);
+		});
+		ro.observe(el);
 
 		return () => {
-			uplotInstance?.destroy?.();
-			uplotInstance = undefined;
+			cancelAnimationFrame(rafId);
+			ro.disconnect();
+			instance?.destroy?.();
 			el.innerHTML = "";
 		};
 	};
@@ -105,13 +110,15 @@
 	}
 
 	function downloadChart(e: MouseEvent) {
-		if (!e.shiftKey || !uplotInstance) return;
+		if (!e.shiftKey) return;
+		const canvas = (e.currentTarget as HTMLElement).querySelector("canvas") as HTMLCanvasElement | null;
+		if (!canvas) return;
 		const link = document.createElement("a");
 		const monitorName = monitor.name.split(" ").join("-");
 		const start = format(parseISO(manager.dateRange.start), "dd.MMM.yyyy");
 		const end = format(parseISO(manager.dateRange.end), "dd.MMM.yyyy");
 		link.download = `${monitorName}_${start}-${end}.png`;
-		link.href = uplotInstance.ctx.canvas.toDataURL();
+		link.href = canvas.toDataURL();
 		link.click();
 	}
 </script>
