@@ -26,7 +26,7 @@ const zipCodes = Object.values(ZipCodes)
 	.join(",");
 
 async function fetchEvStations(chargingLevel: "2" | "dc_fast"): Promise<Array<EvStation>> {
-	const url = new URL(`https://developer.nrel.gov/api/alt-fuel-stations/v1.json`);
+	const url = new URL(`https://developer.nlr.gov/api/alt-fuel-stations/v1.json`);
 	url.searchParams.set("fuel_type", "ELEC");
 	url.searchParams.set("state", "CA");
 	url.searchParams.set("status", "E");
