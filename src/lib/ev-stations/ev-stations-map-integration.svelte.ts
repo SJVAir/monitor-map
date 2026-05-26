@@ -1,4 +1,9 @@
-import type { ExpressionSpecification, FilterSpecification, Map as MaptilerMap, Popup } from "@maptiler/sdk";
+import type {
+	ExpressionSpecification,
+	FilterSpecification,
+	Map as MaptilerMap,
+	Popup
+} from "@maptiler/sdk";
 import type { Geometry } from "geojson";
 import { untrack } from "svelte";
 import { mapManager } from "$lib/map/map.svelte.ts";
@@ -21,7 +26,7 @@ class EvStationsMapIntegration
 	implements EvStationsClusterContext
 {
 	referenceId: string = "ev-stations";
-	enabled: boolean = $state(false);
+	enabled: boolean = $state(true);
 	clustered: boolean = $state(true);
 
 	icons: EvStationIconManager = new EvStationIconManager();
@@ -30,8 +35,8 @@ class EvStationsMapIntegration
 	private currentPopup: Popup | null = null;
 
 	displayOptions = {
-		lvl2: new MapDisplayOption("Level 2", true),
-		lvl3: new MapDisplayOption("Level 3", true)
+		lvl2: new MapDisplayOption("Level 2", false),
+		lvl3: new MapDisplayOption("Level 3", false)
 	};
 
 	features: Array<EvStationMapFeature> = $derived.by(() => {
@@ -112,21 +117,13 @@ class EvStationsMapIntegration
 		$effect.root(() => {
 			// Lazy-fetch level data when integration is enabled and level is toggled on
 			$effect(() => {
-				if (
-					this.enabled &&
-					this.displayOptions.lvl2.value &&
-					evStationsManager.lvl2Stations === undefined
-				) {
+				if (this.displayOptions.lvl2.value && evStationsManager.lvl2Stations === undefined) {
 					evStationsManager.fetchLvl2Stations();
 				}
 			});
 
 			$effect(() => {
-				if (
-					this.enabled &&
-					this.displayOptions.lvl3.value &&
-					evStationsManager.lvl3Stations === undefined
-				) {
+				if (this.displayOptions.lvl3.value && evStationsManager.lvl3Stations === undefined) {
 					evStationsManager.fetchLvl3Stations();
 				}
 			});
@@ -158,8 +155,7 @@ class EvStationsMapIntegration
 			$effect(() => {
 				void this.clustered;
 				const hasFeatures = Object.keys(this.featuresByLevel).length > 0;
-				if (!untrack(() => mapManager.map) || !hasFeatures || !untrack(() => this.enabled))
-					return;
+				if (!untrack(() => mapManager.map) || !hasFeatures) return;
 				untrack(() => this.apply());
 			});
 		});
@@ -170,8 +166,7 @@ class EvStationsMapIntegration
 
 		if (this.clustered) {
 			if (mapManager.map.getLayer(this.referenceId)) mapManager.map.removeLayer(this.referenceId);
-			if (mapManager.map.getSource(this.referenceId))
-				mapManager.map.removeSource(this.referenceId);
+			if (mapManager.map.getSource(this.referenceId)) mapManager.map.removeSource(this.referenceId);
 			clickManager.unregister([this.referenceId]);
 			this.tooltipManager.disable();
 			this.renderer.remove();
