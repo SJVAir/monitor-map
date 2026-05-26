@@ -32,13 +32,22 @@ export function isGeoJSONSource(source: unknown): source is GeoJSONSource {
 export function mountPopup<P extends Record<string, unknown>>(
 	component: Component<P>,
 	props: P,
-	lngLat: LngLat
+	lngLat: LngLat,
+	closeButton = false
 ): Popup {
 	const container = document.createElement("div");
 	const instance = mount(component, { target: container, props });
-	const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "none" })
+	const popup = new Popup({ closeButton, closeOnClick: false, maxWidth: "none" })
 		.setLngLat(lngLat)
 		.setDOMContent(container);
 	popup.on("close", () => unmount(instance));
 	return popup;
+}
+
+export function mountClickPopup<P extends Record<string, unknown>>(
+	component: Component<P>,
+	props: P,
+	lngLat: LngLat
+): Popup {
+	return mountPopup(component, props, lngLat, true);
 }

@@ -53,8 +53,8 @@ After the existing `$effect` blocks:
 
 ```ts
 $effect(() => {
-    manager.chartData;
-    triggerRebuild?.();
+	manager.chartData;
+	triggerRebuild?.();
 });
 ```
 
@@ -70,6 +70,6 @@ The ResizeObserver path is unchanged. It continues to handle window resizes and 
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
+| File                                  | Change                                                                |
+| ------------------------------------- | --------------------------------------------------------------------- |
 | `src/lib/data-chart/DataChart.svelte` | Add `triggerRebuild` variable, set/clear in attachment, add `$effect` |

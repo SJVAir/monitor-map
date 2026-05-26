@@ -6,7 +6,6 @@ export async function fetchTempByCoords(coords: [number, number] | Array<number>
 	return fetch(url)
 		.then((res) => res.json())
 		.then(async (data) => {
-			console.log("data:", data);
 			const forecast = await fetch(data.properties.forecastHourly).then((res) => res.json());
 			return forecast.properties.periods[0].temperature;
 		});

@@ -12,8 +12,8 @@
 
 ## File Structure
 
-| File | Change |
-|------|--------|
+| File                                  | Change                                                                          |
+| ------------------------------------- | ------------------------------------------------------------------------------- |
 | `src/lib/data-chart/DataChart.svelte` | Add `triggerRebuild` variable; set/clear it in `chartAttachment`; add `$effect` |
 
 ---
@@ -21,6 +21,7 @@
 ## Task 1: Add reactive rebuild trigger to DataChart
 
 **Files:**
+
 - Modify: `src/lib/data-chart/DataChart.svelte`
 
 No test framework is configured. Verification is via type-check + browser.
@@ -45,38 +46,38 @@ The attachment block should look like:
 
 ```ts
 const chartAttachment: Attachment<HTMLElement> = (el) => {
-    let instance: uPlot | undefined;
-    let rafId: number;
+	let instance: uPlot | undefined;
+	let rafId: number;
 
-    const rebuild = () => {
-        if (!manager.chartData.length) return;
-        const { width, height } = el.getBoundingClientRect();
-        if (!width || !height) return;
-        const flatData = (manager.chartData.slice(1).flat() as (number | null)[]).filter(
-            (v): v is number => v !== null
-        );
-        if (!flatData.length) return;
-        instance?.destroy?.();
-        el.innerHTML = "";
-        const maxDiff = Math.max(...flatData) - Math.min(...flatData);
-        const opts = getChartConfig(monitor.type, maxDiff, width, height);
-        instance = new uPlot(opts, manager.chartData, el);
-    };
+	const rebuild = () => {
+		if (!manager.chartData.length) return;
+		const { width, height } = el.getBoundingClientRect();
+		if (!width || !height) return;
+		const flatData = (manager.chartData.slice(1).flat() as (number | null)[]).filter(
+			(v): v is number => v !== null
+		);
+		if (!flatData.length) return;
+		instance?.destroy?.();
+		el.innerHTML = "";
+		const maxDiff = Math.max(...flatData) - Math.min(...flatData);
+		const opts = getChartConfig(monitor.type, maxDiff, width, height);
+		instance = new uPlot(opts, manager.chartData, el);
+	};
 
-    triggerRebuild = rebuild;   // ← add this line
+	triggerRebuild = rebuild; // ← add this line
 
-    const ro = new ResizeObserver(() => {
-        cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(rebuild);
-    });
-    ro.observe(el);
+	const ro = new ResizeObserver(() => {
+		cancelAnimationFrame(rafId);
+		rafId = requestAnimationFrame(rebuild);
+	});
+	ro.observe(el);
 
-    return () => {
-        cancelAnimationFrame(rafId);
-        ro.disconnect();
-        instance?.destroy?.();
-        el.innerHTML = "";
-    };
+	return () => {
+		cancelAnimationFrame(rafId);
+		ro.disconnect();
+		instance?.destroy?.();
+		el.innerHTML = "";
+	};
 };
 ```
 
@@ -86,11 +87,11 @@ Inside the attachment's `return () => { ... }` cleanup function, add `triggerReb
 
 ```ts
 return () => {
-    triggerRebuild = undefined;   // ← add this line
-    cancelAnimationFrame(rafId);
-    ro.disconnect();
-    instance?.destroy?.();
-    el.innerHTML = "";
+	triggerRebuild = undefined; // ← add this line
+	cancelAnimationFrame(rafId);
+	ro.disconnect();
+	instance?.destroy?.();
+	el.innerHTML = "";
 };
 ```
 
@@ -100,8 +101,8 @@ After the last existing `$effect` block (the outside-click handler for the calen
 
 ```ts
 $effect(() => {
-    manager.chartData;
-    triggerRebuild?.();
+	manager.chartData;
+	triggerRebuild?.();
 });
 ```
 

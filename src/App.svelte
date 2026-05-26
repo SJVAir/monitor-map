@@ -17,6 +17,9 @@
 	import type { SomeMapIntegration } from "$lib/map/integrations/types";
 	import { collocationSitesManager } from "$lib/collocation-sites/collocations.svelte";
 	import { collocationSitesMapIntegration } from "$lib/collocation-sites/collocations-map-integration.svelte";
+	import EvStationsDisplayOptions from "$lib/ev-stations/components/EvStationsDisplayOptions.svelte";
+	import { evStationsMapIntegration } from "$lib/ev-stations/ev-stations-map-integration.svelte.ts";
+	import MonitorMarkersLegend from "$lib/monitors/components/MonitorMarkersLegend.svelte";
 
 	const TRANSITION_MS = 300;
 
@@ -24,7 +27,8 @@
 		baseLayerSeperator,
 		collocationSitesMapIntegration,
 		windMapIntegration,
-		monitorsMapIntegration
+		monitorsMapIntegration,
+		evStationsMapIntegration
 	];
 
 	monitorsManager.init();
@@ -66,9 +70,13 @@
 	<LoadScreen />
 	<div class="relative flex-1 overflow-hidden">
 		<Map {integrations} />
+		<div class="z-10 absolute bottom-6 left-6 w-1/2 lg:w-1/5">
+			<MonitorMarkersLegend />
+		</div>
 		<div class="absolute top-0 left-0 z-10 m-4">
 			<Menu>
 				<MonitorsDisplayOptions />
+				<EvStationsDisplayOptions />
 				<MapLayersDisplayOptions />
 				<MapStyleDisplayOptions />
 			</Menu>
