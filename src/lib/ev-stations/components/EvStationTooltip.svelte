@@ -29,14 +29,12 @@
 
 		const pricingLines: string[] = (() => {
 			if (!p.ev_pricing) return [];
-			return p.ev_pricing
-				.split(";")
-				.flatMap((segment) =>
-					segment
-						.split("and")
-						.map((part) => part.trim())
-						.filter(Boolean)
-				);
+			return p.ev_pricing.split(";").flatMap((segment) =>
+				segment
+					.split("and")
+					.map((part) => part.trim())
+					.filter(Boolean)
+			);
 		})();
 
 		const mapsUrl: string = (() => {
@@ -82,7 +80,7 @@
 		</div>
 		{#if computed.hours.length}
 			<div class="flex flex-col text-sm">
-				{#each computed.hours as line}
+				{#each computed.hours as line, i (i)}
 					<p>{line}</p>
 				{/each}
 			</div>
@@ -97,7 +95,7 @@
 
 	{#if computed.cards.length}
 		<div class="flex flex-wrap gap-1">
-			{#each computed.cards as card}
+			{#each computed.cards as card, i (i)}
 				<span class="flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs">
 					<CreditCard class="size-3.5" />
 					{card}
@@ -108,7 +106,7 @@
 
 	{#if computed.connectors.length}
 		<div class="flex flex-wrap gap-1">
-			{#each computed.connectors as connector}
+			{#each computed.connectors as connector, i (i)}
 				<span
 					class="flex items-center gap-1 rounded bg-green-600 px-1.5 py-0.5 text-xs font-semibold text-white"
 				>
@@ -121,7 +119,7 @@
 
 	{#if computed.pricingLines.length}
 		<div class="text-sm">
-			{#each computed.pricingLines as line}
+			{#each computed.pricingLines as line, i (i)}
 				<p>{line}</p>
 			{/each}
 		</div>
