@@ -14,7 +14,7 @@
 
 	let { monitor }: { monitor: MonitorLatestType<"pm25" | "o3"> } = $props();
 
-	const manager = new DataChartManager();
+	const chartManager = new DataChartManager();
 	let expanded = $state(false);
 	let calendarValue = $state<CalendarRange | undefined>();
 	let calendarOpen = $state(false);
@@ -22,14 +22,14 @@
 	let triggerRebuild: (() => void) | undefined = $state();
 
 	const dateRangeLabel = $derived(
-		format(parseISO(manager.dateRange.start), "MMM d") +
+		format(parseISO(chartManager.dateRange.start), "MMM d") +
 			" – " +
-			format(parseISO(manager.dateRange.end), "MMM d, yyyy")
+			format(parseISO(chartManager.dateRange.end), "MMM d, yyyy")
 	);
 
-	const noChartData = $derived(!manager.chartData.length);
+	const noChartData = $derived(!chartManager.chartData.length);
 	const message = $derived(
-		manager.loading
+		chartManager.loading
 			? "Loading Data"
 			: noChartData
 				? "No Data Available For Selected Date Range"
@@ -53,7 +53,7 @@
 	});
 
 	$effect(() => {
-		void manager.chartData; // re-run whenever chart data updates
+		void chartManager.chartData; // re-run whenever chart data updates
 		triggerRebuild?.();
 	});
 
@@ -62,10 +62,10 @@
 		let rafId: number;
 
 		const rebuild = () => {
-			if (!manager.chartData.length) return;
+			if (!chartManager.chartData.length) return;
 			const { width, height } = el.getBoundingClientRect();
 			if (!width || !height) return;
-			const flatData = (manager.chartData.slice(1).flat() as (number | null)[]).filter(
+			const flatData = (chartManager.chartData.slice(1).flat() as (number | null)[]).filter(
 				(v): v is number => v !== null
 			);
 			if (!flatData.length) return;
@@ -73,7 +73,7 @@
 			el.innerHTML = "";
 			const maxDiff = Math.max(...flatData) - Math.min(...flatData);
 			const opts = getChartConfig(monitor.type, maxDiff, width, height);
-			instance = new uPlot(opts, manager.chartData, el);
+			instance = new uPlot(opts, chartManager.chartData, el);
 		};
 
 		triggerRebuild = rebuild;
@@ -94,25 +94,25 @@
 	};
 
 	async function loadChartData() {
-		manager.loading = true;
-		manager.chartData = await fetchChartData(monitor, manager.dateRange);
-		manager.loading = false;
+		chartManager.loading = true;
+		chartManager.chartData = await fetchChartData(monitor, chartManager.dateRange);
+		chartManager.loading = false;
 	}
 
 	function onUpdate() {
 		if (calendarValue?.start && calendarValue?.end) {
-			manager.dateRange = createDateRange(calendarValue.start, calendarValue.end);
+			chartManager.dateRange = createDateRange(calendarValue.start, calendarValue.end);
+			calendarOpen = false;
+			loadChartData();
 		}
-		calendarOpen = false;
-		loadChartData();
 	}
 
 	function downloadCSV() {
 		const url = getMonitorEntriesCSVUrl({
 			monitorId: monitor.id,
 			entryType: monitorsManager.pollutant ?? "pm25",
-			timestampGte: manager.dateRange.start,
-			timestampLte: manager.dateRange.end
+			timestampGte: chartManager.dateRange.start,
+			timestampLte: chartManager.dateRange.end
 		});
 		window.open(url);
 	}
@@ -125,8 +125,8 @@
 		if (!canvas) return;
 		const link = document.createElement("a");
 		const monitorName = monitor.name.split(" ").join("-");
-		const start = format(parseISO(manager.dateRange.start), "dd.MMM.yyyy");
-		const end = format(parseISO(manager.dateRange.end), "dd.MMM.yyyy");
+		const start = format(parseISO(chartManager.dateRange.start), "dd.MMM.yyyy");
+		const end = format(parseISO(chartManager.dateRange.end), "dd.MMM.yyyy");
 		link.download = `${monitorName}_${start}-${end}.png`;
 		link.href = canvas.toDataURL();
 		link.click();
@@ -162,77 +162,72 @@
 <div use:myAction={expanded} class="backdrop" class:expanded>
 	<div class="chart-panel" class:expanded>
 		<div class="flex items-center justify-between gap-2 p-1">
-			<div class="flex flex-wrap items-center justify-center gap-1">
-				<div class="relative" bind:this={dateRangeContainer}>
-					<button
-						class="cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50"
-						aria-expanded={calendarOpen}
-						onclick={() => (calendarOpen = !calendarOpen)}
-					>
-						{dateRangeLabel}
-					</button>
-					{#if calendarOpen}
-						<div
-							class="absolute top-full left-0 z-50 mt-1 rounded border border-gray-200 bg-white p-2 shadow-lg"
-						>
-							<RangeCalendar bind:value={calendarValue} />
-						</div>
-					{/if}
-				</div>
-
+			<div class={["relative", { "flex-1": expanded }]} bind:this={dateRangeContainer}>
 				<button
-					class="flex cursor-pointer items-center gap-1 rounded border border-blue-400 bg-blue-500 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-600"
-					onclick={onUpdate}
+					class="cursor-pointer rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50"
+					aria-expanded={calendarOpen}
+					onclick={() => (calendarOpen = !calendarOpen)}
 				>
-					<span class:spin={manager.loading}>
-						<!-- TODO: Get real icon -->
-						↻
-					</span>
-					Update
+					{dateRangeLabel}
 				</button>
+				{#if calendarOpen}
+					<div
+						class="absolute top-full left-0 z-50 mt-1 rounded border border-gray-200 bg-white p-2 shadow-lg"
+					>
+						<RangeCalendar bind:value={calendarValue} maxDays={31} onValueChange={onUpdate} />
+					</div>
+				{/if}
 			</div>
 
 			<button
-				class="cursor-pointer rounded border border-green-400 bg-green-500 px-2 py-1 text-xs font-semibold text-white hover:bg-green-600"
+				class={[
+					"cursor-pointer rounded border border-green-400 bg-green-500 px-2 py-1 text-xs font-semibold text-white hover:bg-green-600",
+					{ "flex-none": expanded }
+				]}
 				onclick={downloadCSV}
 			>
 				<!-- TODO: Get real icon -->
 				⬇ Download
 			</button>
 
-			<button
-				class="cursor-pointer rounded px-1 py-0.5 hover:bg-gray-100"
-				onclick={() => (expanded = !expanded)}
-				title={expanded ? "Collapse" : "Expand Chart"}
-			>
-				{#if expanded}
-					<!-- TODO: Get real icon -->
-					✕
-				{:else}
-					<!-- TODO: Get real icon -->
-					⛶
-				{/if}
-			</button>
+			<div class={["text-right", { "flex-1": expanded }]}>
+				<button
+					class="cursor-pointer rounded px-1 py-0.5 hover:bg-gray-100"
+					onclick={() => (expanded = !expanded)}
+					title={expanded ? "Collapse" : "Expand Chart"}
+				>
+					{#if expanded}
+						<!-- TODO: Get real icon -->
+						✕
+					{:else}
+						<!-- TODO: Get real icon -->
+						⛶
+					{/if}
+				</button>
+			</div>
 		</div>
 
 		<div class="chart-area relative">
-			{#if manager.loading || noChartData}
+			{#if chartManager.loading || noChartData}
 				<div
 					class="absolute inset-0 flex flex-col items-center justify-center text-center text-2xl font-bold"
 				>
 					<!-- TODO: Get real icon -->
-					<span class:spin={manager.loading}>{manager.loading ? "↻" : "⚠"}</span>
+					<span class:spin={chartManager.loading}>{chartManager.loading ? "↻" : "⚠"}</span>
 					<br />
 					{message}
 				</div>
 			{/if}
-			<h2 class="text-center text-xl font-bold" class:invisible={manager.loading || noChartData}>
+			<h2
+				class="text-center text-xl font-bold"
+				class:invisible={chartManager.loading || noChartData}
+			>
 				{pollutantLabel} Readings
 			</h2>
 			<button
 				aria-label="Download"
 				class="chart-canvas"
-				class:invisible={manager.loading || noChartData}
+				class:invisible={chartManager.loading || noChartData}
 				onclick={downloadChart}
 				{@attach chartAttachment}
 			></button>
