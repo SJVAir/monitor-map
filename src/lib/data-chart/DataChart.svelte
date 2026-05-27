@@ -2,6 +2,7 @@
 	import type { Attachment } from "svelte/attachments";
 	import type { MonitorLatestType } from "@sjvair/sdk";
 	import type { DateRange as CalendarRange } from "bits-ui";
+	import { parseAbsolute } from "@internationalized/date";
 	import { Maximize, SquareX } from "@lucide/svelte";
 	import uPlot from "uplot";
 	import { getMonitorEntriesCSVUrl } from "@sjvair/sdk/monitors";
@@ -17,7 +18,11 @@
 
 	const chartManager = new DataChartManager();
 	let expanded = $state(false);
-	let calendarValue = $state<CalendarRange | undefined>();
+	let calendarValue = $state<CalendarRange | undefined>({
+		start: parseAbsolute(chartManager.dateRange.start, "America/Los_Angeles"),
+		end: parseAbsolute(chartManager.dateRange.end, "America/Los_Angeles")
+	});
+	let dataRange = $state<CalendarRange | undefined>();
 	let calendarOpen = $state(false);
 	let dateRangeContainer: HTMLElement | undefined = $state();
 	let triggerRebuild: (() => void) | undefined = $state();
@@ -46,6 +51,9 @@
 		if (!calendarOpen) return;
 		function handleDocClick(e: MouseEvent) {
 			if (dateRangeContainer && !dateRangeContainer.contains(e.target as Node)) {
+				if (!calendarValue?.start || !calendarValue?.end) {
+					calendarValue = dataRange;
+				}
 				calendarOpen = false;
 			}
 		}
@@ -102,7 +110,8 @@
 
 	function onUpdate() {
 		if (calendarValue?.start && calendarValue?.end) {
-			chartManager.dateRange = createDateRange(calendarValue.start, calendarValue.end);
+			dataRange = calendarValue;
+			chartManager.dateRange = createDateRange(dataRange.start, dataRange.end);
 			calendarOpen = false;
 			loadChartData();
 		}
