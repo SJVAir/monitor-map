@@ -119,7 +119,9 @@
 					/>
 				{/if}
 			</div>
+
 			<MonitorWidgetModal monitorId={monitor.id} />
+
 			<div class="w-full">
 				<DataChart {monitor} />
 			</div>
