@@ -8,7 +8,7 @@ import type { Geometry } from "geojson";
 import { untrack } from "svelte";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager.ts";
-import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
+import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
 import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
 import { mountClickPopup } from "$lib/map/utils.ts";
@@ -22,7 +22,7 @@ import type { EvStation, EvStationMapFeature, EvStationMarkerProperties } from "
 import EvStationTooltip from "./components/EvStationTooltip.svelte";
 
 class EvStationsMapIntegration
-	extends MapGeoJSONIntegration<EvStationMarkerProperties>
+	extends MapIconLayerIntegration<EvStationMarkerProperties>
 	implements EvStationsClusterContext
 {
 	referenceId: string = "ev-stations";

@@ -31,7 +31,7 @@ export { default as SegmentedControl } from "./components/SegmentedControl.svelt
 // Integration base classes (extend these to add custom map features)
 export { MapIntegration } from "./map/integrations/map-integration.svelte.ts";
 export { MapLayerIntegration } from "./map/integrations/map-layer-integration.svelte.ts";
-export { MapGeoJSONIntegration } from "./map/integrations/map-geojson-integration.svelte.ts";
+export { MapIconLayerIntegration as MapGeoJSONIntegration } from "./map/integrations/map-geojson-integration.svelte.ts";
 
 // Types
 export type { SomeMapIntegration } from "./map/integrations/types";

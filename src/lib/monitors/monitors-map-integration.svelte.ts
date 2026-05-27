@@ -8,7 +8,7 @@ import { untrack } from "svelte";
 import type { Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
 import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager.ts";
-import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
+import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
 import { monitorsManager } from "./monitors.svelte.ts";
 import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
@@ -29,7 +29,7 @@ const filters = {
 	}
 };
 
-class MonitorsMapIntegration extends MapGeoJSONIntegration<MonitorMarkerProperties> {
+class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProperties> {
 	referenceId: string = "monitors";
 	enabled: boolean = $state(true);
 	clustered: boolean = $state(true);

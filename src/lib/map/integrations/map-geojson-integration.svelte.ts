@@ -7,9 +7,21 @@ import { mapManager } from "../map.svelte.ts";
 export abstract class MapGeoJSONIntegration<
 	T = Record<string, unknown>
 > extends MapLayerIntegration {
-	abstract icons: MapIconManager;
 	abstract features: Array<Feature<Geometry, T>>;
 	abstract mapSource: Parameters<MaptilerMap["addSource"]>[1];
+
+	remove() {
+		super.remove();
+		if (mapManager.map?.getSource(this.referenceId)) {
+			mapManager.map.removeSource(this.referenceId);
+		}
+	}
+}
+
+export abstract class MapIconLayerIntegration<
+	T = Record<string, unknown>
+> extends MapGeoJSONIntegration<T> {
+	abstract icons: MapIconManager;
 
 	apply() {
 		if (!mapManager.map) return;
@@ -19,12 +31,5 @@ export abstract class MapGeoJSONIntegration<
 			mapManager.map?.addSource(this.referenceId, this.mapSource);
 			super.apply();
 		});
-	}
-
-	remove() {
-		super.remove();
-		if (mapManager.map?.getSource(this.referenceId)) {
-			mapManager.map.removeSource(this.referenceId);
-		}
 	}
 }

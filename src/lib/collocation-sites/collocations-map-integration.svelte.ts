@@ -1,7 +1,7 @@
 import { type Popup, type MapLayerEventType, type Map as MaptilerMap } from "@maptiler/sdk";
 import type { Geometry } from "geojson";
 import { mapManager } from "$lib/map/map.svelte.ts";
-import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
+import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
 import {
 	CollocationIconManager,
 	getCollocationIconId
@@ -21,7 +21,7 @@ function collocationTooltip(evt: MapLayerEventType["mousemove"] & object): Popup
 	return mountPopup(CollocationTooltip, { feature }, evt.lngLat);
 }
 
-class CollocationSitesMapIntegration extends MapGeoJSONIntegration<CollocationSiteMarkerProperties> {
+class CollocationSitesMapIntegration extends MapIconLayerIntegration<CollocationSiteMarkerProperties> {
 	referenceId: string = "collocation-sites";
 	enabled: boolean = $state(false);
 
