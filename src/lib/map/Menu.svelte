@@ -59,7 +59,7 @@
 	>
 		<div
 			data-trigger
-			class="absolute top-0 left-0 flex h-fit w-full items-start justify-between p-2"
+			class="absolute top-0 left-0 flex h-fit w-full items-start justify-between gap-4 p-2 flex-wrap"
 		>
 			{@render children?.()}
 		</div>
