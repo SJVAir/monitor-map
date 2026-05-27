@@ -118,13 +118,13 @@ class EvStationsMapIntegration
 			// Lazy-fetch level data when integration is enabled and level is toggled on
 			$effect(() => {
 				if (this.displayOptions.lvl2.value && evStationsManager.lvl2Stations === undefined) {
-					evStationsManager.fetchLvl2Stations();
+					evStationsManager.loadLvl2Stations();
 				}
 			});
 
 			$effect(() => {
 				if (this.displayOptions.lvl3.value && evStationsManager.lvl3Stations === undefined) {
-					evStationsManager.fetchLvl3Stations();
+					evStationsManager.loadLvl3Stations();
 				}
 			});
 

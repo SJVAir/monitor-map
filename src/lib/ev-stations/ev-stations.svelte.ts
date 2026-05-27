@@ -12,11 +12,11 @@ class EvStationsManager {
 	lvl2Stations: Array<EvStation> | undefined = $state();
 	lvl3Stations: Array<EvStation> | undefined = $state();
 
-	async fetchLvl3Stations(): Promise<void> {
+	async loadLvl3Stations(): Promise<void> {
 		this.lvl3Stations = await fetchEvStations("dc_fast");
 	}
 
-	async fetchLvl2Stations(): Promise<void> {
+	async loadLvl2Stations(): Promise<void> {
 		this.lvl2Stations = await fetchEvStations("2");
 	}
 }
