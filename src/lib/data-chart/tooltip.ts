@@ -144,9 +144,6 @@ export function tooltipsPlugin() {
 
 		uPlotCursorConfig.set(left!, top!);
 
-		ttContainer.style.left = `${left! + 15}px`;
-		ttContainer.style.top = top + "px";
-
 		seriesList.forEach((tt, i) => {
 			if (i == 0) return;
 
@@ -173,7 +170,22 @@ export function tooltipsPlugin() {
 		const hasContent = !!seriesList
 			.slice(1, seriesList.length)
 			.find((tt) => tt!.style.display === "block");
-		ttContainer.style.display = hasContent ? "block" : "none";
+
+		if (!hasContent) {
+			ttContainer.style.display = "none";
+			return;
+		}
+
+		ttContainer.style.display = "block";
+
+		const offset = 15;
+		const ttWidth = ttContainer.offsetWidth;
+		const chartWidth = u.over.offsetWidth;
+		const overflowsRight = left! + offset + ttWidth > chartWidth;
+		ttContainer.style.left = overflowsRight
+			? `${left! - offset - ttWidth}px`
+			: `${left! + offset}px`;
+		ttContainer.style.top = top + "px";
 	}
 
 	return {
