@@ -2,6 +2,7 @@
 	import type { Attachment } from "svelte/attachments";
 	import type { MonitorLatestType } from "@sjvair/sdk";
 	import type { DateRange as CalendarRange } from "bits-ui";
+	import { Maximize, SquareX } from "@lucide/svelte";
 	import uPlot from "uplot";
 	import { getMonitorEntriesCSVUrl } from "@sjvair/sdk/monitors";
 	import { format, parseISO } from "date-fns";
@@ -192,16 +193,14 @@
 
 			<div class={["text-right", { "flex-1": expanded }]}>
 				<button
-					class="cursor-pointer rounded px-1 py-0.5 hover:bg-gray-100"
+					class="cursor-pointer rounded p-0.5 hover:bg-gray-100"
 					onclick={() => (expanded = !expanded)}
 					title={expanded ? "Collapse" : "Expand Chart"}
 				>
 					{#if expanded}
-						<!-- TODO: Get real icon -->
-						✕
+						<SquareX />
 					{:else}
-						<!-- TODO: Get real icon -->
-						⛶
+						<Maximize size={16} />
 					{/if}
 				</button>
 			</div>

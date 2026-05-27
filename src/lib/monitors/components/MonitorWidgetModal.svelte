@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { portal } from "$lib/actions";
+	import { SquareX } from "@lucide/svelte";
 
 	interface MonitorWidgetModalProps {
 		monitorId: string;
@@ -60,12 +61,8 @@
 		<div
 			class="m-4 flex max-w-[min(450px,calc(100vw-2rem))] flex-col items-center justify-center rounded bg-white p-4 shadow-lg"
 		>
-			<button
-				translate="no"
-				class="material-symbols-outlined cursor-pointer self-end"
-				onclick={closeModal}
-			>
-				✕ Close
+			<button translate="no" class="cursor-pointer self-end" onclick={closeModal}>
+				<SquareX />
 			</button>
 
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
