@@ -91,7 +91,7 @@
 {/if}
 
 <style>
-	.rotate-icon {
+	:global(.rotate-icon) {
 		transform: rotate(180deg);
 	}
 </style>
