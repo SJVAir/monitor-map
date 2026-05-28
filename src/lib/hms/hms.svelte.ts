@@ -104,5 +104,162 @@ function computeFireGroups(fires: (HMSFireGeoJSON & { frp: number })[]): HMSFire
 	}));
 }
 
+//async function fakeFireData(): Promise<Array<HMSFireGeoJSON>> {
+//  const response: FetchHMSFireResponse["body"] = {
+//    data: [
+//      {
+//        id: "4Kx7mNpQrQ",
+//        date: "2026-04-13",
+//        satellite: "GOES-16",
+//        timestamp: "2026-04-13T18:30:00Z",
+//        frp: 360,
+//        ecosystem: 4,
+//        method: "AF",
+//        geometry: {
+//          type: "Point",
+//          coordinates: [-118.532, 36.591],
+//        },
+//      },
+//      {
+//        id: "4Kx7mNpQrD",
+//        date: "2026-04-13",
+//        satellite: "GOES-16",
+//        timestamp: "2026-04-13T18:30:00Z",
+//        frp: 20,
+//        ecosystem: 4,
+//        method: "AF",
+//        geometry: {
+//          type: "Point",
+//          coordinates: [-118.632, 36.691],
+//        },
+//      },
+//      {
+//        id: "4Kx7mNpQrT",
+//        date: "2026-04-13",
+//        satellite: "GOES-16",
+//        timestamp: "2026-04-13T18:30:00Z",
+//        frp: 152.7,
+//        ecosystem: 4,
+//        method: "AF",
+//        geometry: {
+//          type: "Point",
+//          coordinates: [-118.832, 36.491],
+//        },
+//      },
+//      {
+//        id: "9vBjLsWqYm",
+//        date: "2026-04-13",
+//        satellite: "GOES-17",
+//        timestamp: "2026-04-13T17:45:00Z",
+//        frp: 58.2,
+//        ecosystem: 2,
+//        method: "AF",
+//        geometry: {
+//          type: "Point",
+//          coordinates: [-119.204, 37.112],
+//        },
+//      },
+//      {
+//        id: "2HcFnRkVxZ",
+//        date: "2026-04-13",
+//        satellite: "GOES-16",
+//        timestamp: "2026-04-13T16:00:00Z",
+//        frp: null,
+//        ecosystem: 7,
+//        method: "FDC",
+//        geometry: {
+//          type: "Point",
+//          coordinates: [-120.571, 35.883],
+//        },
+//      },
+//    ],
+//    page: 1,
+//    count: 3,
+//    pages: 1,
+//    has_next_page: false,
+//    has_previous_page: false,
+//  };
+//  return Promise.resolve(response.data);
+//}
+
+//async function fakeSmokeData(): Promise<Array<HMSSmokeGeoJSON>> {
+//	const response: FetchHMSSmokeResponse["body"] = {
+//		data: [
+//			{
+//				id: "sM3kNpQrL1",
+//				date: "2026-04-13",
+//				satellite: "GOES-16",
+//				start: "2026-04-13T12:00:00Z",
+//				end: "2026-04-13T18:00:00Z",
+//				density: "light",
+//				geometry: {
+//					type: "MultiPolygon",
+//					coordinates: [
+//						[
+//							[
+//								[-122.5, 39.5],
+//								[-120.5, 39.5],
+//								[-120.5, 41.0],
+//								[-122.5, 41.0],
+//								[-122.5, 39.5]
+//							]
+//						]
+//					]
+//				}
+//			},
+//			{
+//				id: "sM3kNpQrL2",
+//				date: "2026-04-13",
+//				satellite: "GOES-16",
+//				start: "2026-04-13T12:00:00Z",
+//				end: "2026-04-13T18:00:00Z",
+//				density: "medium",
+//				geometry: {
+//					type: "MultiPolygon",
+//					coordinates: [
+//						[
+//							[
+//								[-121.0, 36.5],
+//								[-119.0, 36.5],
+//								[-119.0, 38.0],
+//								[-121.0, 38.0],
+//								[-121.0, 36.5]
+//							]
+//						]
+//					]
+//				}
+//			},
+//			{
+//				id: "sM3kNpQrL3",
+//				date: "2026-04-13",
+//				satellite: "GOES-16",
+//				start: "2026-04-13T12:00:00Z",
+//				end: "2026-04-13T18:00:00Z",
+//				density: "heavy",
+//				geometry: {
+//					type: "MultiPolygon",
+//					coordinates: [
+//						[
+//							[
+//								[-119.0, 33.5],
+//								[-116.5, 33.5],
+//								[-116.5, 35.0],
+//								[-119.0, 35.0],
+//								[-119.0, 33.5]
+//							]
+//						]
+//					]
+//				}
+//			}
+//		],
+//		page: 1,
+//		count: 3,
+//		pages: 1,
+//		has_next_page: false,
+//		has_previous_page: false
+//	};
+//	return Promise.resolve(response.data);
+//}
+
 export const hmsManager = new HmsManager();
 export type { HmsManager as HMSManager };
