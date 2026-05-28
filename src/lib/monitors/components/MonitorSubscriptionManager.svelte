@@ -7,22 +7,21 @@
 		monitorId: string;
 	}
 
-	const ALERT_LEVEL_NAMES = ["unhealthy_sensitive", "unhealthy", "very_unhealthy", "hazardous"];
+	const ALERT_LEVEL_NAMES = ["unhealthy_sensitive", "unhealthy", "very_unhealthy", "hazardous"] as const;
 
 	const { monitorId }: MonitorSubscriptionManagerProps = $props();
 
 	let open = $state(false);
 	let loading = $state(false);
+	let saving = $state(false);
 	let subscribedLevel: string | null = $state(null);
 
 	const alertLevels = $derived.by(() => {
 		if (!monitorsManager.meta) return [];
 		return monitorsManager.meta
 			.entryType("pm25")
-			.asIter.levels!.filter((level) => ALERT_LEVEL_NAMES.includes(level.name));
+			.asIter.levels!.filter((level) => ALERT_LEVEL_NAMES.includes(level.name as (typeof ALERT_LEVEL_NAMES)[number]));
 	});
-
-	const buttonLabel = $derived(subscribedLevel ? "Manage Subscription" : "Subscribe to Alerts");
 
 	$effect(() => {
 		monitorId;
@@ -42,12 +41,22 @@
 	}
 
 	async function handleLevelClick(levelName: string) {
-		if (levelName === subscribedLevel) {
-			await unsubscribe({ monitorId, apiToken: "", level: levelName });
-			subscribedLevel = null;
-		} else {
-			await subscribe({ monitorId, apiToken: "", level: levelName });
-			subscribedLevel = levelName;
+		if (saving) return;
+		saving = true;
+		const previous = subscribedLevel;
+		try {
+			if (levelName === subscribedLevel) {
+				await unsubscribe({ monitorId, apiToken: "", level: levelName });
+				subscribedLevel = null;
+			} else {
+				await subscribe({ monitorId, apiToken: "", level: levelName });
+				subscribedLevel = levelName;
+			}
+		} catch {
+			subscribedLevel = previous;
+			return;
+		} finally {
+			saving = false;
 		}
 		open = false;
 	}
@@ -63,7 +72,7 @@
 			disabled={loading}
 			onclick={() => (open = !open)}
 		>
-			{buttonLabel}
+			{subscribedLevel ? "Manage Subscription" : "Subscribe to Alerts"}
 			<ChevronDown
 				size={16}
 				class={["transition-transform duration-300", open ? "rotate-icon" : ""]}
@@ -73,10 +82,11 @@
 		{#if open}
 			<div class="fixed inset-0 z-10" onclick={() => (open = false)}></div>
 			<div class="absolute top-full left-0 z-20 mt-1 w-full overflow-hidden rounded shadow-lg">
-				{#each alertLevels as level, i (level.name)}
+				{#each alertLevels as level (level.name)}
 					<button
 						class="flex w-full cursor-pointer items-center justify-between px-4 py-2 text-sm text-white hover:brightness-90"
 						style="background-color: #{level.color}"
+						disabled={saving}
 						onclick={() => handleLevelClick(level.name)}
 					>
 						<span>{level.label}</span>
