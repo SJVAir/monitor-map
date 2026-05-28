@@ -18,25 +18,32 @@
 
 	const alertLevels = $derived.by(() => {
 		if (!monitorsManager.meta) return [];
-		return monitorsManager.meta
-			.entryType("pm25")
-			.asIter.levels!.filter((level) => ALERT_LEVEL_NAMES.includes(level.name as (typeof ALERT_LEVEL_NAMES)[number]));
+		try {
+			return monitorsManager.meta
+				.entryType("pm25")
+				.asIter.levels!.filter((level) => ALERT_LEVEL_NAMES.includes(level.name as (typeof ALERT_LEVEL_NAMES)[number]));
+		} catch {
+			return [];
+		}
 	});
 
 	$effect(() => {
 		monitorId;
 		open = false;
+		subscribedLevel = null;
 		loadSubscription();
 	});
 
 	async function loadSubscription() {
+		const id = monitorId;
 		loading = true;
 		try {
 			const subscriptions = await getSubscriptions("");
-			const match = subscriptions.find((s) => s.monitor === monitorId);
+			if (id !== monitorId) return;
+			const match = subscriptions.find((s) => s.monitor === id);
 			subscribedLevel = match?.level ?? null;
 		} finally {
-			loading = false;
+			if (id === monitorId) loading = false;
 		}
 	}
 
@@ -62,7 +69,7 @@
 	}
 </script>
 
-{#if (window as any).USER?.is_authenticated}
+{#if (globalThis as any).USER?.is_authenticated}
 	<div class="relative select-none">
 		<button
 			class={[
@@ -75,7 +82,7 @@
 			{subscribedLevel ? "Manage Subscription" : "Subscribe to Alerts"}
 			<ChevronDown
 				size={16}
-				class={["transition-transform duration-300", open ? "rotate-icon" : ""]}
+				class={["transition-transform duration-300", open ? "rotate-180" : ""]}
 			/>
 		</button>
 
@@ -99,9 +106,3 @@
 		{/if}
 	</div>
 {/if}
-
-<style>
-	:global(.rotate-icon) {
-		transform: rotate(180deg);
-	}
-</style>
