@@ -6,7 +6,10 @@ import {
 } from "@sjvair/sdk/hms";
 import clustersDbscan from "@turf/clusters-dbscan";
 import { featureCollection, point } from "@turf/helpers";
-import { HMS_FIRE_DBSCAN_EPSILON, HMS_FIRE_DBSCAN_MIN_POINTS } from "./hms-fire-icon-manager.ts";
+import { SvelteMap } from "svelte/reactivity";
+
+const HMS_FIRE_DBSCAN_EPSILON = 5;
+const HMS_FIRE_DBSCAN_MIN_POINTS = 1;
 
 export interface HMSFireGroup {
 	id: string;
@@ -50,7 +53,7 @@ function computeFireGroups(fires: (HMSFireGeoJSON & { frp: number })[]): HMSFire
 		units: "kilometers"
 	});
 
-	const groups = new Map<string, { frps: number[]; lngs: number[]; lats: number[] }>();
+	const groups = new SvelteMap<string, { frps: number[]; lngs: number[]; lats: number[] }>();
 
 	for (const feature of clustered.features) {
 		const props = feature.properties as {
@@ -59,6 +62,8 @@ function computeFireGroups(fires: (HMSFireGeoJSON & { frp: number })[]): HMSFire
 			fireId: string;
 			frp: number;
 		};
+		// With minPoints=1 every point self-qualifies as core, so "noise" never occurs.
+		// This branch activates correctly if minPoints is raised above 1 in future.
 		const key = props.dbscan === "noise" ? `noise-${props.fireId}` : `cluster-${props.cluster}`;
 		const [lng, lat] = feature.geometry.coordinates as [number, number];
 		const entry = groups.get(key) ?? { frps: [], lngs: [], lats: [] };

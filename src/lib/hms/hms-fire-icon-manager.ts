@@ -3,9 +3,6 @@ import { MapIconManager } from "$lib/map/integrations/map-icon-manager.ts";
 
 type FRPTier = "sm" | "md" | "lg" | "xl" | "xxl";
 
-export const HMS_FIRE_DBSCAN_EPSILON = 5;
-export const HMS_FIRE_DBSCAN_MIN_POINTS = 1;
-
 const FRP_TIERS: Record<FRPTier, { color: string; size: number }> = {
 	sm: { color: "#FFD700", size: 14 },
 	md: { color: "#FF8C00", size: 18 },

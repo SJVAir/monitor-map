@@ -118,14 +118,17 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 
 	apply() {
 		if (!mapManager.map) return;
-		this.icons.loadIcons().then(() => {
-			if (!mapManager.map || !this.enabled) return;
-			this.remove();
-			mapManager.map.addSource(this.referenceId, this.mapSource);
-			mapManager.map.addLayer(this.mapLayer, this.beforeLayer);
-			mapManager.map.addSource(HOTSPOT_SOURCE_ID, this.hotspotSource);
-			mapManager.map.addLayer(this.hotspotLayer, this.beforeLayer);
-		});
+		this.icons
+			.loadIcons()
+			.then(() => {
+				if (!mapManager.map || !this.enabled) return;
+				this.remove();
+				mapManager.map.addSource(this.referenceId, this.mapSource);
+				mapManager.map.addLayer(this.mapLayer, this.beforeLayer);
+				mapManager.map.addSource(HOTSPOT_SOURCE_ID, this.hotspotSource);
+				mapManager.map.addLayer(this.hotspotLayer, this.beforeLayer);
+			})
+			.catch(console.error);
 	}
 
 	remove() {
