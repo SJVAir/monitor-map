@@ -41,6 +41,11 @@ class HMSSmokeMapIntegration extends MapGeoJSONIntegration<SmokeProperties> {
 					"light", 0.2,
 					"medium", 0.3,
 					0.4
+				],
+				"fill-outline-color": ["match", ["get", "density"],
+					"light", "#bfc8c3",
+					"medium", "#757b78",
+					"#333634"
 				]
 			}
 		};
