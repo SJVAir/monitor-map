@@ -25,19 +25,23 @@ class HmsManager {
 	}
 
 	async loadFire() {
-		const raw = await getHMSFire();
-		const filtered = raw.filter((d) => d.frp !== null);
-		this.fire = filtered;
-		this.fireGroups = computeFireGroups(filtered);
+		try {
+			const raw = await getHMSFire();
+			const filtered = raw.filter((d): d is HMSFireGeoJSON & { frp: number } => d.frp !== null);
+			this.fire = filtered;
+			this.fireGroups = computeFireGroups(filtered);
+		} catch (err) {
+			console.error("HMS fire load failed:", err);
+		}
 	}
 }
 
-function computeFireGroups(fires: HMSFireGeoJSON[]): HMSFireGroup[] {
+function computeFireGroups(fires: (HMSFireGeoJSON & { frp: number })[]): HMSFireGroup[] {
 	if (!fires.length) return [];
 
 	const fc = featureCollection(
 		fires.map((d) =>
-			point(d.geometry.coordinates as [number, number], { fireId: d.id, frp: d.frp! })
+			point(d.geometry.coordinates as [number, number], { fireId: d.id, frp: d.frp })
 		)
 	);
 
