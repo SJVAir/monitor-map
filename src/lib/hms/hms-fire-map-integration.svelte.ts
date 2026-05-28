@@ -6,38 +6,18 @@ import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integ
 import { hmsManager } from "./hms.svelte.ts";
 import { HMSFireIconManager, getTierIconId } from "./hms-fire-icon-manager.ts";
 
-interface FireGroupProperties {
-	id: string;
-	icon: string;
-	avgFrp: number;
-	count: number;
-}
+type FireProperties = Record<string, unknown>;
 
-interface FireHotspotProperties {
-	id: string;
-	icon: string;
-	frp: number;
-}
+const ZOOM_THRESHOLD = 10;
 
-const HOTSPOT_SOURCE_ID = "hms-fire-hotspots";
-const HOTSPOT_LAYER_ID = "hms-fire-hotspots-layer";
-
-class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties> {
-	referenceId = "hms-fire-groups";
+class HMSFireMapIntegration extends MapIconLayerIntegration<FireProperties> {
+	referenceId = "hms-fire";
 	enabled: boolean = $state(true);
 	icons = new HMSFireIconManager();
+	private zoomedIn: boolean = $state(false);
 
-	get features(): Array<Feature<Point, FireGroupProperties>> {
-		return (hmsManager.fireGroups ?? []).map((g) => ({
-			type: "Feature",
-			properties: {
-				id: g.id,
-				icon: getTierIconId(g.avgFrp),
-				avgFrp: g.avgFrp,
-				count: g.count
-			},
-			geometry: { type: "Point", coordinates: g.coordinates }
-		}));
+	get features(): Array<Feature<Point, FireProperties>> {
+		return this.zoomedIn ? this.hotspotFeatures : this.groupFeatures;
 	}
 
 	get mapLayer(): Parameters<MaptilerMap["addLayer"]>[0] {
@@ -45,7 +25,6 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 			id: this.referenceId,
 			type: "symbol",
 			source: this.referenceId,
-			maxzoom: 10,
 			layout: {
 				"icon-image": ["get", "icon"],
 				"icon-allow-overlap": true,
@@ -63,7 +42,20 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 		};
 	}
 
-	private get hotspotFeatures(): Array<Feature<Point, FireHotspotProperties>> {
+	private get groupFeatures(): Array<Feature<Point, FireProperties>> {
+		return (hmsManager.fireGroups ?? []).map((g) => ({
+			type: "Feature",
+			properties: {
+				id: g.id,
+				icon: getTierIconId(g.avgFrp),
+				avgFrp: g.avgFrp,
+				count: g.count
+			},
+			geometry: { type: "Point", coordinates: g.coordinates }
+		}));
+	}
+
+	private get hotspotFeatures(): Array<Feature<Point, FireProperties>> {
 		return (hmsManager.fire ?? []).map((d) => ({
 			type: "Feature",
 			properties: {
@@ -75,28 +67,10 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 		}));
 	}
 
-	private get hotspotSource(): Parameters<MaptilerMap["addSource"]>[1] {
-		return {
-			type: "geojson",
-			promoteId: "id",
-			data: { type: "FeatureCollection", features: this.hotspotFeatures }
-		};
-	}
-
-	private get hotspotLayer(): Parameters<MaptilerMap["addLayer"]>[0] {
-		return {
-			id: HOTSPOT_LAYER_ID,
-			type: "symbol",
-			source: HOTSPOT_SOURCE_ID,
-			minzoom: 10,
-			layout: {
-				"icon-image": ["get", "icon"],
-				"icon-allow-overlap": true,
-				"icon-ignore-placement": true
-			},
-			paint: {}
-		};
-	}
+	private onZoom = () => {
+		if (!mapManager.map) return;
+		this.zoomedIn = mapManager.map.getZoom() >= ZOOM_THRESHOLD;
+	};
 
 	constructor() {
 		super();
@@ -106,12 +80,6 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 				const features = this.features;
 				if (!mapManager.map || !this.enabled) return;
 				mapManager.setDataSource(this.referenceId, features);
-			});
-
-			$effect(() => {
-				const features = this.hotspotFeatures;
-				if (!mapManager.map || !this.enabled) return;
-				mapManager.setDataSource(HOTSPOT_SOURCE_ID, features);
 			});
 		});
 	}
@@ -123,21 +91,16 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 			.then(() => {
 				if (!mapManager.map || !this.enabled) return;
 				this.remove();
+				this.zoomedIn = mapManager.map.getZoom() >= ZOOM_THRESHOLD;
 				mapManager.map.addSource(this.referenceId, this.mapSource);
 				mapManager.map.addLayer(this.mapLayer, this.beforeLayer);
-				mapManager.map.addSource(HOTSPOT_SOURCE_ID, this.hotspotSource);
-				mapManager.map.addLayer(this.hotspotLayer, this.beforeLayer);
+				mapManager.map.on("zoom", this.onZoom);
 			})
 			.catch(console.error);
 	}
 
 	remove() {
-		if (mapManager.map?.getLayer(HOTSPOT_LAYER_ID)) {
-			mapManager.map.removeLayer(HOTSPOT_LAYER_ID);
-		}
-		if (mapManager.map?.getSource(HOTSPOT_SOURCE_ID)) {
-			mapManager.map.removeSource(HOTSPOT_SOURCE_ID);
-		}
+		mapManager.map?.off("zoom", this.onZoom);
 		super.remove();
 	}
 }

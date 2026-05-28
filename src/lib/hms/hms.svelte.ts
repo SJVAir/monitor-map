@@ -8,7 +8,7 @@ import clustersDbscan from "@turf/clusters-dbscan";
 import { featureCollection, point } from "@turf/helpers";
 import { SvelteMap } from "svelte/reactivity";
 
-const HMS_FIRE_DBSCAN_EPSILON = 5;
+const HMS_FIRE_DBSCAN_EPSILON = 2;
 const HMS_FIRE_DBSCAN_MIN_POINTS = 1;
 
 export interface HMSFireGroup {
@@ -31,12 +31,28 @@ class HmsManager {
 		try {
 			const raw = await getHMSFire();
 			const filtered = raw.filter((d): d is HMSFireGeoJSON & { frp: number } => d.frp !== null);
-			this.fire = filtered;
-			this.fireGroups = computeFireGroups(filtered);
+			const deduped = deduplicateByCoordinates(filtered);
+			this.fire = deduped;
+			this.fireGroups = computeFireGroups(deduped);
 		} catch (err) {
 			console.error("HMS fire load failed:", err);
 		}
 	}
+}
+
+function deduplicateByCoordinates(
+	fires: (HMSFireGeoJSON & { frp: number })[]
+): (HMSFireGeoJSON & { frp: number })[] {
+	const latest = new Map<string, HMSFireGeoJSON & { frp: number }>();
+	for (const fire of fires) {
+		const [lng, lat] = fire.geometry.coordinates as [number, number];
+		const key = `${lng},${lat}`;
+		const existing = latest.get(key);
+		if (!existing || fire.timestamp > existing.timestamp) {
+			latest.set(key, fire);
+		}
+	}
+	return Array.from(latest.values());
 }
 
 function computeFireGroups(fires: (HMSFireGeoJSON & { frp: number })[]): HMSFireGroup[] {
