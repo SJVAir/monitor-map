@@ -4,11 +4,11 @@ import { MapIconManager } from "$lib/map/integrations/map-icon-manager.ts";
 type FRPTier = "sm" | "md" | "lg" | "xl" | "xxl";
 
 const FRP_TIERS: Record<FRPTier, { color: string; size: number }> = {
-	sm: { color: "#FFD700", size: 14 },
-	md: { color: "#FF8C00", size: 18 },
-	lg: { color: "#FF4500", size: 22 },
-	xl: { color: "#DC143C", size: 26 },
-	xxl: { color: "#8B0000", size: 30 }
+	sm: { color: "#FFD700", size: 20 },
+	md: { color: "#FF8C00", size: 24 },
+	lg: { color: "#FF4500", size: 28 },
+	xl: { color: "#DC143C", size: 32 },
+	xxl: { color: "#8B0000", size: 36 }
 };
 
 export function getTierIconId(frp: number): string {
