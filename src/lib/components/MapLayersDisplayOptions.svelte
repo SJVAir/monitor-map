@@ -4,6 +4,7 @@
 	import { windMapIntegration } from "$lib/wind/wind.svelte";
 	import { collocationSitesMapIntegration } from "$lib/collocation-sites/collocations-map-integration.svelte";
 	import { monitorsManager } from "$lib/monitors/monitors.svelte";
+	import { hmsFireMapIntegration } from "$lib/hms/hms-fire-map-integration.svelte";
 </script>
 
 <DisplayOption>
@@ -16,4 +17,6 @@
 			bind:value={collocationSitesMapIntegration.enabled}
 		></ToggleSwitch>
 	{/if}
+	<ToggleSwitch id="hms-fire" label="HMS Fire" bind:value={hmsFireMapIntegration.enabled}
+	></ToggleSwitch>
 </DisplayOption>
