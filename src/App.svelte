@@ -21,6 +21,7 @@
 	import { evStationsMapIntegration } from "$lib/ev-stations/ev-stations-map-integration.svelte.ts";
 	import { hmsManager } from "$lib/hms/hms.svelte.ts";
 	import { hmsFireMapIntegration } from "$lib/hms/hms-fire-map-integration.svelte.ts";
+	import { hmsSmokeMapIntegration } from "$lib/hms/hms-smoke-map-integration.svelte.ts";
 	import MonitorMarkersLegend from "$lib/monitors/components/MonitorMarkersLegend.svelte";
 
 	const TRANSITION_MS = 300;
@@ -29,6 +30,7 @@
 		baseLayerSeperator,
 		collocationSitesMapIntegration,
 		windMapIntegration,
+		hmsSmokeMapIntegration,
 		hmsFireMapIntegration,
 		monitorsMapIntegration,
 		evStationsMapIntegration
