@@ -76,6 +76,7 @@
 		"vite": "^8.0.14"
 	},
 	"dependencies": {
+		"@turf/clusters-dbscan": "^7.3.5",
 		"sv-router": "^0.16.2"
 	},
 	"keywords": [
