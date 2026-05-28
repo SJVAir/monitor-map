@@ -20,6 +20,7 @@ interface FireHotspotProperties {
 }
 
 const HOTSPOT_SOURCE_ID = "hms-fire-hotspots";
+const HOTSPOT_LAYER_ID = "hms-fire-hotspots-layer";
 
 class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties> {
 	referenceId = "hms-fire-groups";
@@ -27,7 +28,16 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 	icons = new HMSFireIconManager();
 
 	get features(): Array<Feature<Point, FireGroupProperties>> {
-		return this.groupFeatures;
+		return (hmsManager.fireGroups ?? []).map((g) => ({
+			type: "Feature",
+			properties: {
+				id: g.id,
+				icon: getTierIconId(g.avgFrp),
+				avgFrp: g.avgFrp,
+				count: g.count
+			},
+			geometry: { type: "Point", coordinates: g.coordinates }
+		}));
 	}
 
 	get mapLayer(): Parameters<MaptilerMap["addLayer"]>[0] {
@@ -49,21 +59,8 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 		return {
 			type: "geojson",
 			promoteId: "id",
-			data: { type: "FeatureCollection", features: this.groupFeatures }
+			data: { type: "FeatureCollection", features: this.features }
 		};
-	}
-
-	private get groupFeatures(): Array<Feature<Point, FireGroupProperties>> {
-		return (hmsManager.fireGroups ?? []).map((g) => ({
-			type: "Feature",
-			properties: {
-				id: g.id,
-				icon: getTierIconId(g.avgFrp),
-				avgFrp: g.avgFrp,
-				count: g.count
-			},
-			geometry: { type: "Point", coordinates: g.coordinates }
-		}));
 	}
 
 	private get hotspotFeatures(): Array<Feature<Point, FireHotspotProperties>> {
@@ -88,7 +85,7 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 
 	private get hotspotLayer(): Parameters<MaptilerMap["addLayer"]>[0] {
 		return {
-			id: HOTSPOT_SOURCE_ID,
+			id: HOTSPOT_LAYER_ID,
 			type: "symbol",
 			source: HOTSPOT_SOURCE_ID,
 			minzoom: 10,
@@ -106,14 +103,14 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 
 		$effect.root(() => {
 			$effect(() => {
-				const features = this.groupFeatures;
-				if (!mapManager.map) return;
+				const features = this.features;
+				if (!mapManager.map || !this.enabled) return;
 				mapManager.setDataSource(this.referenceId, features);
 			});
 
 			$effect(() => {
 				const features = this.hotspotFeatures;
-				if (!mapManager.map) return;
+				if (!mapManager.map || !this.enabled) return;
 				mapManager.setDataSource(HOTSPOT_SOURCE_ID, features);
 			});
 		});
@@ -122,7 +119,7 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 	apply() {
 		if (!mapManager.map) return;
 		this.icons.loadIcons().then(() => {
-			if (!mapManager.map) return;
+			if (!mapManager.map || !this.enabled) return;
 			this.remove();
 			mapManager.map.addSource(this.referenceId, this.mapSource);
 			mapManager.map.addLayer(this.mapLayer, this.beforeLayer);
@@ -132,8 +129,8 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireGroupProperties>
 	}
 
 	remove() {
-		if (mapManager.map?.getLayer(HOTSPOT_SOURCE_ID)) {
-			mapManager.map.removeLayer(HOTSPOT_SOURCE_ID);
+		if (mapManager.map?.getLayer(HOTSPOT_LAYER_ID)) {
+			mapManager.map.removeLayer(HOTSPOT_LAYER_ID);
 		}
 		if (mapManager.map?.getSource(HOTSPOT_SOURCE_ID)) {
 			mapManager.map.removeSource(HOTSPOT_SOURCE_ID);
