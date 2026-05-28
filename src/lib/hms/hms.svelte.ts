@@ -17,7 +17,7 @@ export interface HMSFireGroup {
 
 class HmsManager {
 	smoke: Array<HMSSmokeGeoJSON> | undefined = $state();
-	fire: Array<HMSFireGeoJSON> | undefined = $state();
+	fire: Array<HMSFireGeoJSON & { frp: number }> | undefined = $state();
 	fireGroups: Array<HMSFireGroup> | undefined = $state();
 
 	async loadSmoke() {
