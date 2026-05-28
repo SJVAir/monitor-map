@@ -87,7 +87,7 @@
 		</button>
 		{#if monitor}
 			<h2 class="text-center text-3xl font-semibold">{monitor.name}</h2>
-			<div class="flex gap-4">
+			<div class="flex flex-wrap items-center justify-center gap-4">
 				{#if monitor.is_sjvair}
 					{@render badge("lungs", "SJVAir", {
 						bgClass: "bg-aqua-haze",
