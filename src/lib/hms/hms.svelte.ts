@@ -23,6 +23,10 @@ class HmsManager {
 	fire: Array<HMSFireGeoJSON & { frp: number }> | undefined = $state();
 	fireGroups: Array<HMSFireGroup> | undefined = $state();
 
+	async init() {
+		await Promise.allSettled([this.loadSmoke(), this.loadFire()]);
+	}
+
 	async loadSmoke() {
 		this.smoke = await getHMSSmoke();
 	}
