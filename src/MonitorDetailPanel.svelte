@@ -3,6 +3,7 @@
 	import type { SJVAirEntryLevel } from "@sjvair/sdk";
 	import DataBox from "$lib/components/DataBox.svelte";
 	import MonitorWidgetModal from "$lib/monitors/components/MonitorWidgetModal.svelte";
+	import MonitorSubscriptionManager from "$lib/monitors/components/MonitorSubscriptionManager.svelte";
 	import DataChart from "$lib/data-chart/DataChart.svelte";
 	import { monitorsManager } from "$lib";
 	import { navigate, route } from "./router";
@@ -121,6 +122,7 @@
 			</div>
 
 			<MonitorWidgetModal monitorId={monitor.id} />
+			<MonitorSubscriptionManager monitorId={monitor.id} />
 
 			<div class="w-full">
 				<DataChart {monitor} />
