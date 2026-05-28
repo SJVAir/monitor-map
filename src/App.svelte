@@ -36,7 +36,7 @@
 
 	monitorsManager.init();
 	collocationSitesManager.init();
-	hmsManager.loadFire();
+	hmsManager.init();
 	monitorsMapIntegration.onMonitorClick = (id: string) => {
 		navigate("/monitor/:id", { params: { id } }).catch(console.error);
 	};
