@@ -7,7 +7,12 @@
 		monitorId: string;
 	}
 
-	const ALERT_LEVEL_NAMES = ["unhealthy_sensitive", "unhealthy", "very_unhealthy", "hazardous"] as const;
+	const ALERT_LEVEL_NAMES = [
+		"unhealthy_sensitive",
+		"unhealthy",
+		"very_unhealthy",
+		"hazardous"
+	] as const;
 
 	const { monitorId }: MonitorSubscriptionManagerProps = $props();
 
@@ -21,14 +26,16 @@
 		try {
 			return monitorsManager.meta
 				.entryType("pm25")
-				.asIter.levels!.filter((level) => ALERT_LEVEL_NAMES.includes(level.name as (typeof ALERT_LEVEL_NAMES)[number]));
+				.asIter.levels!.filter((level) =>
+					ALERT_LEVEL_NAMES.includes(level.name as (typeof ALERT_LEVEL_NAMES)[number])
+				);
 		} catch {
 			return [];
 		}
 	});
 
 	$effect(() => {
-		monitorId;
+		void monitorId;
 		open = false;
 		subscribedLevel = null;
 		loadSubscription();
@@ -74,7 +81,9 @@
 		<button
 			class={[
 				"flex w-full cursor-pointer items-center justify-center gap-2 rounded border px-3 py-1.5 text-sm font-semibold text-white",
-				subscribedLevel ? "border-green-700 bg-green-600 hover:bg-green-700" : "border-blue-600 bg-blue-500 hover:bg-blue-600"
+				subscribedLevel
+					? "border-green-700 bg-green-600 hover:bg-green-700"
+					: "border-blue-600 bg-blue-500 hover:bg-blue-600"
 			]}
 			disabled={loading}
 			onclick={() => (open = !open)}
