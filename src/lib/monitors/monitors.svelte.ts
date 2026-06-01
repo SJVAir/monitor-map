@@ -7,6 +7,7 @@ import {
 	type MonitorsMeta,
 	type SJVAirEntryLevel
 } from "@sjvair/sdk";
+import { route } from "../../router.ts";
 import { XMap } from "@tstk/builtin-extensions";
 import { Interval } from "@tstk/utils";
 
@@ -30,7 +31,9 @@ class MonitorsManager {
 
 		[this.list, this.meta] = await Promise.all([getMonitors(), getMonitorsMeta()]);
 
-		this.pollutant = this.meta.default_pollutant;
+		const urlPollutant = route.search.pollutant;
+		this.pollutant =
+			urlPollutant === "pm25" || urlPollutant === "o3" ? urlPollutant : this.meta.default_pollutant;
 		this.latest = await getMonitorsLatestMap(this.pollutant);
 		this.autoUpdate.start();
 		this.initialized = true;
