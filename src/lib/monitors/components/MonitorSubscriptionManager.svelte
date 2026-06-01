@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check, ChevronDown } from "@lucide/svelte";
+	import { BellCheckIcon, BellOffIcon, ChevronDownIcon } from "@lucide/svelte";
 	import { getSubscriptions, subscribe, unsubscribe } from "@sjvair/sdk/account";
 	import { monitorsManager } from "$lib";
 
@@ -54,8 +54,8 @@
 		}
 	}
 
-	async function handleLevelClick(levelName: string) {
-		if (saving) return;
+	async function handleLevelClick(levelName: string | null) {
+		if (saving || !levelName) return;
 		saving = true;
 		const previous = subscribedLevel;
 		try {
@@ -76,6 +76,7 @@
 	}
 </script>
 
+<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 {#if (globalThis as any).USER?.is_authenticated}
 	<div class="relative select-none">
 		<button
@@ -89,25 +90,38 @@
 			onclick={() => (open = !open)}
 		>
 			{subscribedLevel ? "Manage Subscription" : "Subscribe to Alerts"}
-			<ChevronDown
+			<ChevronDownIcon
 				size={16}
 				class={["transition-transform duration-300", open ? "rotate-180" : ""]}
 			/>
 		</button>
 
 		{#if open}
-			<div class="fixed inset-0 z-10" onclick={() => (open = false)}></div>
+			<button aria-label="Close" class="fixed inset-0 z-10" onclick={() => (open = false)}></button>
 			<div class="absolute top-full left-0 z-20 mt-1 w-full overflow-hidden rounded shadow-lg">
-				{#each alertLevels as level (level.name)}
+				{#if subscribedLevel}
 					<button
-						class="flex w-full cursor-pointer items-center justify-between px-4 py-2 text-sm text-white hover:brightness-90"
-						style="background-color: #{level.color}"
+						class="cursor-pointer px-4 py-2 text-sm rounded-t w-full flex items-center justify-between border border-black/30 hover:bg-[#F5F5F3]"
+						onclick={() => handleLevelClick(subscribedLevel)}
+					>
+						Unsubscribe
+						<BellOffIcon size={14} />
+					</button>
+				{/if}
+				{#each alertLevels as level (level.name)}
+					{@const isSubscribed = level.name === subscribedLevel}
+					<button
+						class={[
+							"flex w-full items-center justify-between px-4 py-2 text-sm text-white last:rounded-b",
+							!isSubscribed ? "first:rounded-t hover:brightness-90 cursor-pointer" : ""
+						]}
+						style="background-color: {level.color}"
 						disabled={saving}
-						onclick={() => handleLevelClick(level.name)}
+						onclick={!isSubscribed ? () => handleLevelClick(level.name) : null}
 					>
 						<span>{level.label}</span>
-						{#if level.name === subscribedLevel}
-							<Check size={14} />
+						{#if isSubscribed}
+							<BellCheckIcon size={14} />
 						{/if}
 					</button>
 				{/each}
