@@ -64,7 +64,7 @@
 		class="flex items-center justify-center gap-1 rounded-sm border px-1 py-0.5
     {opts.bgClass ?? 'bg-neutral-100'}"
 	>
-		<span class={["svg-icon block", icon, opts.iconColorClass ?? "bg-black/70"]}></span>
+		<span class={["svg-icon", icon, opts.iconColorClass ?? "bg-black/70"]}></span>
 		{#if opts.href}
 			<a class="text-link text-xs" href={opts.href} target="_blank" translate="no">{label}</a>
 		{:else}
