@@ -145,12 +145,13 @@
 	function myAction(node: HTMLElement, expanded: boolean) {
 		const parent = node.parentElement;
 		const sibling = node.nextElementSibling;
+		const mountpoint = document.getElementById("SJVAirMonitorMap");
 
 		function update(expanded: boolean) {
-			if (parent) {
+			if (parent && mountpoint) {
 				if (expanded) {
 					// Start action logic (e.g., add event listeners)
-					document.body.moveBefore(node, document.body.firstElementChild);
+					mountpoint.moveBefore(node, mountpoint.firstElementChild);
 				} else {
 					// Stop action logic (e.g., remove event listeners)
 					parent.moveBefore(node, sibling);
