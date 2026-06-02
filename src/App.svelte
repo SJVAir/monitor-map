@@ -70,6 +70,33 @@
 	onDestroy(() => {
 		monitorsManager.autoUpdate.stop();
 	});
+
+	/**
+	 * HACK: Fix for escaping sv-router and allowing navigation to other pages,
+	 * as well as navigating back
+	 */
+	const knownRoutes = ["/monitor/"];
+
+	window.addEventListener("pageshow", (e) => {
+		if (e.persisted) window.location.reload();
+	});
+
+	document.addEventListener(
+		"click",
+		(e) => {
+			const anchor = e
+				.composedPath()
+				.find((el) => el instanceof HTMLAnchorElement) as HTMLAnchorElement;
+			if (!anchor) return;
+			const { pathname } = new URL(anchor.href);
+			const isKnown = pathname === "/" || knownRoutes.some((r) => pathname.startsWith(r));
+			if (!isKnown) {
+				e.stopImmediatePropagation();
+				window.location.href = anchor.href;
+			}
+		},
+		{ capture: true }
+	);
 </script>
 
 <div class="shell" class:panel-open={panelOpen}>
