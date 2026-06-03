@@ -5,6 +5,38 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { fileURLToPath, URL } from "node:url";
 import postcss from "postcss";
 
+export default defineConfig(({ mode }) => {
+	const devMode = mode === "development";
+
+	return {
+		base: devMode ? "/" : "/static/monitor-map/",
+		plugins: [
+			tailwindcss(),
+			enhancedImages(),
+			svelte(),
+			...(devMode ? [] : [cssScopePlugin("#SJVAirMonitorMap")])
+		],
+		resolve: {
+			alias: {
+				$lib: fileURLToPath(new URL("./src/lib", import.meta.url))
+			}
+		},
+		build: {
+			target: "es2024",
+			outDir: fileURLToPath(new URL("./dist/monitor-map", import.meta.url)),
+			rolldownOptions: {
+				input: {
+					sjvairMonitorMap: fileURLToPath(new URL("./src/main.ts", import.meta.url))
+				},
+				output: {
+					entryFileNames: "[name].js",
+					assetFileNames: "[name].[ext]"
+				}
+			}
+		}
+	};
+});
+
 function cssScopePlugin(scopeSelector: string): Plugin {
 	return {
 		name: "vite-plugin-css-scope",
@@ -18,9 +50,7 @@ function cssScopePlugin(scopeSelector: string): Plugin {
 
 				// Transform :root → :scope throughout the entire tree
 				root.walkRules((rule) => {
-					rule.selectors = rule.selectors.map((s) =>
-						s.trim().replace(/^:root\b/, ":scope")
-					);
+					rule.selectors = rule.selectors.map((s) => s.trim().replace(/^:root\b/, ":scope"));
 				});
 
 				// Hoist at-rules that cannot live inside @scope
@@ -28,14 +58,11 @@ function cssScopePlugin(scopeSelector: string): Plugin {
 					"keyframes",
 					"-webkit-keyframes",
 					"font-face",
-					"charset",
+					"charset"
 				]);
 				const hoisted: postcss.ChildNode[] = [];
 				root.each((node) => {
-					if (
-						node.type === "atrule" &&
-						nonScopeableNames.has(node.name.toLowerCase())
-					) {
+					if (node.type === "atrule" && nonScopeableNames.has(node.name.toLowerCase())) {
 						hoisted.push(node.clone());
 						node.remove();
 					}
@@ -44,7 +71,7 @@ function cssScopePlugin(scopeSelector: string): Plugin {
 				// Wrap remaining nodes in @scope
 				const scopeBlock = postcss.atRule({
 					name: "scope",
-					params: `(${scopeSelector})`,
+					params: `(${scopeSelector})`
 				});
 				while (root.first) {
 					scopeBlock.append(root.first);
@@ -56,38 +83,6 @@ function cssScopePlugin(scopeSelector: string): Plugin {
 
 				chunk.source = root.toResult().css;
 			}
-		},
-	};
-}
-
-export default defineConfig(({ mode }) => {
-	const devMode = mode === "development";
-
-	return {
-		base: devMode ? "/" : "/static/monitor-map/",
-		plugins: [
-			tailwindcss(),
-			enhancedImages(),
-			svelte(),
-			...(devMode ? [] : [cssScopePlugin("#SJVAirMonitorMap")]),
-		],
-		resolve: {
-			alias: {
-				$lib: fileURLToPath(new URL("./src/lib", import.meta.url))
-			}
-		},
-		build: {
-			target: "es2024",
-			outDir: fileURLToPath(new URL("./dist", import.meta.url)),
-			rolldownOptions: {
-				input: {
-					sjvairMonitorMap: fileURLToPath(new URL("./src/main.ts", import.meta.url))
-				},
-				output: {
-					entryFileNames: "[name].js",
-					assetFileNames: "[name].[ext]"
-				}
-			}
 		}
 	};
-});
+}
