@@ -1,5 +1,6 @@
 <script lang="ts">
-	//import type { Attachment } from "svelte/attachments";
+	import { searchParams } from "sv-router";
+	import { untrack } from "svelte";
 
 	interface SegmentedControlProps {
 		segmentLabel?: string;
@@ -9,9 +10,6 @@
 
 	let { segmentLabel: label, options, group = $bindable() }: SegmentedControlProps = $props();
 
-	//const animationTrigger: Attachment<HTMLDivElement> = (element) => {
-
-	//};
 	let inner: HTMLDivElement | undefined = $state();
 
 	$effect(() => {
@@ -20,6 +18,12 @@
 
 		const checked = inner.querySelector<HTMLInputElement>("input:checked");
 		if (!checked) return;
+
+		// FIXME: this shouldn't live in this file
+		const pollutant = untrack(() => searchParams.get("pollutant"));
+		if (pollutant !== checked.value) {
+			untrack(() => searchParams.set("pollutant", checked.value));
+		}
 
 		const fontSize = parseFloat(getComputedStyle(inner).fontSize);
 		const padding = fontSize; // 1em
