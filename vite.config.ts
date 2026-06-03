@@ -1,103 +1,88 @@
-import { resolve } from "node:path";
-import { defineConfig, PluginOption } from "vite";
-import htmlPurge from "vite-plugin-purgecss";
-import vue from "@vitejs/plugin-vue";
-import type { UserConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+import { enhancedImages } from "@sveltejs/enhanced-img";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { fileURLToPath, URL } from "node:url";
+import postcss from "postcss";
 
-// Node DNS prefers ipv6, this messes with the proxy server.
-// workaround: change dns to prefer ipv4
-import dns from "node:dns";
-dns.setDefaultResultOrder("ipv4first");
+export default defineConfig(({ mode }) => {
+	const devMode = mode === "development";
 
-const htmlPurgeOptions = {
-  content: [`./public/**/*.html`, `./src/**/*.vue`, `./src/**/*.ts`],
-  defaultExtractor(content: any) {
-    const contentWithoutStyleBlocks = content.replace(
-      /<style[^]+?<\/style>/gi,
-      "",
-    );
-    return (
-      contentWithoutStyleBlocks.match(/[A-Za-z0-9-_/:]*[A-Za-z0-9-_/]+/g) || []
-    );
-  },
-  safelist: [
-    /-(leave|enter|appear)(|-(to|from|active))$/,
-    /^(?!(|.*?:)cursor-move).+-move$/,
-    /^router-link(|-exact)-active$/,
-    /data-v-.*/,
-    /leaflet-*/,
-    /marker-cluster*/,
-    /uplot*/,
-    /^u-*/,
-    /^dp*/,
-  ],
-};
-
-const devConfig: UserConfig = {
-  base: "/",
-  build: {},
-};
-
-const prodConfig: UserConfig = {
-  base: "/static/monitor-map/",
-  build: {
-    outDir: resolve(__dirname, "./dist"),
-    rollupOptions: {
-      input: {
-        sjvairMonitorMap: resolve(__dirname, "./src/main.ts"),
-      },
-      output: {
-        entryFileNames: "[name].js",
-        assetFileNames: "[name].[ext]",
-      },
-    },
-  },
-};
-
-const devMode = process.env.PROD !== "true";
-
-const { base, build }: UserConfig = devMode ? devConfig : prodConfig;
-
-// https://vitejs.dev/config/
-export default defineConfig({
-  // Base directory compiled files will be served from
-  base,
-  build: {
-    target: "esnext",
-    sourcemap: devMode,
-    minify: "terser",
-    ...build,
-  },
-  plugins: [htmlPurge(htmlPurgeOptions) as unknown as PluginOption, vue()],
-  esbuild: {
-    target: "es2024",
-  },
-  worker: {
-    format: "es",
-  },
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData: `
-          $pantone-blue-light: #3549B6;
-          $sjvair-main: rgb(62, 142, 208);
-          @use "bulma/bulma";
-        `,
-      },
-    },
-  },
-  server: {
-    proxy: {
-      "/api/1.0": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-        secure: true,
-      },
-      "/api/2.0": {
-        target: "http://localhost:8000",
-        changeOrigin: true,
-        secure: true,
-      },
-    },
-  },
+	return {
+		base: devMode ? "/" : "/static/monitor-map/",
+		plugins: [
+			tailwindcss(),
+			enhancedImages(),
+			svelte(),
+			...(devMode ? [] : [cssScopePlugin("#SJVAirMonitorMap")])
+		],
+		resolve: {
+			alias: {
+				$lib: fileURLToPath(new URL("./src/lib", import.meta.url))
+			}
+		},
+		build: {
+			target: "es2024",
+			outDir: fileURLToPath(new URL("./dist/monitor-map", import.meta.url)),
+			rolldownOptions: {
+				input: {
+					sjvairMonitorMap: fileURLToPath(new URL("./src/main.ts", import.meta.url))
+				},
+				output: {
+					entryFileNames: "[name].js",
+					assetFileNames: "[name].[ext]"
+				}
+			}
+		}
+	};
 });
+
+function cssScopePlugin(scopeSelector: string): Plugin {
+	return {
+		name: "vite-plugin-css-scope",
+		apply: "build",
+		generateBundle(_options, bundle) {
+			for (const chunk of Object.values(bundle)) {
+				if (chunk.type !== "asset" || !chunk.fileName.endsWith(".css")) continue;
+				if (typeof chunk.source !== "string") continue;
+
+				const root = postcss.parse(chunk.source);
+
+				// Transform :root → :scope throughout the entire tree
+				root.walkRules((rule) => {
+					rule.selectors = rule.selectors.map((s) => s.trim().replace(/^:root\b/, ":scope"));
+				});
+
+				// Hoist at-rules that cannot live inside @scope
+				const nonScopeableNames = new Set([
+					"keyframes",
+					"-webkit-keyframes",
+					"font-face",
+					"charset"
+				]);
+				const hoisted: postcss.ChildNode[] = [];
+				root.each((node) => {
+					if (node.type === "atrule" && nonScopeableNames.has(node.name.toLowerCase())) {
+						hoisted.push(node.clone());
+						node.remove();
+					}
+				});
+
+				// Wrap remaining nodes in @scope
+				const scopeBlock = postcss.atRule({
+					name: "scope",
+					params: `(${scopeSelector})`
+				});
+				while (root.first) {
+					scopeBlock.append(root.first);
+				}
+
+				// Reassemble: hoisted rules first, then the scoped block
+				hoisted.forEach((n) => root.append(n));
+				root.append(scopeBlock);
+
+				chunk.source = root.toResult().css;
+			}
+		}
+	};
+}
