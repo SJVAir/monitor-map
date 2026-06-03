@@ -122,7 +122,10 @@
 			</div>
 
 			<MonitorWidgetModal monitorId={monitor.id} />
-			<MonitorSubscriptionManager monitorId={monitor.id} />
+			<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+			{#if (globalThis as any).USER?.is_authenticated}
+				<MonitorSubscriptionManager monitorId={monitor.id} />
+			{/if}
 
 			<div class="w-full">
 				<DataChart {monitor} />

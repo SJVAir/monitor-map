@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { portal } from "$lib/actions";
 	import { SquareX } from "@lucide/svelte";
+	import { origin } from "@sjvair/sdk/http";
 
 	interface MonitorWidgetModalProps {
 		monitorId: string;
@@ -18,8 +19,7 @@
 	let copied = $state(false);
 
 	const iframeSrc = $derived.by(() => {
-		const baseURL = import.meta.env.PROD ? window.location.origin : "https://www.sjvair.com";
-		return `${baseURL}/widget/#/${monitorId}`;
+		return `${origin}/widget/#/${monitorId}`;
 	});
 
 	const iframeCode = $derived.by(() => {
@@ -55,7 +55,7 @@
 		use:portal
 		class={[
 			"fixed inset-0 z-9999 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-200",
-			modalOpen ? "visible" : "collapse"
+			modalOpen ? "visible" : "invisible"
 		]}
 	>
 		<div
