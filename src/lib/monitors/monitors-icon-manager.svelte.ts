@@ -7,6 +7,7 @@ import { monitorsManager } from "./monitors.svelte.ts";
 const MONITOR_ICONS = { circle, square, triangle };
 const MONITOR_ICON_BORDER_WIDTH = 2;
 const MONITOR_ICON_DEFAULT_COLOR = "#969696"; // light gray
+const MONITOR_ICON_DISPLAY_COLOR = "#48c78e"; // light gray
 
 export function getIconId<T extends MonitorData>(monitor: T, level: SJVAirEntryLevel): string {
 	const id = `${monitor.location}-${monitor.is_active ? level.name : "default"}`;
@@ -43,7 +44,8 @@ export abstract class MonitorShapeIconManager extends MapIconManager {
 				if (monitorsManager.levels) {
 					const iconLevels = [
 						...monitorsManager.levels,
-						{ name: "default", color: MONITOR_ICON_DEFAULT_COLOR }
+						{ name: "default", color: MONITOR_ICON_DEFAULT_COLOR },
+						{ name: "display", color: MONITOR_ICON_DISPLAY_COLOR }
 					];
 
 					for (const location of ["inside", "outside"]) {
