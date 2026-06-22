@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { WindIcon, CrosshairIcon, FlameIcon, WavesVerticalIcon } from "@lucide/svelte";
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 	import ToggleSwitch from "$lib/components/ToggleSwitch.svelte";
 	import { windMapIntegration } from "$lib/wind/wind.svelte";
@@ -10,16 +11,28 @@
 
 <DisplayOption>
 	<p class="text-lg font-bold whitespace-nowrap underline">Map Layers</p>
-	<ToggleSwitch id="wind" label="Wind" bind:value={windMapIntegration.enabled}></ToggleSwitch>
+	<div class="flex gap-1 items-center">
+		<WindIcon size="16" />
+		<ToggleSwitch id="wind" label="Wind" bind:value={windMapIntegration.enabled}></ToggleSwitch>
+	</div>
 	{#if monitorsManager.pollutant === "pm25"}
-		<ToggleSwitch
-			id="collocation-sites"
-			label="Collocation Sites"
-			bind:value={collocationSitesMapIntegration.enabled}
-		></ToggleSwitch>
+		<div class="flex gap-1 items-center">
+			<CrosshairIcon size="16" color="#4A5FC6" />
+			<ToggleSwitch
+				id="collocation-sites"
+				label="Collocation Sites"
+				bind:value={collocationSitesMapIntegration.enabled}
+			></ToggleSwitch>
+		</div>
 	{/if}
-	<ToggleSwitch id="hms-fire" label="HMS Fire" bind:value={hmsFireMapIntegration.enabled}
-	></ToggleSwitch>
-	<ToggleSwitch id="hms-smoke" label="HMS Smoke" bind:value={hmsSmokeMapIntegration.enabled}
-	></ToggleSwitch>
+	<div class="flex gap-1 items-center">
+		<FlameIcon size="16" />
+		<ToggleSwitch id="hms-fire" label="HMS Fire" bind:value={hmsFireMapIntegration.enabled}
+		></ToggleSwitch>
+	</div>
+	<div class="flex gap-1 items-center">
+		<WavesVerticalIcon size="16" />
+		<ToggleSwitch id="hms-smoke" label="HMS Smoke" bind:value={hmsSmokeMapIntegration.enabled}
+		></ToggleSwitch>
+	</div>
 </DisplayOption>
