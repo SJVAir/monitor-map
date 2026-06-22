@@ -34,10 +34,10 @@ class EvStationsMapIntegration
 	private renderer: EvStationsClusterRenderer = new EvStationsClusterRenderer(this);
 	private currentPopup: Popup | null = null;
 
-	displayOptions = {
-		lvl2: new MapDisplayOption("Level 2", false),
-		lvl3: new MapDisplayOption("Level 3", false)
-	};
+	displayOptions = $derived.by(() => ({
+		lvl2: new MapDisplayOption("Level 2", false, this.icons.get("ev-station-lvl2")!),
+		lvl3: new MapDisplayOption("Level 3", false, this.icons.get("ev-station-lvl3")!)
+	}));
 
 	features: Array<EvStationMapFeature> = $derived.by(() => {
 		const result: EvStationMapFeature[] = [];

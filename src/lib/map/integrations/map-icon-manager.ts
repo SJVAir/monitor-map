@@ -1,12 +1,13 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
-import { XMap } from "@tstk/builtin-extensions";
+//import { XMap } from "@tstk/builtin-extensions";
 import { mapManager } from "../map.svelte.ts";
 import type { MapImageIcon } from "./types";
+import { SvelteMap } from "svelte/reactivity";
 
 export class MapIconManager {
-	protected icons: XMap<string, MapImageIcon> = new XMap();
+	protected icons: SvelteMap<string, MapImageIcon> = new SvelteMap();
 
-	constructor(iconMap?: XMap<string, MapImageIcon>) {
+	constructor(iconMap?: SvelteMap<string, MapImageIcon>) {
 		if (iconMap) {
 			this.icons = iconMap;
 		}

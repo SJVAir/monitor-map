@@ -68,8 +68,11 @@
 
 	{#each monitorDisplayOptions as [id, option] (option.label)}
 		{@const inputId = `${id}-monitor-display-option`}
-		<label for={inputId} class="cursor-pointer whitespace-nowrap select-none">
+		<label for={inputId} class="flex gap-1 cursor-pointer whitespace-nowrap select-none">
 			<input type="checkbox" id={inputId} name={option.label} bind:checked={option.value} />
+			{#if option.icon}
+				<img class="w-3" src={option.icon.image.src} alt={option.icon.image.alt} />
+			{/if}
 			{option.label}
 		</label>
 	{/each}
