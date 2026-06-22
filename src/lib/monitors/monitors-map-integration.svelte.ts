@@ -38,15 +38,15 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 	tooltipManager: TooltipManager = new TooltipManager();
 	private renderer: MonitorsClusterRenderer = new MonitorsClusterRenderer(this);
 
-	displayOptions = {
-		purpleair: new MapDisplayOption("PurpleAir", true),
-		sjvair: new MapDisplayOption("SJVAir non-FEM", true),
-		aqview: new MapDisplayOption("AQview", true),
-		bam1022: new MapDisplayOption("SJVAir FEM", true),
-		airnow: new MapDisplayOption("AirNow", true),
-		inactive: new MapDisplayOption("Inactive", false),
-		inside: new MapDisplayOption("Inside", false)
-	};
+	displayOptions = $derived.by(() => ({
+		purpleair: new MapDisplayOption("PurpleAir", true, this.icons.get("outside-display-square")),
+		sjvair: new MapDisplayOption("SJVAir non-FEM", true, this.icons.get("outside-display-circle")),
+		aqview: new MapDisplayOption("AQview", true, this.icons.get("outside-display-triangle")),
+		bam1022: new MapDisplayOption("SJVAir FEM", true, this.icons.get("outside-display-triangle")),
+		airnow: new MapDisplayOption("AirNow", true, this.icons.get("outside-display-triangle")),
+		inactive: new MapDisplayOption("Inactive", false, this.icons.get("outside-default-square")),
+		inside: new MapDisplayOption("Inside", false, this.icons.get("inside-display-square"))
+	}));
 
 	/** Set by the app to handle navigation when a monitor is clicked. Receives the monitor ID. */
 	onMonitorClick: ((id: string) => void) | null = null;
