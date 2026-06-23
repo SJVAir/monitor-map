@@ -1,5 +1,4 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
-//import { XMap } from "@tstk/builtin-extensions";
 import { mapManager } from "../map.svelte.ts";
 import type { MapImageIcon } from "./types";
 import { SvelteMap } from "svelte/reactivity";
@@ -11,6 +10,10 @@ export class MapIconManager {
 		if (iconMap) {
 			this.icons = iconMap;
 		}
+	}
+
+	get iter(): MapIterator<[string, MapImageIcon]> {
+		return this.icons.entries();
 	}
 
 	get(id: string): MapImageIcon | undefined {
