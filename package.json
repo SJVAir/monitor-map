@@ -4,7 +4,9 @@
 	"version": "3.0.2",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build",
+		"build:local": "PROD_MODE=local vite build",
+		"build:production": "PROD_MODE=production vite build",
+		"build:staging": "PROD_MODE=staging vite build",
 		"build:lib": "vite build --config vite.config.lib.ts",
 		"preview": "vite preview",
 		"check": "svelte-check --tsconfig ./tsconfig.json",

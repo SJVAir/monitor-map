@@ -5,10 +5,31 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { fileURLToPath, URL } from "node:url";
 import postcss from "postcss";
 
+export default defineConfig(({ mode }) => {
+	const { base, build, experimental, plugins } = getConfig(mode);
+
+	return {
+		base,
+		plugins: [tailwindcss(), enhancedImages(), svelte(), ...plugins],
+		resolve: {
+			alias: {
+				$lib: fileURLToPath(new URL("./src/lib", import.meta.url))
+			}
+		},
+		build,
+		experimental
+	};
+});
+
+type ProductionBuildMode = "production" | "local" | "staging";
 type PartialConfig = Required<Pick<UserConfig, "base" | "build" | "experimental" | "plugins">>;
 
-const CDN_BASE = "https://sjvair-production.s3.amazonaws.com/static";
+const PROD_CDN_BASE = "https://sjvair-production.s3.amazonaws.com/static";
+const STAGING_CDN_BASE = "https://sjvair-staging.s3.amazonaws.com/static";
 
+/*
+ * Config for development
+ */
 const devConfig: PartialConfig = {
 	base: "/",
 	build: {},
@@ -16,7 +37,12 @@ const devConfig: PartialConfig = {
 	plugins: []
 };
 
-const localProdConfig: PartialConfig = {
+/*
+ * Base config for production build. Can be used by itself
+ * for compiling a production build intended to be used in
+ * local sjvair.com build
+ */
+const baseProdConfig: PartialConfig = {
 	base: "/static/monitor-map/",
 	build: {
 		target: "es2024",
@@ -35,13 +61,16 @@ const localProdConfig: PartialConfig = {
 	plugins: [cssScopePlugin("#SJVAirMonitorMap")]
 };
 
-const prodConfig: PartialConfig = {
-	...localProdConfig,
+/*
+ * Config for remote deployment. Can be used for staging or production
+ */
+const prodConfig = (cdnBase: string): PartialConfig => ({
+	...baseProdConfig,
 	experimental: {
 		renderBuiltUrl(filename, { hostType, type }) {
 			// Only rewrite image/asset files — leave JS and CSS alone
 			if (type === "asset") {
-				return `${CDN_BASE}/monitor-map/${filename}`;
+				return `${cdnBase}/monitor-map/${filename}`;
 			}
 			// JS references use a runtime expression so the base stays dynamic
 			if (hostType === "js") {
@@ -51,31 +80,29 @@ const prodConfig: PartialConfig = {
 			return { relative: true };
 		}
 	}
-};
-
-export default defineConfig(({ mode }) => {
-	const { base, build, experimental, plugins } = getConfig(mode);
-
-	return {
-		base,
-		plugins: [tailwindcss(), enhancedImages(), svelte(), ...plugins],
-		resolve: {
-			alias: {
-				$lib: fileURLToPath(new URL("./src/lib", import.meta.url))
-			}
-		},
-		build,
-		experimental
-	};
 });
 
 function getConfig(mode: string) {
 	if (mode === "development") {
 		return devConfig;
-	} else if (process.env.PRODMODE === "local") {
-		return localProdConfig;
 	} else {
-		return prodConfig;
+		return getProdBuildConfig();
+	}
+}
+
+function getProdBuildConfig(): PartialConfig {
+	switch (process.env.PROD_MODE as ProductionBuildMode) {
+		case "local":
+			return baseProdConfig;
+
+		case "production":
+			return prodConfig(PROD_CDN_BASE);
+
+		case "staging":
+			return prodConfig(STAGING_CDN_BASE);
+
+		default:
+			return prodConfig(PROD_CDN_BASE);
 	}
 }
 
