@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { WindIcon, CrosshairIcon, FlameIcon, WavesVerticalIcon } from "@lucide/svelte";
+	import { WindIcon, CrosshairIcon, WavesVerticalIcon } from "@lucide/svelte";
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 	import ToggleSwitch from "$lib/components/ToggleSwitch.svelte";
 	import { windMapIntegration } from "$lib/wind/wind.svelte";
@@ -7,6 +7,8 @@
 	import { monitorsManager } from "$lib/monitors/monitors.svelte";
 	import { hmsFireMapIntegration } from "$lib/hms/hms-fire-map-integration.svelte";
 	import { hmsSmokeMapIntegration } from "$lib/hms/hms-smoke-map-integration.svelte";
+
+	const fireIcon = hmsFireMapIntegration.icons.get("hms-fire-xxl");
 </script>
 
 <DisplayOption>
@@ -26,7 +28,9 @@
 		</div>
 	{/if}
 	<div class="flex gap-1 items-center">
-		<FlameIcon size="16" />
+		{#if fireIcon}
+			<img class="w-4" src={fireIcon.image.src} alt={fireIcon.image.alt} />
+		{/if}
 		<ToggleSwitch id="hms-fire" label="HMS Fire" bind:value={hmsFireMapIntegration.enabled}
 		></ToggleSwitch>
 	</div>
