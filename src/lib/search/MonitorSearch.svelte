@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { tick, onDestroy } from "svelte";
 	import { Marker } from "@maptiler/sdk";
 	import { navigate } from "../../router";
 	import { mapManager } from "$lib/map/map.svelte";
@@ -98,8 +98,7 @@
 		if (mapManager.map) {
 			const center: [number, number] = [feature.center[0], feature.center[1]];
 			marker = new Marker().setLngLat(center).addTo(mapManager.map);
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const isAddress = (feature as any).place_type?.[0] === "address";
+			const isAddress = feature.place_type?.[0] === "address";
 			mapManager.map.flyTo({
 				center,
 				...(isAddress && { zoom: 16 })
@@ -108,6 +107,10 @@
 		results = [];
 		collapsed = true;
 	}
+
+	onDestroy(() => {
+		marker?.remove();
+	});
 </script>
 
 <div class={containerClass} use:clickOutside>

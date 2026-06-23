@@ -5,7 +5,7 @@
 </script>
 
 {#if hmsFireMapIntegration.enabled && hmsFireMapIntegration.features.length > 0}
-	<div class="flex flex-col bg-white rounded shadow w-fit">
+	<div class="flex flex-col bg-white rounded shadow w-fit p-1">
 		<p class="text-center whitespace-nowrap font-semibold">Fire Points</p>
 		<div class="flex flex-col">
 			{#each hmsFireMapIntegration.icons.iter as [_id, icon], idx (idx)}
