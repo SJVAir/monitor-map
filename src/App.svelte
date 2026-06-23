@@ -23,6 +23,7 @@
 	import { hmsFireMapIntegration } from "$lib/hms/hms-fire-map-integration.svelte.ts";
 	import { hmsSmokeMapIntegration } from "$lib/hms/hms-smoke-map-integration.svelte.ts";
 	import MapLegend from "$lib/MapLegend.svelte";
+	import MonitorSearch from "$lib/search/MonitorSearch.svelte";
 
 	const TRANSITION_MS = 300;
 
@@ -103,6 +104,9 @@
 	<LoadScreen />
 	<div class="relative flex-1 overflow-hidden">
 		<Map {integrations} />
+		<div class="z-10 absolute top-3 left-20">
+			<MonitorSearch />
+		</div>
 		<div class="z-10 absolute bottom-0 left-0 pointer-events-none">
 			<MapLegend />
 		</div>
