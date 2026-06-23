@@ -35,11 +35,18 @@ function getMonitorLogo(monitor: MonitorLatestType<"pm25" | "o3">): { url: strin
 		case "AirGradient":
 			return { url: AirGradientLogo, alt: "AirGradient" };
 		default:
+			console.warn(`[search] Unknown data source: ${monitor.data_source.name}`);
 			return { url: "", alt: "" };
 	}
 }
 
-async function getProximity(): Promise<[number, number]> {
+let proximityCache: Promise<[number, number]> | null = null;
+
+function getProximity(): Promise<[number, number]> {
+	return (proximityCache ??= resolveProximity());
+}
+
+function resolveProximity(): Promise<[number, number]> {
 	return new Promise((resolve) => {
 		if (!navigator.geolocation) {
 			resolve(SJV_CENTER);
@@ -62,21 +69,20 @@ async function getProximity(): Promise<[number, number]> {
 export async function monitorSearch(query: string): Promise<SearchResult[]> {
 	if (!monitorsManager.latest) return [];
 	const normalized = query.toLowerCase();
-	const results: MonitorLatestType<"pm25" | "o3">[] = [];
+	const exact: MonitorLatestType<"pm25" | "o3">[] = [];
+	const prefix: MonitorLatestType<"pm25" | "o3">[] = [];
+	const substr: MonitorLatestType<"pm25" | "o3">[] = [];
 
 	for (const monitor of monitorsManager.latest.values()) {
 		const name = monitor.name.toLowerCase();
-		if (name === normalized || name.startsWith(normalized) || name.includes(normalized)) {
-			results.push(monitor);
-		}
-		if (results.length >= 4) break;
+		if (name === normalized) exact.push(monitor);
+		else if (name.startsWith(normalized)) prefix.push(monitor);
+		else if (name.includes(normalized)) substr.push(monitor);
 	}
 
-	return results.map((monitor) => ({
-		type: "monitor" as const,
-		monitor,
-		logo: getMonitorLogo(monitor)
-	}));
+	return [...exact, ...prefix, ...substr]
+		.slice(0, 4)
+		.map((monitor) => ({ type: "monitor" as const, monitor, logo: getMonitorLogo(monitor) }));
 }
 
 export async function geocode(query: string): Promise<SearchResult[]> {
