@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Attachment } from "svelte/attachments";
+	import { SlidersHorizontalIcon } from "@lucide/svelte";
 
 	let { children } = $props();
 	let isOpen: boolean = $state(false);
@@ -37,20 +38,16 @@
 	data-trigger
 	class:rounded-full={!isOpen}
 	class:delay-100={!isOpen}
-	class="absolute top-0 left-0 flex items-center justify-center overflow-hidden rounded bg-white p-1 shadow transition-all duration-0 select-none"
+	class="relative top-0 left-0 flex items-center justify-center overflow-hidden rounded bg-white p-1 shadow transition-all duration-0 select-none"
 >
 	<button
 		class:w-0={isOpen}
 		class:h-0={isOpen}
 		class:opacity-0={isOpen}
-		class="relative size-8 transition-all"
+		class="relative size-10 transition-all flex justify-center items-center"
 		aria-label="Display Options"
 	>
-		<enhanced:img
-			src="$lib/assets/icons/adjustment-horizontal.svg"
-			alt="SJVAir Icon"
-			class="size-8"
-		/>
+		<SlidersHorizontalIcon size="24" />
 	</button>
 	<div
 		class:h-55={isOpen}
