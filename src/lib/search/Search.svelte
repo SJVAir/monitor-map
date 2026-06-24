@@ -1,32 +1,18 @@
 <script lang="ts">
-	import { tick, onDestroy } from "svelte";
+	import { onDestroy } from "svelte";
 	import { Marker } from "@maptiler/sdk";
+	import { SearchIcon } from "@lucide/svelte";
 	import { navigate } from "../../router";
 	import { mapManager } from "$lib/map/map.svelte";
 	import { debounce } from "$lib/utils";
 	import { monitorSearch, geocode, type SearchResult } from "./service";
+	import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte";
 
 	let collapsed = $state(true);
 	let searchText = $state("");
 	let results: SearchResult[] = $state([]);
 	let marker: Marker | null = $state.raw(null);
 	let inputEl: HTMLInputElement | null = $state(null);
-
-	const containerClass = $derived(
-		[
-			"flex flex-col bg-white shadow-md overflow-hidden transition-all duration-300 select-none",
-			collapsed ? "w-12 h-12 rounded-full" : "w-72",
-			!collapsed && results.length ? "rounded-[26px]" : ""
-		]
-			.join(" ")
-			.trim()
-	);
-
-	const resultsClass = $derived(
-		`overflow-y-auto transition-all duration-300 divide-y divide-gray-100 ${
-			results.length && !collapsed ? "max-h-80" : "max-h-0"
-		}`
-	);
 
 	function clickOutside(node: HTMLElement) {
 		function handler(e: MouseEvent) {
@@ -47,7 +33,6 @@
 	async function openSearch() {
 		if (collapsed) {
 			collapsed = false;
-			await tick();
 			inputEl?.focus();
 		}
 	}
@@ -88,7 +73,16 @@
 		results = [];
 		marker?.remove();
 		marker = null;
+		if (mapManager.map && result.monitor.position) {
+			const { coordinates } = result.monitor.position;
+			const center: [number, number] = [coordinates[0], coordinates[1]];
+			mapManager.map.flyTo({
+				center,
+				zoom: 12
+			});
+		}
 		await navigate("/monitor/:id", { params: { id: result.monitor.id } });
+		monitorsMapIntegration.selectedMonitorId = result.monitor.id;
 	}
 
 	function selectGeocode(result: Extract<SearchResult, { type: "geocode" }>) {
@@ -113,46 +107,47 @@
 	});
 </script>
 
-<div class={containerClass} use:clickOutside>
-	<div class="flex items-center w-full h-12 flex-shrink-0">
+<div
+	class={[
+		"flex flex-col bg-white shadow-md overflow-hidden transition-all duration-300 select-none",
+		collapsed ? "w-12 h-12 rounded-full" : "w-90 rounded-3xl",
+		!collapsed && results.length ? "max-h-90" : "max-h-12"
+	]}
+	use:clickOutside
+>
+	<div class="flex items-center w-full h-12 shrink-0">
 		<button
-			class="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-full bg-brand border-4 border-white"
+			class="w-12 h-12 shrink-0 flex items-center justify-center rounded-full bg-brand border-4 border-white"
 			onclick={openSearch}
 			aria-label="Open search"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="w-6 h-6 text-white"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				stroke-width="2.5"
-			>
-				<circle cx="11" cy="11" r="7" />
-				<line x1="16.5" y1="16.5" x2="22" y2="22" />
-			</svg>
+			<SearchIcon size="24" color="#FFFFFF" />
 		</button>
-		{#if !collapsed}
+		<div class="overflow-hidden w-full h-full flex items-center">
 			<input
 				bind:this={inputEl}
 				bind:value={searchText}
 				oninput={debouncedSearch}
 				type="text"
 				placeholder="Search monitors or locations..."
-				class="flex-1 h-full px-2 text-sm bg-transparent border-none outline-none"
+				class="h-full px-2 text-sm bg-transparent border-none outline-none w-full"
+				tabindex={collapsed ? -1 : 0}
 			/>
-			{#if searchText}
+			{#if searchText && !collapsed}
 				<button
 					onclick={clearSearch}
 					class="px-2 text-gray-400 hover:text-gray-600 text-xl leading-none"
-					aria-label="Clear search"
+					aria-label="Clear search">×</button
 				>
-					×
-				</button>
 			{/if}
-		{/if}
+		</div>
 	</div>
-	<div class={resultsClass}>
+	<div
+		class={[
+			"overflow-y-auto transition-all duration-300 divide-y divide-gray-100",
+			!collapsed ? "max-h-80" : "max-h-0"
+		]}
+	>
 		{#each results as result (result.type === "monitor" ? result.monitor.id : result.feature.place_name)}
 			{#if result.type === "monitor"}
 				<button
@@ -163,7 +158,7 @@
 						<img
 							src={result.logo.url}
 							alt={result.logo.alt}
-							class="w-10 h-10 object-contain mr-3 flex-shrink-0"
+							class="w-10 h-10 object-contain mr-3 shrink-0"
 						/>
 					{/if}
 					<span class="text-sm truncate">{result.monitor.name}</span>
@@ -174,7 +169,7 @@
 					onclick={() => selectGeocode(result)}
 					class="flex items-center w-full h-12 px-4 hover:brightness-95 bg-white text-left"
 				>
-					<span class="svg-icon location-on bg-brand w-6 h-6 flex-shrink-0 mr-3"></span>
+					<span class="svg-icon location-on bg-brand w-6 h-6 shrink-0 mr-3"></span>
 					<div class="min-w-0">
 						<p class="text-sm font-medium truncate">
 							{result.feature.place_name.substring(0, comma < 0 ? undefined : comma)}
