@@ -136,7 +136,7 @@
 			{#if searchText && !collapsed}
 				<button
 					onclick={clearSearch}
-					class="px-2 text-gray-400 hover:text-gray-600 text-xl leading-none"
+					class="px-2 text-gray-400 hover:text-gray-600 text-xl leading-none cursor-pointer"
 					aria-label="Clear search">×</button
 				>
 			{/if}
