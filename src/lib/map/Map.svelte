@@ -6,6 +6,7 @@
 
 	const { integrations }: { integrations: Array<SomeMapIntegration> } = $props();
 
+	// svelte-ignore state_referenced_locally (we only need the initial reference)
 	integrationsManager.register(...integrations);
 </script>
 
