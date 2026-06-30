@@ -21,11 +21,8 @@ export default defineConfig(({ mode }) => {
 	};
 });
 
-type ProductionBuildMode = "production" | "local" | "staging";
+type ProductionBuildMode = "production" | "local";
 type PartialConfig = Required<Pick<UserConfig, "base" | "build" | "experimental" | "plugins">>;
-
-const PROD_CDN_BASE = "https://sjvair-production.s3.amazonaws.com/static";
-const STAGING_CDN_BASE = "https://sjvair-staging.s3.amazonaws.com/static";
 
 /*
  * Config for development
@@ -64,13 +61,20 @@ const baseProdConfig: PartialConfig = {
 /*
  * Config for remote deployment. Can be used for staging or production
  */
-const prodConfig = (cdnBase: string): PartialConfig => ({
+const prodConfig: PartialConfig = {
 	...baseProdConfig,
 	experimental: {
 		renderBuiltUrl(filename, { hostType, type }) {
+			// Make sure CDN_BASE_URL exists and is valid
+			if (process.env.CDN_BASE_URL === undefined) {
+				throw new Error('Environment variable "CDN_BASE_URL" is not defined');
+			}
+
+			const { href } = new URL(process.env.CDN_BASE_URL);
+
 			// Only rewrite image/asset files — leave JS and CSS alone
 			if (type === "asset") {
-				return `${cdnBase}/monitor-map/${filename}`;
+				return `${href}/monitor-map/${filename}`;
 			}
 			// JS references use a runtime expression so the base stays dynamic
 			if (hostType === "js") {
@@ -80,29 +84,30 @@ const prodConfig = (cdnBase: string): PartialConfig => ({
 			return { relative: true };
 		}
 	}
-});
+};
 
 function getConfig(mode: string) {
 	if (mode === "development") {
 		return devConfig;
 	} else {
-		return getProdBuildConfig();
-	}
-}
+		const invalidValueMsg =
+			'This must be set to either "local" for local production builds, or "production` for deployed production builds.';
 
-function getProdBuildConfig(): PartialConfig {
-	switch (process.env.PROD_MODE as ProductionBuildMode) {
-		case "local":
-			return baseProdConfig;
+		switch (process.env.PROD_MODE as ProductionBuildMode) {
+			case undefined:
+				throw new Error(`Environment variable "PROD_MODE" is not defined. ${invalidValueMsg}`);
 
-		case "production":
-			return prodConfig(PROD_CDN_BASE);
+			case "local":
+				return baseProdConfig;
 
-		case "staging":
-			return prodConfig(STAGING_CDN_BASE);
+			case "production":
+				return prodConfig;
 
-		default:
-			return prodConfig(PROD_CDN_BASE);
+			default:
+				throw new Error(
+					`PROD_MODE=${process.env.PROD_MODE} is not a valid value. ${invalidValueMsg}`
+				);
+		}
 	}
 }
 
