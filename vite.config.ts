@@ -64,23 +64,20 @@ const baseProdConfig: PartialConfig = {
 const prodConfig: PartialConfig = {
 	...baseProdConfig,
 	experimental: {
-		renderBuiltUrl(filename, { hostType, type }) {
-			// Make sure CDN_BASE_URL exists and is valid
-			if (process.env.CDN_BASE_URL === undefined) {
-				throw new Error('Environment variable "CDN_BASE_URL" is not defined');
-			}
-
-			const { href } = new URL(process.env.CDN_BASE_URL);
-
-			// Only rewrite image/asset files — leave JS and CSS alone
-			if (type === "asset") {
-				return `${href}/monitor-map/${filename}`;
-			}
-			// JS references use a runtime expression so the base stays dynamic
+		renderBuiltUrl(filename, { hostType }) {
+			// JS-imported assets (including @sveltejs/enhanced-img output)
+			// resolve their CDN base at runtime via window.__cdnUrl, which is
+			// defined per-environment by the Django template embedding this
+			// widget (sourced from STATIC_URL in settings). This means the
+			// same build artifact works correctly in any environment —
+			// no CDN_BASE_URL env var or per-environment rebuild needed.
 			if (hostType === "js") {
 				return { runtime: `window.__cdnUrl(${JSON.stringify(filename)})` };
 			}
-			// CSS and HTML fall back to the normal relative/base behaviour
+			// CSS url() references resolve relative to the stylesheet's own
+			// URL. Since the compiled CSS is served from the CDN, a relative
+			// path here already lands correctly — no runtime resolution
+			// possible or needed for CSS/HTML hostTypes.
 			return { relative: true };
 		}
 	}
