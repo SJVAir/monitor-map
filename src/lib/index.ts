@@ -1,3 +1,37 @@
+/**
+ * Usage in a host app:
+ *
+ * ```ts
+ * // router.ts
+ * import { createRouter } from "sv-router";
+ * import { monitorMapRoutes } from "@sjvair/monitor-map";
+ *
+ * export const { route, navigate, p, isActive, Router } = createRouter({
+ *   "/my-map": monitorMapRoutes
+ *   // ...the host app's own routes
+ * });
+ * ```
+ *
+ * ```svelte
+ * <!-- app root -->
+ * <script>
+ *   import { provideMonitorMapRouter } from "@sjvair/monitor-map";
+ *   import { route, navigate, p, isActive, Router } from "./router";
+ *
+ *   provideMonitorMapRouter({ route, navigate, p, isActive, basePath: "/my-map" });
+ * </script>
+ *
+ * <Router />
+ * ```
+ */
+export { monitorMapRoutes } from "./routes";
+export {
+	ROUTER_KEY,
+	provideMonitorMapRouter,
+	useMonitorMapRouter,
+	type MonitorMapRouterApi
+} from "./router-context";
+
 // State managers
 export { monitorsManager } from "./monitors/monitors.svelte";
 export type { MonitorsManager } from "./monitors/monitors.svelte";

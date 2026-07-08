@@ -1,7 +1,4 @@
 import { createRouter } from "sv-router";
-import MapView from "./MapView.svelte";
+import { monitorMapRoutes } from "./lib";
 
-export const { p, navigate, isActive, route } = createRouter({
-	"/": MapView,
-	"/monitor/:id": () => import("./MonitorDetailPanel.svelte")
-});
+export const { route, navigate, p, isActive } = createRouter(monitorMapRoutes);
