@@ -6,7 +6,6 @@ import {
 } from "@sjvair/sdk/hms";
 import clustersDbscan from "@turf/clusters-dbscan";
 import { featureCollection, point } from "@turf/helpers";
-import { SvelteMap } from "svelte/reactivity";
 
 const HMS_FIRE_DBSCAN_EPSILON = 2;
 const HMS_FIRE_DBSCAN_MIN_POINTS = 1;
@@ -47,16 +46,16 @@ class HmsManager {
 function deduplicateByCoordinates(
 	fires: (HMSFireGeoJSON & { frp: number })[]
 ): (HMSFireGeoJSON & { frp: number })[] {
-	const latest = new Map<string, HMSFireGeoJSON & { frp: number }>();
+	const latest: Record<string, HMSFireGeoJSON & { frp: number }> = {};
 	for (const fire of fires) {
 		const [lng, lat] = fire.geometry.coordinates as [number, number];
 		const key = `${lng},${lat}`;
-		const existing = latest.get(key);
+		const existing = latest[key];
 		if (!existing || fire.timestamp > existing.timestamp) {
-			latest.set(key, fire);
+			latest[key] = fire;
 		}
 	}
-	return Array.from(latest.values());
+	return Object.values(latest);
 }
 
 function computeFireGroups(fires: (HMSFireGeoJSON & { frp: number })[]): HMSFireGroup[] {
@@ -73,7 +72,7 @@ function computeFireGroups(fires: (HMSFireGeoJSON & { frp: number })[]): HMSFire
 		units: "kilometers"
 	});
 
-	const groups = new SvelteMap<string, { frps: number[]; lngs: number[]; lats: number[] }>();
+	const groups: Record<string, { frps: number[]; lngs: number[]; lats: number[] }> = {};
 
 	for (const feature of clustered.features) {
 		const props = feature.properties as {
@@ -86,14 +85,14 @@ function computeFireGroups(fires: (HMSFireGeoJSON & { frp: number })[]): HMSFire
 		// This branch activates correctly if minPoints is raised above 1 in future.
 		const key = props.dbscan === "noise" ? `noise-${props.fireId}` : `cluster-${props.cluster}`;
 		const [lng, lat] = feature.geometry.coordinates as [number, number];
-		const entry = groups.get(key) ?? { frps: [], lngs: [], lats: [] };
+		const entry = groups[key] ?? { frps: [], lngs: [], lats: [] };
 		entry.frps.push(props.frp);
 		entry.lngs.push(lng);
 		entry.lats.push(lat);
-		groups.set(key, entry);
+		groups[key] = entry;
 	}
 
-	return Array.from(groups.entries()).map(([key, { frps, lngs, lats }]) => ({
+	return Object.entries(groups).map(([key, { frps, lngs, lats }]) => ({
 		id: `hms-fire-group-${key}`,
 		coordinates: [
 			lngs.reduce((s, v) => s + v, 0) / lngs.length,

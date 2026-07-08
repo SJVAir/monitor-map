@@ -8,7 +8,7 @@
 	<div class="flex flex-col bg-white rounded shadow w-fit p-1">
 		<p class="text-center whitespace-nowrap font-semibold">Fire Points</p>
 		<div class="flex flex-col">
-			{#each hmsFireMapIntegration.icons.iter as [_id, icon], idx (idx)}
+			{#each hmsFireMapIntegration.icons.iter as [, icon], idx (idx)}
 				<div class="flex gap-1 items-center">
 					<div class="size-9 flex justify-center items-center">
 						<img src={icon.image.src} alt={icon.image.alt} />
