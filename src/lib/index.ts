@@ -37,14 +37,21 @@ export { monitorsManager } from "./monitors/monitors.svelte";
 export type { MonitorsManager } from "./monitors/monitors.svelte";
 export { collocationSitesManager } from "./collocation-sites/collocations.svelte";
 export type { CollocationSitesManager } from "./collocation-sites/collocations.svelte";
+export { evStationsManager } from "./ev-stations/ev-stations.svelte";
+export type { EvStationsManager } from "./ev-stations/ev-stations.svelte";
+export { hmsManager } from "./hms/hms.svelte";
+export type { HMSManager } from "./hms/hms.svelte";
 export { mapManager, DefaultMapStyle, initializeMap } from "./map/map.svelte";
 export type { MapManager } from "./map/map.svelte";
 
 // Map integrations
 export { monitorsMapIntegration } from "./monitors/monitors-map-integration.svelte.ts";
 export { collocationSitesMapIntegration } from "./collocation-sites/collocations-map-integration.svelte.ts";
+export { evStationsMapIntegration } from "./ev-stations/ev-stations-map-integration.svelte.ts";
 export { windMapIntegration } from "./wind/wind.svelte";
 export { baseLayerSeperator } from "./map/integrations/base-layer-seperator";
+export { hmsFireMapIntegration } from "./hms/hms-fire-map-integration.svelte.ts";
+export { hmsSmokeMapIntegration } from "./hms/hms-smoke-map-integration.svelte.ts";
 
 // Components
 export { default as Map } from "./map/Map.svelte";
@@ -57,6 +64,7 @@ export {
 } from "./LoadScreen.svelte";
 export type { LoadScreenState } from "./LoadScreen.svelte";
 export { default as MonitorsDisplayOptions } from "./monitors/components/MonitorsDisplayOptions.svelte";
+export { default as EvStationsDisplayOptions } from "./ev-stations/components/EvStationsDisplayOptions.svelte";
 export { default as MapLayersDisplayOptions } from "./components/MapLayersDisplayOptions.svelte";
 export { default as MapStyleDisplayOptions } from "./map/MapStyleDisplayOptions.svelte";
 export { default as ToggleSwitch } from "./components/ToggleSwitch.svelte";
@@ -71,6 +79,10 @@ export { MapIconLayerIntegration as MapGeoJSONIntegration } from "./map/integrat
 export type { SomeMapIntegration } from "./map/integrations/types";
 export type { MonitorsMapIntegration } from "./monitors/monitors-map-integration.svelte.ts";
 export type { WindMapIntegration } from "./wind/wind.svelte.ts";
+export type { EvStationsMapIntegration } from "./ev-stations/ev-stations-map-integration.svelte.ts";
+export type { HMSFireMapIntegration } from "./hms/hms-fire-map-integration.svelte.ts";
+export type { HMSSmokeMapIntegration } from "./hms/hms-smoke-map-integration.svelte.ts";
+export type { HMSFireGroup } from "./hms/hms.svelte.ts";
 export type {
 	MonitorMapFeature,
 	MonitorMarkerProperties,
@@ -81,3 +93,9 @@ export type {
 	CollocationSiteMapFeature,
 	CollocationSiteMarkerProperties
 } from "./collocation-sites/types";
+export type {
+	EvStation,
+	EvStationMarkerProperties,
+	EvStationMapFeature,
+	EvStationClusterMapFeature
+} from "./ev-stations/types";
