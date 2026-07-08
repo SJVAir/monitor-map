@@ -2,11 +2,13 @@
 	import { onDestroy } from "svelte";
 	import { Marker } from "@maptiler/sdk";
 	import { SearchIcon } from "@lucide/svelte";
-	import { navigate } from "../../router";
+	import { useMonitorMapRouter } from "../router-context";
 	import { mapManager } from "$lib/map/map.svelte";
 	import { debounce } from "$lib/utils";
 	import { monitorSearch, geocode, type SearchResult } from "./service";
 	import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte";
+
+	const { navigate, basePath } = useMonitorMapRouter();
 
 	let collapsed = $state(true);
 	let searchText = $state("");
@@ -81,7 +83,7 @@
 				zoom: 12
 			});
 		}
-		await navigate("/monitor/:id", { params: { id: result.monitor.id } });
+		await navigate(`${basePath}/monitor/:id`, { params: { id: result.monitor.id } });
 		monitorsMapIntegration.selectedMonitorId = result.monitor.id;
 	}
 

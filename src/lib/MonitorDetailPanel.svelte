@@ -6,7 +6,7 @@
 	import MonitorSubscriptionManager from "$lib/monitors/components/MonitorSubscriptionManager.svelte";
 	import DataChart from "$lib/data-chart/DataChart.svelte";
 	import { monitorsManager } from "$lib";
-	import { navigate, route } from "./router";
+	import { useMonitorMapRouter } from "./router-context";
 	import { fetchTempByCoords } from "$lib/weather.ts";
 	import { Colors, valueToColor } from "$lib/colors";
 	import { getCurrentLevel } from "$lib/monitors/monitor-utils.ts";
@@ -19,6 +19,8 @@
 		labelColorClass?: string;
 		href?: string;
 	}
+	const { route, navigate, basePath } = useMonitorMapRouter();
+
 	const monitor = $derived(monitorsManager.latest?.get(route.params.id ?? ""));
 	let tempData: TempDataBox | undefined = $state();
 	const entryData: ComponentProps<typeof DataBox> | undefined = $derived.by(() => {
@@ -82,7 +84,7 @@
 	>
 		<button
 			class="cursor-pointer self-end rounded border border-gray-300 px-2 py-1 text-sm hover:bg-gray-50"
-			onclick={() => navigate("/")}
+			onclick={() => navigate(`${basePath}/`)}
 		>
 			✕ Close
 		</button>

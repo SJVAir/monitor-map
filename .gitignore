@@ -1,5 +1,8 @@
 node_modules
 
+# LLM
+.tokensave
+
 # Output
 .output
 .vercel
