@@ -79,6 +79,35 @@ VITE_NREL_KEY=
 VITE_OPENWEATHERMAP_KEY=
 ```
 
+## Library Packaging (`build:lib`)
+
+`npm run build:lib` runs `svelte-package` (not a hand-rolled Vite/Rollup lib
+build) to produce `dist/lib`, which `package.json`'s `"svelte"`/`"types"`/
+`"exports"` fields point at (not raw `src/lib` — pointing there was a bug fixed
+2026-07; raw `src/lib` still ships in `files` for reference/debugging, but is no
+longer a declared entry point). `svelte-package` rewrites internal `$lib`
+imports to relative paths and emits `.d.ts`/`.svelte.d.ts` declarations
+alongside compiled `.ts`→`.js`; it deliberately leaves `.svelte` files
+themselves uncompiled (consumers must compile them with their own Svelte
+version — this is standard for published Svelte component libraries, not a gap).
+
+Two consequences for any consuming app:
+
+- It must configure its own bundler alias so a bare `$lib`/`$lib/*` import
+  **originating from a file inside this package** resolves to this package's
+  own `dist/lib`, not the host app's `$lib`/`src/lib` — a plain global alias
+  string can't do this since it can't discriminate by importer. See
+  `v3-mobile`'s `mobile.vite.config.ts` (`monitorMapLibAlias()`) for the
+  reference implementation (a `resolveId` hook scoped by `importer` path).
+- `LoadScreen.svelte` uses `<enhanced:img>`, which isn't valid HTML until the
+  host app's own Vite config runs `@sveltejs/enhanced-img`'s `enhancedImages()`
+  plugin — hence it's a `peerDependency`, not just a `devDependency` here.
+  `enhancedImages()`'s internal path resolution goes through the same Vite
+  `resolveId` chain as normal imports, so the scoped `$lib` alias above covers
+  its `$lib`-prefixed image paths too — no separate fix needed for that.
+
+If you touch `vite.config.lib.ts` — it no longer exists; don't recreate it.
+
 ## Code Style
 
 - **Tabs** for indentation (not spaces)

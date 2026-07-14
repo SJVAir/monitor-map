@@ -6,7 +6,7 @@
 		"dev": "vite dev",
 		"build:local": "PROD_MODE=local vite build",
 		"build": "PROD_MODE=production vite build",
-		"build:lib": "vite build --config vite.config.lib.ts",
+		"build:lib": "PROD_MODE=local svelte-package -i src/lib -o dist/lib",
 		"preview": "vite preview",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
@@ -14,13 +14,13 @@
 		"lint": "prettier --check . && eslint ."
 	},
 	"type": "module",
-	"svelte": "./src/lib/index.ts",
-	"types": "./src/lib/index.ts",
+	"svelte": "./dist/lib/index.js",
+	"types": "./dist/lib/index.d.ts",
 	"exports": {
 		".": {
-			"svelte": "./src/lib/index.ts",
-			"types": "./src/lib/index.ts",
-			"default": "./src/lib/index.ts"
+			"svelte": "./dist/lib/index.js",
+			"types": "./dist/lib/index.d.ts",
+			"default": "./dist/lib/index.js"
 		}
 	},
 	"files": [
@@ -31,6 +31,7 @@
 		"**/*.css"
 	],
 	"peerDependencies": {
+		"@sveltejs/enhanced-img": "^0.11.0",
 		"sv-router": "^0.16.2",
 		"svelte": "^5.0.0"
 	},
@@ -39,6 +40,7 @@
 		"@eslint/js": "^10.0.1",
 		"@fontsource-variable/inter": "^5.2.8",
 		"@sveltejs/enhanced-img": "^0.11.0",
+		"@sveltejs/package": "^2.5.8",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
 		"@tailwindcss/vite": "^4.3.2",
 		"@types/node": "^26.1.1",
