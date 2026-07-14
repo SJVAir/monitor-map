@@ -37,7 +37,7 @@
 	>
 		<div class="flex justify-around gap-4">
 			<enhanced:img
-				src="$lib/assets/logos/sjvair-parts/sjvair-icon.webp"
+				src="./assets/logos/sjvair-parts/sjvair-icon.webp"
 				alt="SJVAir Icon"
 				class="icon inline-block h-24! w-auto! transition-all duration-500 ease-out object-contain"
 				class:translate-x-0={loadScreenState.entered}
@@ -46,7 +46,7 @@
 				class:opacity-0={!loadScreenState.entered}
 			/>
 			<enhanced:img
-				src="$lib/assets/logos/sjvair-parts/sjvair-sjv.webp"
+				src="./assets/logos/sjvair-parts/sjvair-sjv.webp"
 				alt="SJV"
 				class="sjv inline-block h-24! w-auto! transition-all duration-500 ease-out object-contain"
 				class:translate-y-0={loadScreenState.entered}
@@ -55,7 +55,7 @@
 				class:opacity-0={!loadScreenState.entered}
 			/>
 			<enhanced:img
-				src="$lib/assets/logos/sjvair-parts/sjvair-air.webp"
+				src="./assets/logos/sjvair-parts/sjvair-air.webp"
 				alt="Air"
 				class="air inline-block h-24! w-auto! transition-all duration-500 ease-out object-contain"
 				class:translate-y-0={loadScreenState.entered}
