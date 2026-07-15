@@ -4,9 +4,9 @@ import {
 	evConnectorTypes,
 	evNetworkTypes,
 	facilityTypes
-} from "./data-maps.ts";
-import type { EvStation } from "./types.ts";
-import * as ZipCodes from "./zip-codes.ts";
+} from "./data-maps";
+import type { EvStation } from "./types";
+import * as ZipCodes from "./zip-codes";
 
 class EvStationsManager {
 	lvl2Stations: Array<EvStation> | undefined = $state();

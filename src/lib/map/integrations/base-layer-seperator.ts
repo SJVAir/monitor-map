@@ -1,5 +1,5 @@
 import { Map as MaptilerMap } from "@maptiler/sdk";
-import { MapLayerIntegration } from "./map-layer-integration.svelte.ts";
+import { MapLayerIntegration } from "./map-layer-integration.svelte";
 
 class BaseLayerSeperator extends MapLayerIntegration {
 	referenceId: string = "Base Layer Seperator";

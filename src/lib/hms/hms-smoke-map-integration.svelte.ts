@@ -1,9 +1,9 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
 import type { Feature, MultiPolygon } from "geojson";
 import type { HMSSmokeGeoJSON } from "@sjvair/sdk/hms";
-import { mapManager } from "$lib/map/map.svelte.ts";
-import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
-import { hmsManager } from "./hms.svelte.ts";
+import { mapManager } from "$lib/map/map.svelte";
+import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
+import { hmsManager } from "./hms.svelte";
 
 type SmokeProperties = {
 	id: string;

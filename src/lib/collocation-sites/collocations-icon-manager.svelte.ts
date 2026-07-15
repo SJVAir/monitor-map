@@ -1,5 +1,5 @@
-import { CROSSHAIR_ICON_SIZE, withCrosshair } from "$lib/map/icons.ts";
-import { MonitorShapeIconManager } from "$lib/monitors/monitors-icon-manager.svelte.ts";
+import { CROSSHAIR_ICON_SIZE, withCrosshair } from "$lib/map/icons";
+import { MonitorShapeIconManager } from "$lib/monitors/monitors-icon-manager.svelte";
 
 const COLLOCATION_ICON_PREFIX = "collocation";
 const CROSSHAIR_COLOR = "#4A5FC6";

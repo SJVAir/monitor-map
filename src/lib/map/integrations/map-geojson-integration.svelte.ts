@@ -1,8 +1,8 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
 import type { Feature, Geometry } from "geojson";
-import type { MapIconManager } from "./map-icon-manager.ts";
-import { MapLayerIntegration } from "./map-layer-integration.svelte.ts";
-import { mapManager } from "../map.svelte.ts";
+import type { MapIconManager } from "./map-icon-manager";
+import { MapLayerIntegration } from "./map-layer-integration.svelte";
+import { mapManager } from "../map.svelte";
 
 export abstract class MapGeoJSONIntegration<
 	T = Record<string, unknown>

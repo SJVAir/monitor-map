@@ -1,7 +1,7 @@
 import { getMonitorEntries, type MonitorEntry, type MonitorLatestType } from "@sjvair/sdk";
 import { getUnixTime, parseISO, differenceInMinutes, addMinutes } from "date-fns";
 import { monitorsManager } from "../monitors/monitors.svelte";
-import type { DateRange } from "./DateRange.ts";
+import type { DateRange } from "./DateRange";
 
 export async function fetchChartData(
 	m: MonitorLatestType<"pm25" | "o3">,

@@ -1,5 +1,5 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
-import { mapManager } from "../map.svelte.ts";
+import { mapManager } from "../map.svelte";
 import type { MapImageIcon } from "./types";
 import { SvelteMap } from "svelte/reactivity";
 

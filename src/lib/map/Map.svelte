@@ -1,8 +1,8 @@
 <script lang="ts">
 	import "@maptiler/sdk/dist/maptiler-sdk.css";
-	import { initializeMap } from "./map.svelte.ts";
+	import { initializeMap } from "./map.svelte";
 	import { integrationsManager } from "$lib/map/integrations/integrations-manager";
-	import type { SomeMapIntegration } from "./integrations/types.ts";
+	import type { SomeMapIntegration } from "./integrations/types";
 
 	const { integrations }: { integrations: Array<SomeMapIntegration> } = $props();
 

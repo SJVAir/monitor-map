@@ -6,19 +6,19 @@ import type {
 } from "@maptiler/sdk";
 import type { Geometry } from "geojson";
 import { untrack } from "svelte";
-import { mapManager } from "$lib/map/map.svelte.ts";
-import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager.ts";
-import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
-import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte.ts";
-import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
-import { mountClickPopup } from "$lib/map/utils.ts";
-import { evStationsManager } from "./ev-stations.svelte.ts";
-import { EvStationIconManager } from "./ev-station-icons.ts";
+import { mapManager } from "$lib/map/map.svelte";
+import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager";
+import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
+import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte";
+import { TooltipManager } from "$lib/map/integrations/tooltip.svelte";
+import { mountClickPopup } from "$lib/map/utils";
+import { evStationsManager } from "./ev-stations.svelte";
+import { EvStationIconManager } from "./ev-station-icons";
 import {
 	EvStationsClusterRenderer,
 	type EvStationsClusterContext
-} from "./ev-stations-cluster-renderer.ts";
-import type { EvStation, EvStationMapFeature, EvStationMarkerProperties } from "./types.ts";
+} from "./ev-stations-cluster-renderer";
+import type { EvStation, EvStationMapFeature, EvStationMarkerProperties } from "./types";
 import EvStationTooltip from "./components/EvStationTooltip.svelte";
 
 class EvStationsMapIntegration
