@@ -7,12 +7,12 @@ import type {
 } from "@maptiler/sdk";
 import type { Point } from "geojson";
 import type { SJVAirEntryLevel } from "@sjvair/sdk";
-import { mapManager } from "$lib/map/map.svelte.ts";
-import { mountPopup } from "$lib/map/utils.ts";
-import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager.ts";
-import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
-import { getTypeShape } from "./monitor-utils.ts";
-import type { MonitorClusterMapFeature, MonitorMapFeature } from "./types.ts";
+import { mapManager } from "$lib/map/map.svelte";
+import { mountPopup } from "$lib/map/utils";
+import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager";
+import { TooltipManager } from "$lib/map/integrations/tooltip.svelte";
+import { getTypeShape } from "./monitor-utils";
+import type { MonitorClusterMapFeature, MonitorMapFeature } from "./types";
 import MonitorTooltip from "./components/MonitorTooltip.svelte";
 import MonitorClusterTooltip from "./components/MonitorClusterTooltip.svelte";
 

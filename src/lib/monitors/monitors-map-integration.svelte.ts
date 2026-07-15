@@ -6,16 +6,16 @@ import {
 import type { MonitorType, SJVAirEntryLevel } from "@sjvair/sdk";
 import { untrack } from "svelte";
 import type { Geometry } from "geojson";
-import { mapManager } from "$lib/map/map.svelte.ts";
-import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager.ts";
-import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
-import { monitorsManager } from "./monitors.svelte.ts";
-import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte.ts";
-import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
-import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte.ts";
-import { getCurrentLevel, getOrder } from "./monitor-utils.ts";
-import { MonitorsClusterRenderer, monitorTooltip } from "./monitors-cluster-renderer.ts";
-import type { MonitorMapFeature, MonitorMarkerProperties } from "./types.ts";
+import { mapManager } from "$lib/map/map.svelte";
+import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager";
+import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
+import { monitorsManager } from "./monitors.svelte";
+import { getIconId, MonitorsIconManager } from "./monitors-icon-manager.svelte";
+import { TooltipManager } from "$lib/map/integrations/tooltip.svelte";
+import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte";
+import { getCurrentLevel, getOrder } from "./monitor-utils";
+import { MonitorsClusterRenderer, monitorTooltip } from "./monitors-cluster-renderer";
+import type { MonitorMapFeature, MonitorMarkerProperties } from "./types";
 
 const filters = {
 	monitor(deviceType: MonitorType): ExpressionSpecification {

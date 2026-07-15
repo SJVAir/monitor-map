@@ -8,10 +8,10 @@
 	import { getMonitorEntriesCSVUrl } from "@sjvair/sdk/monitors";
 	import { format, parseISO } from "date-fns";
 	import { RangeCalendar } from "$lib/components/ui/range-calendar";
-	import { DataChartManager } from "./data-chart.svelte.ts";
-	import { createDateRange } from "./DateRange.ts";
-	import { fetchChartData } from "./requests.ts";
-	import { getChartConfig } from "./chart-utils.ts";
+	import { DataChartManager } from "./data-chart.svelte";
+	import { createDateRange } from "./DateRange";
+	import { fetchChartData } from "./requests";
+	import { getChartConfig } from "./chart-utils";
 	import { monitorsManager } from "../monitors/monitors.svelte";
 
 	let { monitor }: { monitor: MonitorLatestType<"pm25" | "o3"> } = $props();

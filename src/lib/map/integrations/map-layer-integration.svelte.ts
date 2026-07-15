@@ -1,7 +1,7 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
 import { untrack } from "svelte";
-import { mapManager } from "../map.svelte.ts";
-import { MapIntegration } from "./map-integration.svelte.ts";
+import { mapManager } from "../map.svelte";
+import { MapIntegration } from "./map-integration.svelte";
 
 export abstract class MapLayerIntegration extends MapIntegration {
 	abstract referenceId: string;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { hmsFireMapIntegration } from "../hms-fire-map-integration.svelte.ts";
+	import { hmsFireMapIntegration } from "../hms-fire-map-integration.svelte";
 
 	const levels = ["<10", "10-49", "50-149", "150-349", "≥350"];
 </script>

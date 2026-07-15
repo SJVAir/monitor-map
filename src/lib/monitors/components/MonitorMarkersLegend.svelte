@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { monitorsManager } from "../monitors.svelte.ts";
+	import { monitorsManager } from "../monitors.svelte";
 
 	const label = $derived(monitorsManager.pollutant === "pm25" ? "PM 2.5" : "Ozone");
 	const values = $derived(

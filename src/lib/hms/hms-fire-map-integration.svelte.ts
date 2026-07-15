@@ -1,10 +1,10 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
 import type { Feature } from "geojson";
 import type { Point } from "geojson";
-import { mapManager } from "$lib/map/map.svelte.ts";
-import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
-import { hmsManager } from "./hms.svelte.ts";
-import { HMSFireIconManager, getTierIconId } from "./hms-fire-icon-manager.ts";
+import { mapManager } from "$lib/map/map.svelte";
+import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
+import { hmsManager } from "./hms.svelte";
+import { HMSFireIconManager, getTierIconId } from "./hms-fire-icon-manager";
 
 type FireProperties = Record<string, unknown>;
 

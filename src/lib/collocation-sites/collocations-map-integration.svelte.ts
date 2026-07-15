@@ -1,19 +1,19 @@
 import { type Popup, type MapLayerEventType, type Map as MaptilerMap } from "@maptiler/sdk";
 import type { Geometry } from "geojson";
-import { mapManager } from "$lib/map/map.svelte.ts";
-import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte.ts";
+import { mapManager } from "$lib/map/map.svelte";
+import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
 import {
 	CollocationIconManager,
 	getCollocationIconId
-} from "./collocations-icon-manager.svelte.ts";
-import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
-import { collocationSitesManager } from "./collocations.svelte.ts";
-import { monitorsManager } from "$lib/monitors/monitors.svelte.ts";
-import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte.ts";
-import type { CollocationSiteMapFeature, CollocationSiteMarkerProperties } from "./types.ts";
+} from "./collocations-icon-manager.svelte";
+import { TooltipManager } from "$lib/map/integrations/tooltip.svelte";
+import { collocationSitesManager } from "./collocations.svelte";
+import { monitorsManager } from "$lib/monitors/monitors.svelte";
+import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte";
+import type { CollocationSiteMapFeature, CollocationSiteMarkerProperties } from "./types";
 import { untrack } from "svelte";
 import CollocationTooltip from "./CollocationTooltip.svelte";
-import { mountPopup } from "$lib/map/utils.ts";
+import { mountPopup } from "$lib/map/utils";
 
 function collocationTooltip(evt: MapLayerEventType["mousemove"] & object): Popup | void {
 	const feature = evt.features?.[0] as unknown as CollocationSiteMapFeature | undefined;

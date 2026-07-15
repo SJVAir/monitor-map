@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { MapStyleVariant, ReferenceMapStyle } from "@maptiler/sdk";
 	import { mapManager, DefaultMapStyle } from "./map.svelte";
-	import { MAP_STYLE_OPTIONS } from "./utils.ts";
+	import { MAP_STYLE_OPTIONS } from "./utils";
 	import { integrationsManager } from "./integrations/integrations-manager";
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 

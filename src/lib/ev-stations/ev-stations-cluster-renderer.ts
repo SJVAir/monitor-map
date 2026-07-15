@@ -1,11 +1,11 @@
 import type { GeoJSONSource, MapLayerEventType, Popup } from "@maptiler/sdk";
 import type { Point } from "geojson";
-import { mapManager } from "$lib/map/map.svelte.ts";
-import { mountPopup } from "$lib/map/utils.ts";
-import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager.ts";
-import { TooltipManager } from "$lib/map/integrations/tooltip.svelte.ts";
-import { EV_STATION_LEVELS, type EvStationLevel } from "./ev-station-icons.ts";
-import type { EvStationClusterMapFeature, EvStationMapFeature } from "./types.ts";
+import { mapManager } from "$lib/map/map.svelte";
+import { mountPopup } from "$lib/map/utils";
+import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager";
+import { TooltipManager } from "$lib/map/integrations/tooltip.svelte";
+import { EV_STATION_LEVELS, type EvStationLevel } from "./ev-station-icons";
+import type { EvStationClusterMapFeature, EvStationMapFeature } from "./types";
 import EvStationClusterTooltip from "./components/EvStationClusterTooltip.svelte";
 
 export interface EvStationsClusterContext {

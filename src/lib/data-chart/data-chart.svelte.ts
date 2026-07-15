@@ -1,5 +1,5 @@
-import { createDateRange } from "./DateRange.ts";
-import type { DateRange } from "./DateRange.ts";
+import { createDateRange } from "./DateRange";
+import type { DateRange } from "./DateRange";
 
 class DataChartManager {
 	dateRange: DateRange = $state(createDateRange());

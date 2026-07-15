@@ -1,5 +1,5 @@
-import { asDataURI, fireIcon } from "$lib/map/icons.ts";
-import { MapIconManager } from "$lib/map/integrations/map-icon-manager.ts";
+import { asDataURI, fireIcon } from "$lib/map/icons";
+import { MapIconManager } from "$lib/map/integrations/map-icon-manager";
 
 type FRPTier = "sm" | "md" | "lg" | "xl" | "xxl";
 

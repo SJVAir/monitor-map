@@ -7,9 +7,9 @@
 	import DataChart from "$lib/data-chart/DataChart.svelte";
 	import { monitorsManager } from "$lib";
 	import { useMonitorMapRouter } from "./router-context";
-	import { fetchTempByCoords } from "$lib/weather.ts";
+	import { fetchTempByCoords } from "$lib/weather";
 	import { Colors, valueToColor } from "$lib/colors";
-	import { getCurrentLevel } from "$lib/monitors/monitor-utils.ts";
+	import { getCurrentLevel } from "$lib/monitors/monitor-utils";
 
 	type TempDataBox = Pick<ComponentProps<typeof DataBox>, "color" | "value">;
 
