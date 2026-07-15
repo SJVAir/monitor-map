@@ -5,6 +5,7 @@
 	import { parseAbsolute } from "@internationalized/date";
 	import { Maximize, SquareX } from "@lucide/svelte";
 	import uPlot from "uplot";
+	import "uplot/dist/uPlot.min.css";
 	import { getMonitorEntriesCSVUrl } from "@sjvair/sdk/monitors";
 	import { format, parseISO } from "date-fns";
 	import { RangeCalendar } from "$lib/components/ui/range-calendar";
