@@ -108,7 +108,10 @@
 	);
 </script>
 
+<!--
 <div class="shell" class:panel-open={panelOpen}>
+  -->
+<div class="relative flex h-full w-full flex-col md:flex-row">
 	<LoadScreen />
 	<div class="relative flex-1 overflow-hidden">
 		<Map {integrations} />
@@ -129,14 +132,27 @@
 			</div>
 		</div>
 	</div>
-	<div class="panel-container">
-		<div class="panel-content">
+	<div
+		class={[
+			"panel-containr w-full shrink-0 overflow-hidden",
+			panelOpen ? "h-1/2 md:h-full md:w-1/3" : "md:w-0"
+		]}
+	>
+		<div
+			class={[
+				"panel-contet h-full duration-300 ease-in-out",
+				panelOpen
+					? "translate-y-0 md:translate-x-0"
+					: "translate-y-full md:translate-x-full md:translate-y-0"
+			]}
+		>
 			{@render children()}
 		</div>
 	</div>
 </div>
 
 <style>
+	/**
 	.shell {
 		display: flex;
 		position: relative;
@@ -164,6 +180,7 @@
 	.shell.panel-open .panel-content {
 		transform: translateX(0);
 	}
+*/
 
 	@media (max-width: 768px) {
 		.shell {
