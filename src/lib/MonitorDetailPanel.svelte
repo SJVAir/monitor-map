@@ -123,7 +123,9 @@
 				{/if}
 			</div>
 
-			<MonitorWidgetModal monitorId={monitor.id} />
+			<div class="tall:block hidden">
+				<MonitorWidgetModal monitorId={monitor.id} />
+			</div>
 			<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 			{#if (globalThis as any).USER?.is_authenticated}
 				<MonitorSubscriptionManager monitorId={monitor.id} />
