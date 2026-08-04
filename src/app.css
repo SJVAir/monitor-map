@@ -4,8 +4,10 @@
 @import "@fontsource-variable/inter";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant tall (@media (min-height: 600px) and (min-width: 500px));
 
 @theme {
+	--breakpoint-xs: 25rem;
 	--color-brand: rgb(62, 142, 208);
 	--color-pantone-blue: #3549b6;
 	--color-link: #485fc7;
