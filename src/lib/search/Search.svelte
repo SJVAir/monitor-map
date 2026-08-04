@@ -111,34 +111,34 @@
 
 <div
 	class={[
-		"flex flex-col bg-white shadow-md overflow-hidden transition-all duration-300 select-none",
-		collapsed ? "w-12 h-12 rounded-full" : "w-90 rounded-3xl",
+		"flex flex-col overflow-hidden bg-white shadow-md transition-all duration-300 select-none",
+		collapsed ? "h-12 w-12 rounded-full" : "w-90 rounded-3xl",
 		!collapsed && results.length ? "max-h-90" : "max-h-12"
 	]}
 	use:clickOutside
 >
-	<div class="flex items-center w-full h-12 shrink-0">
+	<div class="flex h-12 w-full shrink-0 items-center">
 		<button
-			class="w-12 h-12 shrink-0 flex items-center justify-center rounded-full bg-brand border-4 border-white"
+			class="bg-brand flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-4 border-white"
 			onclick={openSearch}
 			aria-label="Open search"
 		>
 			<SearchIcon size="24" color="#FFFFFF" />
 		</button>
-		<div class="overflow-hidden w-full h-full flex items-center">
+		<div class="flex h-full w-full items-center overflow-hidden">
 			<input
 				bind:this={inputEl}
 				bind:value={searchText}
 				oninput={debouncedSearch}
 				type="text"
 				placeholder="Search monitors or locations..."
-				class="h-full px-2 text-sm bg-transparent border-none outline-none w-full"
+				class="h-full w-full border-none bg-transparent px-2 text-sm outline-none"
 				tabindex={collapsed ? -1 : 0}
 			/>
 			{#if searchText && !collapsed}
 				<button
 					onclick={clearSearch}
-					class="px-2 text-gray-400 hover:text-gray-600 text-xl leading-none cursor-pointer"
+					class="cursor-pointer px-2 text-xl leading-none text-gray-400 hover:text-gray-600"
 					aria-label="Clear search">×</button
 				>
 			{/if}
@@ -146,7 +146,7 @@
 	</div>
 	<div
 		class={[
-			"overflow-y-auto transition-all duration-300 divide-y divide-gray-100",
+			"divide-y divide-gray-100 overflow-y-auto transition-all duration-300",
 			!collapsed ? "max-h-80" : "max-h-0"
 		]}
 	>
@@ -154,30 +154,30 @@
 			{#if result.type === "monitor"}
 				<button
 					onclick={() => selectMonitor(result)}
-					class="flex items-center w-full h-12 px-4 hover:brightness-95 bg-white text-left"
+					class="flex h-12 w-full items-center bg-white px-4 text-left hover:brightness-95"
 				>
 					{#if result.logo.url}
 						<img
 							src={result.logo.url}
 							alt={result.logo.alt}
-							class="w-10 h-10 object-contain mr-3 shrink-0"
+							class="mr-3 h-10 w-10 shrink-0 object-contain"
 						/>
 					{/if}
-					<span class="text-sm truncate">{result.monitor.name}</span>
+					<span class="truncate text-sm">{result.monitor.name}</span>
 				</button>
 			{:else}
 				{@const comma = result.feature.place_name.indexOf(",")}
 				<button
 					onclick={() => selectGeocode(result)}
-					class="flex items-center w-full h-12 px-4 hover:brightness-95 bg-white text-left"
+					class="flex h-12 w-full items-center bg-white px-4 text-left hover:brightness-95"
 				>
-					<span class="svg-icon location-on bg-brand w-6 h-6 shrink-0 mr-3"></span>
+					<span class="svg-icon location-on bg-brand mr-3 h-6 w-6 shrink-0"></span>
 					<div class="min-w-0">
-						<p class="text-sm font-medium truncate">
+						<p class="truncate text-sm font-medium">
 							{result.feature.place_name.substring(0, comma < 0 ? undefined : comma)}
 						</p>
 						{#if comma >= 0}
-							<p class="text-xs text-muted-foreground truncate">
+							<p class="text-muted-foreground truncate text-xs">
 								{result.feature.place_name.substring(comma + 1).trim()}
 							</p>
 						{/if}

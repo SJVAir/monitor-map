@@ -99,7 +99,7 @@
 		<div class="absolute top-full left-0 z-20 mt-1 w-full overflow-hidden rounded shadow-lg">
 			{#if subscribedLevel}
 				<button
-					class="cursor-pointer px-4 py-2 text-sm rounded-t w-full flex items-center justify-between border border-black/30 hover:bg-[#F5F5F3]"
+					class="flex w-full cursor-pointer items-center justify-between rounded-t border border-black/30 px-4 py-2 text-sm hover:bg-[#F5F5F3]"
 					onclick={() => handleLevelClick(subscribedLevel)}
 				>
 					Unsubscribe
@@ -111,7 +111,7 @@
 				<button
 					class={[
 						"flex w-full items-center justify-between px-4 py-2 text-sm text-white last:rounded-b",
-						!isSubscribed ? "first:rounded-t hover:brightness-90 cursor-pointer" : ""
+						!isSubscribed ? "cursor-pointer first:rounded-t hover:brightness-90" : ""
 					]}
 					style="background-color: {level.color}"
 					disabled={saving}

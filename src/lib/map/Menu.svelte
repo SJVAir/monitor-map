@@ -44,7 +44,7 @@
 		class:w-0={isOpen}
 		class:h-0={isOpen}
 		class:opacity-0={isOpen}
-		class="relative size-10 transition-all flex justify-center items-center"
+		class="relative flex size-10 items-center justify-center transition-all"
 		aria-label="Display Options"
 	>
 		<SlidersHorizontalIcon size="24" />
@@ -56,7 +56,7 @@
 	>
 		<div
 			data-trigger
-			class="absolute top-0 left-0 flex h-fit w-full items-start justify-between gap-4 p-2 flex-wrap"
+			class="absolute top-0 left-0 flex h-fit w-full flex-wrap items-start justify-between gap-4 p-2"
 		>
 			{@render children?.()}
 		</div>

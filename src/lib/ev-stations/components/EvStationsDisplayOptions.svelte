@@ -7,7 +7,7 @@
 </script>
 
 <DisplayOption>
-	<p class="whitespace-nowrap text-lg font-bold underline">EV Stations</p>
+	<p class="text-lg font-bold whitespace-nowrap underline">EV Stations</p>
 	<div class="mb-2 w-full text-xs">
 		<div class="w-fit">
 			<ToggleSwitch
@@ -17,7 +17,7 @@
 			/>
 		</div>
 	</div>
-	<label for="ev-lvl2" class="flex gap-1 cursor-pointer select-none whitespace-nowrap">
+	<label for="ev-lvl2" class="flex cursor-pointer gap-1 whitespace-nowrap select-none">
 		<input
 			type="checkbox"
 			id="ev-lvl2"
@@ -30,7 +30,7 @@
 		/>
 		Level 2
 	</label>
-	<label for="ev-lvl3" class="flex gap-1 cursor-pointer select-none whitespace-nowrap">
+	<label for="ev-lvl3" class="flex cursor-pointer gap-1 whitespace-nowrap select-none">
 		<input
 			type="checkbox"
 			id="ev-lvl3"

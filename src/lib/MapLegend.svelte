@@ -9,7 +9,7 @@
 	<HMSFireLegend />
 </div>
 -->
-<div class="flex flex-col gap-1 pointer-events-none pl-4 pb-4">
+<div class="pointer-events-none flex flex-col gap-1 pb-4 pl-4">
 	<HMSFireLegend />
 	<MonitorMarkersLegend />
 </div>

@@ -7,17 +7,17 @@
 	);
 </script>
 
-<div class="min-w-50 flex flex-col bg-white rounded shadow py-[0.5em] px-[1.5em]">
-	<p class="text-center whitespace-nowrap font-semibold">
+<div class="flex min-w-50 flex-col rounded bg-white px-[1.5em] py-[0.5em] shadow">
+	<p class="text-center font-semibold whitespace-nowrap">
 		{label} Concentration
 	</p>
 	<div class="map-legend-bar inline-block h-[1.5em]">&nbsp;</div>
-	<div class="flex mb-[1.5em]">
-		<div class="w-1/5 shrink-0 h-[0.5em] border-l border-black">
+	<div class="mb-[1.5em] flex">
+		<div class="h-[0.5em] w-1/5 shrink-0 border-l border-black">
 			<span class="relative top-[0.5em] right-[0.3em]">0</span>
 		</div>
 		{#each values as value, idx (idx)}
-			<div class="w-1/5 shrink-0 h-[0.5em] border-l border-black last:relative last:right-px">
+			<div class="h-[0.5em] w-1/5 shrink-0 border-l border-black last:relative last:right-px">
 				<span class="relative top-[0.5em] {idx >= 3 ? 'right-[0.8em]' : 'right-[0.5em]'}"
 					>{value}</span
 				>

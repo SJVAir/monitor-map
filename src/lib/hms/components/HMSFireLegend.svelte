@@ -5,12 +5,12 @@
 </script>
 
 {#if hmsFireMapIntegration.enabled && hmsFireMapIntegration.features.length > 0}
-	<div class="flex flex-col bg-white rounded shadow w-fit p-1">
-		<p class="text-center whitespace-nowrap font-semibold">Fire Points</p>
+	<div class="flex w-fit flex-col rounded bg-white p-1 shadow">
+		<p class="text-center font-semibold whitespace-nowrap">Fire Points</p>
 		<div class="flex flex-col">
 			{#each hmsFireMapIntegration.icons.iter as [, icon], idx (idx)}
-				<div class="flex gap-1 items-center">
-					<div class="size-9 flex justify-center items-center">
+				<div class="flex items-center gap-1">
+					<div class="flex size-9 items-center justify-center">
 						<img src={icon.image.src} alt={icon.image.alt} />
 					</div>
 					<span>{levels[idx]} MW</span>

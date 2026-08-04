@@ -112,7 +112,7 @@
 	<LoadScreen />
 	<div class="relative flex-1 overflow-hidden">
 		<Map {integrations} />
-		<div class="z-10 absolute bottom-0 left-0 pointer-events-none">
+		<div class="pointer-events-none absolute bottom-0 left-0 z-10">
 			<MapLegend />
 		</div>
 		<div class="absolute top-4 left-4 z-10">
