@@ -31,7 +31,9 @@
 		"**/*.css"
 	],
 	"peerDependencies": {
+		"@internationalized/date": "^3.12.3",
 		"@sveltejs/enhanced-img": "^0.11.0",
+		"bits-ui": "^2.18.1",
 		"sv-router": "^0.16.2",
 		"svelte": "^5.0.0"
 	},
@@ -62,7 +64,6 @@
 		"vite": "^8.2.0"
 	},
 	"dependencies": {
-		"@internationalized/date": "^3.12.3",
 		"@lucide/svelte": "^1.28.0",
 		"@maptiler/sdk": "^4.1.0",
 		"@maptiler/weather": "^3.1.1",
@@ -73,7 +74,6 @@
 		"@turf/clusters-dbscan": "^7.4.0",
 		"@turf/helpers": "^7.4.0",
 		"@types/geojson": "^7946.0.16",
-		"bits-ui": "^2.18.1",
 		"clsx": "^2.1.1",
 		"color2k": "^2.0.4",
 		"date-fns": "^4.4.0",
