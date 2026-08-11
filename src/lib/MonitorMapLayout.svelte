@@ -22,6 +22,7 @@
 	import { hmsSmokeMapIntegration } from "$lib/hms/hms-smoke-map-integration.svelte";
 	import MapLegend from "$lib/MapLegend.svelte";
 	import Search from "$lib/search/Search.svelte";
+	import { searchParams } from "sv-router";
 	import { useMonitorMapRouter } from "./router-context";
 
 	interface Props {
@@ -52,6 +53,28 @@
 	};
 
 	let panelOpen = $derived(route.pathname.startsWith(`${basePath}/monitor/`));
+
+	// Keep monitorsManager.pollutant and the "pollutant" URL param in sync, both directions.
+	// init() only seeds pollutant on the manager's first-ever initialization; this effect is what
+	// applies a later "?pollutant=" change (e.g. navigating in from elsewhere) to an already-running manager.
+	$effect(() => {
+		const urlPollutant = route.search.pollutant;
+		if (
+			monitorsManager.initialized &&
+			(urlPollutant === "pm25" || urlPollutant === "o3") &&
+			monitorsManager.pollutant !== urlPollutant
+		) {
+			monitorsManager.pollutant = urlPollutant;
+		}
+	});
+
+	// ...and the reverse: reflect UI-driven pollutant changes (e.g. the display-options toggle) back to the URL.
+	$effect(() => {
+		const pollutant = monitorsManager.pollutant;
+		if (pollutant && searchParams.get("pollutant") !== pollutant) {
+			searchParams.set("pollutant", pollutant);
+		}
+	});
 
 	$effect(() => {
 		if (mapManager.map && monitorsManager.initialized) {
