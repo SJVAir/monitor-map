@@ -45,7 +45,7 @@
 		const id = monitorId;
 		loading = true;
 		try {
-			const subscriptions = await getSubscriptions("");
+			const subscriptions = await getSubscriptions(getApiToken());
 			if (id !== monitorId) return;
 			const match = subscriptions.find((s) => s.monitor === id);
 			subscribedLevel = match?.level ?? null;
@@ -54,17 +54,18 @@
 		}
 	}
 
-	async function handleLevelClick(levelName: string | null) {
-		if (saving || !levelName) return;
+	async function handleLevelClick(level: string | null) {
+		if (saving || !level) return;
 		saving = true;
 		const previous = subscribedLevel;
+		const apiToken = getApiToken();
 		try {
-			if (levelName === subscribedLevel) {
-				await unsubscribe({ monitorId, apiToken: "", level: levelName });
+			if (level === subscribedLevel) {
+				await unsubscribe({ monitorId, apiToken, level });
 				subscribedLevel = null;
 			} else {
-				await subscribe({ monitorId, apiToken: "", level: levelName });
-				subscribedLevel = levelName;
+				await subscribe({ monitorId, apiToken, level });
+				subscribedLevel = level;
 			}
 		} catch {
 			subscribedLevel = previous;
@@ -73,6 +74,12 @@
 			saving = false;
 		}
 		open = false;
+	}
+
+	function getApiToken(): string {
+		return (
+			(globalThis as unknown as Record<string, Record<string, string>>)["USER"]?.api_token ?? ""
+		);
 	}
 </script>
 
