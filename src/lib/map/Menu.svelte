@@ -44,19 +44,20 @@
 		class:w-0={isOpen}
 		class:h-0={isOpen}
 		class:opacity-0={isOpen}
-		class="relative size-10 transition-all flex justify-center items-center"
+		class="relative flex size-10 items-center justify-center transition-all"
 		aria-label="Display Options"
 	>
 		<SlidersHorizontalIcon size="24" />
 	</button>
 	<div
-		class:h-55={isOpen}
-		class:w-135={isOpen}
-		class="relative flex h-0 w-0 items-center justify-center overflow-x-hidden overflow-y-scroll transition-all duration-250"
+		class={[
+			"relative flex max-w-[90vw] items-center justify-center overflow-x-hidden overflow-y-scroll transition-all duration-250",
+			isOpen ? "h-55 w-135" : "h-0 w-0"
+		]}
 	>
 		<div
 			data-trigger
-			class="absolute top-0 left-0 flex h-fit w-full items-start justify-between gap-4 p-2 flex-wrap"
+			class="xs:justify-between absolute top-0 left-0 flex h-fit w-full flex-wrap items-start gap-2 p-2 sm:justify-evenly md:justify-between md:gap-4"
 		>
 			{@render children?.()}
 		</div>

@@ -22,6 +22,7 @@
 	import { hmsSmokeMapIntegration } from "$lib/hms/hms-smoke-map-integration.svelte";
 	import MapLegend from "$lib/MapLegend.svelte";
 	import Search from "$lib/search/Search.svelte";
+	import { searchParams } from "sv-router";
 	import { useMonitorMapRouter } from "./router-context";
 
 	interface Props {
@@ -52,6 +53,28 @@
 	};
 
 	let panelOpen = $derived(route.pathname.startsWith(`${basePath}/monitor/`));
+
+	// Keep monitorsManager.pollutant and the "pollutant" URL param in sync, both directions.
+	// init() only seeds pollutant on the manager's first-ever initialization; this effect is what
+	// applies a later "?pollutant=" change (e.g. navigating in from elsewhere) to an already-running manager.
+	$effect(() => {
+		const urlPollutant = route.search.pollutant;
+		if (
+			monitorsManager.initialized &&
+			(urlPollutant === "pm25" || urlPollutant === "o3") &&
+			monitorsManager.pollutant !== urlPollutant
+		) {
+			monitorsManager.pollutant = urlPollutant;
+		}
+	});
+
+	// ...and the reverse: reflect UI-driven pollutant changes (e.g. the display-options toggle) back to the URL.
+	$effect(() => {
+		const pollutant = monitorsManager.pollutant;
+		if (pollutant && searchParams.get("pollutant") !== pollutant) {
+			searchParams.set("pollutant", pollutant);
+		}
+	});
 
 	$effect(() => {
 		if (mapManager.map && monitorsManager.initialized) {
@@ -108,11 +131,14 @@
 	);
 </script>
 
+<!--
 <div class="shell" class:panel-open={panelOpen}>
+  -->
+<div class="relative flex h-full w-full flex-col md:flex-row">
 	<LoadScreen />
 	<div class="relative flex-1 overflow-hidden">
 		<Map {integrations} />
-		<div class="z-10 absolute bottom-0 left-0 pointer-events-none">
+		<div class="pointer-events-none absolute bottom-0 left-0 z-10">
 			<MapLegend />
 		</div>
 		<div class="absolute top-4 left-4 z-10">
@@ -129,65 +155,21 @@
 			</div>
 		</div>
 	</div>
-	<div class="panel-container">
-		<div class="panel-content">
+	<div
+		class={[
+			"panel-containr w-full shrink-0 overflow-hidden",
+			panelOpen ? "h-1/2 md:h-full md:w-1/3" : "md:w-0"
+		]}
+	>
+		<div
+			class={[
+				"panel-contet h-full duration-300 ease-in-out",
+				panelOpen
+					? "translate-y-0 md:translate-x-0"
+					: "translate-y-full md:translate-x-full md:translate-y-0"
+			]}
+		>
 			{@render children()}
 		</div>
 	</div>
 </div>
-
-<style>
-	.shell {
-		display: flex;
-		position: relative;
-		width: 100%;
-		height: 100%;
-	}
-
-	.panel-container {
-		flex-shrink: 0;
-		overflow: hidden;
-		width: 0;
-	}
-
-	.shell.panel-open .panel-container {
-		width: 33.333vw;
-	}
-
-	.panel-content {
-		width: 33.333vw;
-		height: 100%;
-		transform: translateX(100%);
-		transition: transform 300ms ease-in-out;
-	}
-
-	.shell.panel-open .panel-content {
-		transform: translateX(0);
-	}
-
-	@media (max-width: 768px) {
-		.shell {
-			flex-direction: column;
-		}
-
-		.panel-container {
-			width: 100vw;
-			height: 0;
-		}
-
-		.shell.panel-open .panel-container {
-			width: 100vw;
-			height: 50vh;
-		}
-
-		.panel-content {
-			width: 100vw;
-			height: 50vh;
-			transform: translateY(100%);
-		}
-
-		.shell.panel-open .panel-content {
-			transform: translateY(0);
-		}
-	}
-</style>

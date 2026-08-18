@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { searchParams } from "sv-router";
-	import { untrack } from "svelte";
-
 	interface SegmentedControlProps {
 		segmentLabel?: string;
 		options: Array<{ label: string; value: string }>;
@@ -18,12 +15,6 @@
 
 		const checked = inner.querySelector<HTMLInputElement>("input:checked");
 		if (!checked) return;
-
-		// FIXME: this shouldn't live in this file
-		const pollutant = untrack(() => searchParams.get("pollutant"));
-		if (pollutant !== checked.value) {
-			untrack(() => searchParams.set("pollutant", checked.value));
-		}
 
 		const fontSize = parseFloat(getComputedStyle(inner).fontSize);
 		const padding = fontSize; // 1em

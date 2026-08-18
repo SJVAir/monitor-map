@@ -78,7 +78,7 @@
 	</span>
 {/snippet}
 
-<div class="flex h-full w-full flex-col overflow-y-auto bg-white">
+<div class="tall:overflow-y-hidden flex h-full w-full flex-col overflow-y-auto bg-white">
 	<div
 		class="flex flex-col items-center justify-center gap-8 border-b border-gray-200 p-4 shadow-lg"
 	>
@@ -107,7 +107,7 @@
 		{/if}
 	</div>
 
-	<div class="flex flex-col items-center gap-12 overflow-y-auto p-5 pt-10">
+	<div class="tall:overflow-y-auto flex flex-col items-center gap-12 p-5 pt-10">
 		{#if monitor}
 			<div class="flex w-full justify-around">
 				{#if tempData}
@@ -123,7 +123,9 @@
 				{/if}
 			</div>
 
-			<MonitorWidgetModal monitorId={monitor.id} />
+			<div class="tall:block hidden">
+				<MonitorWidgetModal monitorId={monitor.id} />
+			</div>
 			<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 			{#if (globalThis as any).USER?.is_authenticated}
 				<MonitorSubscriptionManager monitorId={monitor.id} />

@@ -32,19 +32,23 @@ class HMSSmokeMapIntegration extends MapGeoJSONIntegration<SmokeProperties> {
 			source: this.referenceId,
 			layout: {},
 			paint: {
-				"fill-color": ["match", ["get", "density"],
-					"light", "#bfc8c3",
-					"medium", "#757b78",
+				"fill-color": [
+					"match",
+					["get", "density"],
+					"light",
+					"#bfc8c3",
+					"medium",
+					"#757b78",
 					"#333634"
 				],
-				"fill-opacity": ["match", ["get", "density"],
-					"light", 0.2,
-					"medium", 0.3,
-					0.4
-				],
-				"fill-outline-color": ["match", ["get", "density"],
-					"light", "#bfc8c3",
-					"medium", "#757b78",
+				"fill-opacity": ["match", ["get", "density"], "light", 0.2, "medium", 0.3, 0.4],
+				"fill-outline-color": [
+					"match",
+					["get", "density"],
+					"light",
+					"#bfc8c3",
+					"medium",
+					"#757b78",
 					"#333634"
 				]
 			}

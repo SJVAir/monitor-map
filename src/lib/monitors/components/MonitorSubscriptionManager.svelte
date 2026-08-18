@@ -45,7 +45,7 @@
 		const id = monitorId;
 		loading = true;
 		try {
-			const subscriptions = await getSubscriptions("");
+			const subscriptions = await getSubscriptions(getApiToken());
 			if (id !== monitorId) return;
 			const match = subscriptions.find((s) => s.monitor === id);
 			subscribedLevel = match?.level ?? null;
@@ -54,17 +54,18 @@
 		}
 	}
 
-	async function handleLevelClick(levelName: string | null) {
-		if (saving || !levelName) return;
+	async function handleLevelClick(level: string | null) {
+		if (saving || !level) return;
 		saving = true;
 		const previous = subscribedLevel;
+		const apiToken = getApiToken();
 		try {
-			if (levelName === subscribedLevel) {
-				await unsubscribe({ monitorId, apiToken: "", level: levelName });
+			if (level === subscribedLevel) {
+				await unsubscribe({ monitorId, apiToken, level });
 				subscribedLevel = null;
 			} else {
-				await subscribe({ monitorId, apiToken: "", level: levelName });
-				subscribedLevel = levelName;
+				await subscribe({ monitorId, apiToken, level });
+				subscribedLevel = level;
 			}
 		} catch {
 			subscribedLevel = previous;
@@ -73,6 +74,12 @@
 			saving = false;
 		}
 		open = false;
+	}
+
+	function getApiToken(): string {
+		return (
+			(globalThis as unknown as Record<string, Record<string, string>>)["USER"]?.api_token ?? ""
+		);
 	}
 </script>
 
@@ -99,7 +106,7 @@
 		<div class="absolute top-full left-0 z-20 mt-1 w-full overflow-hidden rounded shadow-lg">
 			{#if subscribedLevel}
 				<button
-					class="cursor-pointer px-4 py-2 text-sm rounded-t w-full flex items-center justify-between border border-black/30 hover:bg-[#F5F5F3]"
+					class="flex w-full cursor-pointer items-center justify-between rounded-t border border-black/30 px-4 py-2 text-sm hover:bg-[#F5F5F3]"
 					onclick={() => handleLevelClick(subscribedLevel)}
 				>
 					Unsubscribe
@@ -111,7 +118,7 @@
 				<button
 					class={[
 						"flex w-full items-center justify-between px-4 py-2 text-sm text-white last:rounded-b",
-						!isSubscribed ? "first:rounded-t hover:brightness-90 cursor-pointer" : ""
+						!isSubscribed ? "cursor-pointer first:rounded-t hover:brightness-90" : ""
 					]}
 					style="background-color: {level.color}"
 					disabled={saving}

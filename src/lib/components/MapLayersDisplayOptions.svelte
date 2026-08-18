@@ -13,12 +13,12 @@
 
 <DisplayOption>
 	<p class="text-lg font-bold whitespace-nowrap underline">Map Layers</p>
-	<div class="flex gap-1 items-center">
+	<div class="flex items-center gap-1">
 		<WindIcon size="16" />
 		<ToggleSwitch id="wind" label="Wind" bind:value={windMapIntegration.enabled}></ToggleSwitch>
 	</div>
 	{#if monitorsManager.pollutant === "pm25"}
-		<div class="flex gap-1 items-center">
+		<div class="flex items-center gap-1">
 			<CrosshairIcon size="16" color="#4A5FC6" />
 			<ToggleSwitch
 				id="collocation-sites"
@@ -27,14 +27,14 @@
 			></ToggleSwitch>
 		</div>
 	{/if}
-	<div class="flex gap-1 items-center">
+	<div class="flex items-center gap-1">
 		{#if fireIcon}
 			<img class="w-4" src={fireIcon.image.src} alt={fireIcon.image.alt} />
 		{/if}
 		<ToggleSwitch id="hms-fire" label="HMS Fire" bind:value={hmsFireMapIntegration.enabled}
 		></ToggleSwitch>
 	</div>
-	<div class="flex gap-1 items-center">
+	<div class="flex items-center gap-1">
 		<WavesVerticalIcon size="16" />
 		<ToggleSwitch id="hms-smoke" label="HMS Smoke" bind:value={hmsSmokeMapIntegration.enabled}
 		></ToggleSwitch>
