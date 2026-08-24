@@ -67,7 +67,7 @@
 		"@lucide/svelte": "^1.28.0",
 		"@maptiler/sdk": "^4.1.0",
 		"@maptiler/weather": "^3.1.1",
-		"@sjvair/sdk": "npm:@jsr/sjvair__sdk@^3.0.3",
+		"@sjvair/sdk": "npm:@jsr/sjvair__sdk@^3.1.0",
 		"@tstk/builtin-extensions": "npm:@jsr/tstk__builtin-extensions@^1.0.8",
 		"@tstk/utils": "npm:@jsr/tstk__utils@^1.1.2",
 		"@turf/area": "^7.4.0",
