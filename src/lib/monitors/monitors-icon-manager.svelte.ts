@@ -24,6 +24,9 @@ export function getIconId<T extends MonitorData>(monitor: T, level: SJVAirEntryL
 		case "purpleair":
 			return `${id}-${monitor.is_sjvair ? "circle" : "square"}`;
 
+		case "vozbox":
+			return `${id}-circle`;
+
 		default:
 			throw new Error(`Map icon for ${monitor.device} has not been set`);
 	}

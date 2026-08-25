@@ -23,10 +23,7 @@
 	];
 
 	const monitorDisplayOptions = $derived.by(() => {
-		if (monitorsManager.pollutant && monitorsManager.pollutant === "pm25")
-			return Object.entries(monitorsMapIntegration.displayOptions);
-
-		const validOptions = Object.entries(monitorsMapIntegration.displayOptions).filter(
+		return Object.entries(monitorsMapIntegration.displayOptions).filter(
 			([key, opt]) =>
 				key === "inactive" ||
 				monitorsManager.meta?.asIter.monitors.some(
@@ -36,8 +33,6 @@
 						monitorsManager.pollutant in m.entries
 				)
 		);
-
-		return validOptions;
 	});
 
 	$effect(() => {

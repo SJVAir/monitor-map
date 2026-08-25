@@ -27,6 +27,9 @@ export function getOrder(monitor: MonitorData): number {
 		case "purpleair":
 			return monitor.is_sjvair ? 4 : 1;
 
+		case "vozbox":
+			return 7;
+
 		default:
 			throw new Error(`Map ordering for ${monitor.device} has not been set`);
 	}
@@ -44,6 +47,9 @@ export function getTypeShape(type: string): string {
 
 		case "purpleair":
 			return "square";
+
+		case "vozbox":
+			return "circle";
 
 		default:
 			return "circle";
