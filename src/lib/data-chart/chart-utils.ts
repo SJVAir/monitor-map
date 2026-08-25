@@ -114,6 +114,7 @@ function getSeriesConfigs(monitorType: MonitorType) {
 		case "airnow":
 		case "aqview":
 		case "bam1022":
+		case "vozbox":
 			return [baseXSeriesConfig, singleSeriesConfig];
 
 		case "airgradient":
