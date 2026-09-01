@@ -30,6 +30,9 @@ export function getOrder(monitor: MonitorData): number {
 		case "vozbox":
 			return 7;
 
+		case "aqlite":
+			return 8;
+
 		default:
 			throw new Error(`Map ordering for ${monitor.device} has not been set`);
 	}
@@ -43,6 +46,7 @@ export function getTypeShape(type: string): string {
 		case "airnow":
 		case "aqview":
 		case "bam1022":
+		case "aqlite":
 			return "triangle";
 
 		case "purpleair":

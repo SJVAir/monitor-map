@@ -45,6 +45,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 		bam1022: new MapDisplayOption("SJVAir FEM", true, this.icons.get("outside-display-triangle")),
 		airnow: new MapDisplayOption("AirNow", true, this.icons.get("outside-display-triangle")),
 		vozbox: new MapDisplayOption("VOZbox", true, this.icons.get("outside-display-circle")),
+		aqlite: new MapDisplayOption("AQLite", true, this.icons.get("outside-display-triangle")),
 		inactive: new MapDisplayOption("Inactive", false, this.icons.get("outside-default-square")),
 		inside: new MapDisplayOption("Inside", false, this.icons.get("inside-display-square"))
 	}));
@@ -119,6 +120,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 		if (this.displayOptions.bam1022.value) monitorFilters.push(filters.monitor("bam1022"));
 		if (this.displayOptions.airnow.value) monitorFilters.push(filters.monitor("airnow"));
 		if (this.displayOptions.vozbox.value) monitorFilters.push(filters.monitor("vozbox"));
+		if (this.displayOptions.aqlite.value) monitorFilters.push(filters.monitor("aqlite"));
 		if (this.displayOptions.sjvair.value)
 			monitorFilters.push(filters.sjvPurpleair(), filters.monitor("airgradient"));
 		if (this.displayOptions.inside.value)
@@ -147,7 +149,8 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 				aqview: opts.aqview.value,
 				bam1022: opts.bam1022.value,
 				airnow: opts.airnow.value,
-				vozbox: opts.vozbox.value
+				vozbox: opts.vozbox.value,
+				aqlite: opts.aqlite.value
 			};
 			if (!(typeVisible[p.type] ?? true)) continue;
 

@@ -27,6 +27,9 @@ export function getIconId<T extends MonitorData>(monitor: T, level: SJVAirEntryL
 		case "vozbox":
 			return `${id}-circle`;
 
+		case "aqlite":
+			return `${id}-triangle`;
+
 		default:
 			throw new Error(`Map icon for ${monitor.device} has not been set`);
 	}
