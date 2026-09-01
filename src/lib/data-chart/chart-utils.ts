@@ -115,6 +115,7 @@ function getSeriesConfigs(monitorType: MonitorType) {
 		case "aqview":
 		case "bam1022":
 		case "vozbox":
+		case "aqlite":
 			return [baseXSeriesConfig, singleSeriesConfig];
 
 		case "airgradient":
