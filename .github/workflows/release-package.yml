@@ -6,6 +6,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     env:
       VITE_MAPTILER_KEY: ${{ secrets.VITE_MAPTILER_KEY }}
       VITE_NREL_KEY: ${{secrets.VITE_NREL_KEY }}
@@ -16,8 +19,7 @@ jobs:
         with:
           node-version: "20.x"
           registry-url: "https://registry.npmjs.org"
+      - run: npm install -g npm@latest
       - run: npm ci
       - run: npm run build:lib
-      - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm publish --access public --provenance
