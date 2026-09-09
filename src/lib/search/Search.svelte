@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
 	import { Marker } from "@maptiler/sdk";
-	import { SearchIcon } from "@lucide/svelte";
+	import { MapPinIcon, SearchIcon } from "@lucide/svelte";
 	import { useMonitorMapRouter } from "../router-context";
 	import { mapManager } from "$lib/map/map.svelte";
 	import { debounce } from "$lib/utils";
@@ -169,9 +169,9 @@
 				{@const comma = result.feature.place_name.indexOf(",")}
 				<button
 					onclick={() => selectGeocode(result)}
-					class="flex h-12 w-full items-center bg-white px-4 text-left hover:brightness-95"
+					class="flex h-12 w-full items-center gap-3 bg-white px-4 text-left hover:brightness-95"
 				>
-					<span class="svg-icon location-on bg-brand mr-3 h-6 w-6 shrink-0"></span>
+					<MapPinIcon class="text-brand h-6 w-6 shrink-0" />
 					<div class="min-w-0">
 						<p class="truncate text-sm font-medium">
 							{result.feature.place_name.substring(0, comma < 0 ? undefined : comma)}
