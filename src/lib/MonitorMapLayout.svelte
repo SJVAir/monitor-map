@@ -87,6 +87,7 @@
 	ready={monitorsManager.initialized}
 	{panelOpen}
 	knownRoutes={[`${basePath}/monitor/`]}
+	{basePath}
 >
 	{#snippet menu()}
 		<MonitorsDisplayOptions />

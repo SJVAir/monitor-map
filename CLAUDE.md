@@ -60,6 +60,19 @@ only the monitors integration, no EV stations/wind/HMS) should compose
 reference example of how to wire a manager, an integration list, and menu/
 overlay content into it.
 
+`MapShell` only needs monitor-map's router context (`useMonitorMapRouter`)
+when `routerEscapeHatch` is enabled (the default) and no `basePath` prop is
+passed directly — pass `routerEscapeHatch={false}` (or a `basePath` prop) to
+use `MapShell` standalone without a `provideMonitorMapRouter(...)` ancestor.
+A host embedding `MapShell` inside its own app with its own routing (e.g. a
+dashboard with unrelated tabs/navigation) **must** pass
+`routerEscapeHatch={false}`, since the escape-hatch's click interception is
+designed for a full-page map, not one embedded alongside unrelated app
+navigation, and will otherwise force full-page reloads on the host's own
+links. Mount at most one `MapShell` per app instance — its underlying
+map/load-screen/integration-registration state is module-level singleton
+state shared across the whole page.
+
 ### Monitor Data Flow
 
 1. **`App.svelte`** calls `monitorsManager.init()` and `collocationSitesManager.init()` on mount, which fetch metadata, monitor list, and latest readings from `@sjvair/sdk`

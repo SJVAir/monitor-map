@@ -25,6 +25,25 @@
 		overlays?: Snippet;
 		/** The routed detail panel content */
 		children?: Snippet;
+		/**
+		 * Base path to use for the sv-router escape-hatch's "known" root route.
+		 * If provided, used directly instead of reading `basePath` from
+		 * `useMonitorMapRouter()`. Only relevant when `routerEscapeHatch` is
+		 * enabled.
+		 */
+		basePath?: string;
+		/**
+		 * Whether to install the sv-router escape-hatch (`pageshow`/`click`
+		 * listeners that force a full-page navigation for links outside this
+		 * map's own routes). Defaults to `true`, preserving the existing
+		 * full-page-map behavior. When `true` and no `basePath` prop is given,
+		 * `MapShell` falls back to reading `basePath` from
+		 * `useMonitorMapRouter()`. Set to `false` to embed `MapShell` inside a
+		 * host app with its own routing — this also skips calling
+		 * `useMonitorMapRouter()` entirely, so no `provideMonitorMapRouter(...)`
+		 * ancestor is required.
+		 */
+		routerEscapeHatch?: boolean;
 	}
 </script>
 
@@ -42,10 +61,12 @@
 		knownRoutes = [],
 		menu,
 		overlays,
-		children
+		children,
+		basePath: providedBasePath,
+		routerEscapeHatch = true
 	}: MapShellProps = $props();
 
-	const { basePath } = useMonitorMapRouter();
+	const basePath = providedBasePath ?? (routerEscapeHatch ? useMonitorMapRouter().basePath : "");
 	const TRANSITION_MS = 300;
 
 	$effect(() => {
@@ -68,38 +89,42 @@
 	 * HACK: Fix for escaping sv-router and allowing navigation to other pages,
 	 * as well as navigating back
 	 */
-	const rootPath = basePath || "/";
+	if (routerEscapeHatch) {
+		const rootPath = basePath || "/";
 
-	window.addEventListener("pageshow", (e) => {
-		if (e.persisted) window.location.reload();
-	});
+		window.addEventListener("pageshow", (e) => {
+			if (e.persisted) window.location.reload();
+		});
 
-	document.addEventListener(
-		"click",
-		(e) => {
-			const anchor = e
-				.composedPath()
-				.find((el) => el instanceof HTMLAnchorElement) as HTMLAnchorElement;
-			if (!anchor) return;
-			const { pathname } = new URL(anchor.href);
-			const isKnown = pathname === rootPath || knownRoutes.some((r) => pathname.startsWith(r));
-			if (!isKnown) {
-				e.stopImmediatePropagation();
-				window.location.href = anchor.href;
-			}
-		},
-		{ capture: true }
-	);
+		document.addEventListener(
+			"click",
+			(e) => {
+				const anchor = e
+					.composedPath()
+					.find((el) => el instanceof HTMLAnchorElement) as HTMLAnchorElement;
+				if (!anchor) return;
+				const { pathname } = new URL(anchor.href);
+				const isKnown = pathname === rootPath || knownRoutes.some((r) => pathname.startsWith(r));
+				if (!isKnown) {
+					e.stopImmediatePropagation();
+					window.location.href = anchor.href;
+				}
+			},
+			{ capture: true }
+		);
+	}
 </script>
 
 <div class="relative flex h-full w-full flex-col md:flex-row">
 	<LoadScreen />
 	<div class="relative flex-1 overflow-hidden">
 		<Map {integrations} />
-		<div class="absolute top-4 left-4 z-10">
-			<Menu>{@render menu?.()}</Menu>
-		</div>
 		{@render overlays?.()}
+		{#if menu}
+			<div class="absolute top-4 left-4 z-10">
+				<Menu>{@render menu()}</Menu>
+			</div>
+		{/if}
 	</div>
 	<div
 		class={[
