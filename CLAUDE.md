@@ -42,6 +42,37 @@ The core architectural pattern is a plugin system for map features:
 
 New map features should extend one of these base classes rather than manipulating the map directly.
 
+### Modularization: `MapShell` vs `MonitorMapLayout`
+
+`MonitorMapLayout` (used by `monitorMapRoutes`) is a **thin, opinionated
+wrapper** around `MapShell` that wires up every integration, every manager,
+and the full display-options menu — this is what the widget build and
+`v3-mobile` use today, unchanged.
+
+`MapShell` is the **generic primitive** underneath it: it owns only layout
+concerns that don't know which integrations exist (load screen, panel
+resize/transition, the sv-router click escape-hatch) and takes
+`integrations`, `ready`, `panelOpen`, `knownRoutes`, and `menu`/`overlays`/
+`children` snippets as props. A host that wants a reduced feature set (e.g.
+only the monitors integration, no EV stations/wind/HMS) should compose
+`MapShell` directly instead of going through `monitorMapRoutes`/
+`MonitorMapLayout` — see `src/lib/MonitorMapLayout.svelte` itself as the
+reference example of how to wire a manager, an integration list, and menu/
+overlay content into it.
+
+`MapShell` only needs monitor-map's router context (`useMonitorMapRouter`)
+when `routerEscapeHatch` is enabled (the default) and no `basePath` prop is
+passed directly — pass `routerEscapeHatch={false}` (or a `basePath` prop) to
+use `MapShell` standalone without a `provideMonitorMapRouter(...)` ancestor.
+A host embedding `MapShell` inside its own app with its own routing (e.g. a
+dashboard with unrelated tabs/navigation) **must** pass
+`routerEscapeHatch={false}`, since the escape-hatch's click interception is
+designed for a full-page map, not one embedded alongside unrelated app
+navigation, and will otherwise force full-page reloads on the host's own
+links. Mount at most one `MapShell` per app instance — its underlying
+map/load-screen/integration-registration state is module-level singleton
+state shared across the whole page.
+
 ### Monitor Data Flow
 
 1. **`App.svelte`** calls `monitorsManager.init()` and `collocationSitesManager.init()` on mount, which fetch metadata, monitor list, and latest readings from `@sjvair/sdk`

@@ -55,6 +55,7 @@ export { hmsSmokeMapIntegration } from "./hms/hms-smoke-map-integration.svelte";
 
 // Components
 export { default as Map } from "./map/Map.svelte";
+export { default as MapShell, type MapShellProps } from "./map/MapShell.svelte";
 export { default as Menu } from "./map/Menu.svelte";
 export {
 	default as LoadScreen,
