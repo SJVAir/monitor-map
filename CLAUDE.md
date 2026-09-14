@@ -42,6 +42,24 @@ The core architectural pattern is a plugin system for map features:
 
 New map features should extend one of these base classes rather than manipulating the map directly.
 
+### Modularization: `MapShell` vs `MonitorMapLayout`
+
+`MonitorMapLayout` (used by `monitorMapRoutes`) is a **thin, opinionated
+wrapper** around `MapShell` that wires up every integration, every manager,
+and the full display-options menu — this is what the widget build and
+`v3-mobile` use today, unchanged.
+
+`MapShell` is the **generic primitive** underneath it: it owns only layout
+concerns that don't know which integrations exist (load screen, panel
+resize/transition, the sv-router click escape-hatch) and takes
+`integrations`, `ready`, `panelOpen`, `knownRoutes`, and `menu`/`overlays`/
+`children` snippets as props. A host that wants a reduced feature set (e.g.
+only the monitors integration, no EV stations/wind/HMS) should compose
+`MapShell` directly instead of going through `monitorMapRoutes`/
+`MonitorMapLayout` — see `src/lib/MonitorMapLayout.svelte` itself as the
+reference example of how to wire a manager, an integration list, and menu/
+overlay content into it.
+
 ### Monitor Data Flow
 
 1. **`App.svelte`** calls `monitorsManager.init()` and `collocationSitesManager.init()` on mount, which fetch metadata, monitor list, and latest readings from `@sjvair/sdk`
