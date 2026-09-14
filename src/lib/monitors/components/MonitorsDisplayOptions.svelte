@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MonitorsMeta, SJVAirMonitorDeviceMeta } from "@sjvair/sdk";
+	import type { MonitorsMeta } from "@sjvair/sdk";
 	import DisplayOption from "$lib/components/DisplayOption.svelte";
 	import SegmentedControl from "$lib/components/SegmentedControl.svelte";
 	import ToggleSwitch from "$lib/components/ToggleSwitch.svelte";
@@ -22,17 +22,28 @@
 		}
 	];
 
-	const monitorDisplayOptions = $derived.by(() => {
-		return Object.entries(monitorsMapIntegration.displayOptions).filter(
-			([key, opt]) =>
-				key === "inactive" ||
-				monitorsManager.meta?.asIter.monitors.some(
-					(m: SJVAirMonitorDeviceMeta) =>
-						m.label === opt.label &&
-						monitorsManager.pollutant &&
-						monitorsManager.pollutant in m.entries
-				)
+	// "inside" is a location filter (indoor vs outdoor), not tied to a monitor type or
+	// pollutant, so it's always shown, like "inactive".
+	const uiOnlyDisplayOptions = new Set(["inactive", "inside"]);
+
+	// "sjvair" (SJVAir non-FEM) isn't its own backend monitor type — it groups is_sjvair-flagged
+	// purpleair devices with airgradient devices (see monitorsMapIntegration.filters/featuresByType),
+	// so its visibility follows whichever of those two types supports the current pollutant.
+	const sjvairUnderlyingTypes = ["purpleair", "airgradient"];
+
+	function pollutantSupportedByType(type: string): boolean {
+		const deviceMeta = monitorsManager.meta?.monitors[type];
+		return (
+			!!deviceMeta && !!monitorsManager.pollutant && monitorsManager.pollutant in deviceMeta.entries
 		);
+	}
+
+	const monitorDisplayOptions = $derived.by(() => {
+		return Object.entries(monitorsMapIntegration.displayOptions).filter(([key]) => {
+			if (uiOnlyDisplayOptions.has(key)) return true;
+			if (key === "sjvair") return sjvairUnderlyingTypes.some(pollutantSupportedByType);
+			return pollutantSupportedByType(key);
+		});
 	});
 
 	$effect(() => {
