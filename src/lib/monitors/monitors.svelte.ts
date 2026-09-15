@@ -9,8 +9,9 @@ import {
 } from "@sjvair/sdk";
 import { XMap } from "@tstk/builtin-extensions";
 import { Interval } from "@tstk/utils";
+import type { MonitorsDataSource } from "./types";
 
-class MonitorsManager {
+class MonitorsManager implements MonitorsDataSource {
 	autoUpdate: Interval = new Interval(async () => await this.update(), 2 * 60 * 1000);
 	initialized: boolean = $state(false);
 

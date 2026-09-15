@@ -77,8 +77,23 @@ state shared across the whole page.
 
 1. **`App.svelte`** calls `monitorsManager.init()` and `collocationSitesManager.init()` on mount, which fetch metadata, monitor list, and latest readings from `@sjvair/sdk`
 2. **`monitorsManager`** (`src/lib/monitors/monitors.svelte.ts`) holds all reactive monitor state and runs a 2-minute auto-update interval
-3. **`MonitorsMapIntegration`** (`monitors-map-integration.svelte.ts`) is a `MapGeoJSONIntegration` subclass that derives GeoJSON features from `monitorsManager` via `$derived.by()`
-4. **`MonitorsIconManager`** generates and caches colored SVG icons (circle/square/triangle) keyed by color
+3. **`MonitorsMapIntegration`** (`monitors-map-integration.svelte.ts`) is a `MapGeoJSONIntegration` subclass that derives GeoJSON features from its injected `MonitorsDataSource` (default: `monitorsManager`) via `$derived.by()`
+4. **`MonitorsIconManager`** generates and caches colored SVG icons (circle/square/triangle) keyed by color, also driven by an injected `MonitorsDataSource`'s `levels`
+
+### `MonitorsDataSource`: reusing the monitors map display with different data
+
+`MonitorsMapIntegration` and `MonitorShapeIconManager` (the base class behind
+`MonitorsIconManager` and `CollocationIconManager`) don't hardcode `monitorsManager` —
+they take a `MonitorsDataSource` (`{ meta, pollutant, latest, levels }`, exported from
+`./monitors/types`) via their constructor, defaulting to `monitorsManager` when omitted.
+`monitorsManager` is the **live** implementation (auto-polling current readings); a host
+app can supply its own implementation of the same shape — e.g. one backed by historical
+summaries averaged over a date range instead of live readings — and construct
+`new MonitorsMapIntegration(myDataSource)` to reuse all of the clustering, icon
+rendering, filtering, and tooltip/click-handling logic against that different data,
+without forking any of it. This mirrors the `MapShell` split above: extract the
+generic primitive, keep the existing singleton as the default/live convenience
+instance.
 
 ### Svelte 5 Runes & State
 

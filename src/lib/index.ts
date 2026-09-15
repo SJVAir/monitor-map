@@ -45,7 +45,10 @@ export { mapManager, DefaultMapStyle, initializeMap } from "./map/map.svelte";
 export type { MapManager } from "./map/map.svelte";
 
 // Map integrations
-export { monitorsMapIntegration } from "./monitors/monitors-map-integration.svelte";
+export {
+	monitorsMapIntegration,
+	MonitorsMapIntegration
+} from "./monitors/monitors-map-integration.svelte";
 export { collocationSitesMapIntegration } from "./collocation-sites/collocations-map-integration.svelte";
 export { evStationsMapIntegration } from "./ev-stations/ev-stations-map-integration.svelte";
 export { windMapIntegration } from "./wind/wind.svelte";
@@ -78,7 +81,6 @@ export { MapIconLayerIntegration as MapGeoJSONIntegration } from "./map/integrat
 
 // Types
 export type { SomeMapIntegration } from "./map/integrations/types";
-export type { MonitorsMapIntegration } from "./monitors/monitors-map-integration.svelte";
 export type { WindMapIntegration } from "./wind/wind.svelte";
 export type { EvStationsMapIntegration } from "./ev-stations/ev-stations-map-integration.svelte";
 export type { HMSFireMapIntegration } from "./hms/hms-fire-map-integration.svelte";
@@ -88,7 +90,9 @@ export type {
 	MonitorMapFeature,
 	MonitorMarkerProperties,
 	MonitorClusterMapFeature,
-	MonitorClusterMarkerProperties
+	MonitorClusterMarkerProperties,
+	MonitorsDataSource,
+	MonitorsPollutant
 } from "./monitors/types";
 export type {
 	CollocationSiteMapFeature,

@@ -15,7 +15,7 @@ import { TooltipManager } from "$lib/map/integrations/tooltip.svelte";
 import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte";
 import { getCurrentLevel, getOrder } from "./monitor-utils";
 import { MonitorsClusterRenderer, monitorTooltip } from "./monitors-cluster-renderer";
-import type { MonitorMapFeature, MonitorMarkerProperties } from "./types";
+import type { MonitorMapFeature, MonitorMarkerProperties, MonitorsDataSource } from "./types";
 
 const filters = {
 	monitor(deviceType: MonitorType): ExpressionSpecification {
@@ -34,7 +34,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 	enabled: boolean = $state(true);
 	clustered: boolean = $state(true);
 
-	icons: MonitorsIconManager = new MonitorsIconManager();
+	icons: MonitorsIconManager;
 	tooltipManager: TooltipManager = new TooltipManager();
 	private renderer: MonitorsClusterRenderer = new MonitorsClusterRenderer(this);
 
@@ -72,13 +72,13 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 	};
 
 	features: Array<MonitorMapFeature> = $derived.by(() => {
-		if (!monitorsManager.meta || !monitorsManager.latest || !monitorsManager.pollutant) {
+		if (!this.dataSource.meta || !this.dataSource.latest || !this.dataSource.pollutant) {
 			return [];
 		}
-		const levels = monitorsManager.meta.entryType(monitorsManager.pollutant).asIter.levels;
+		const levels = this.dataSource.meta.entryType(this.dataSource.pollutant).asIter.levels;
 
 		return Array.from(
-			monitorsManager.latest.values().map((m) => {
+			this.dataSource.latest.values().map((m) => {
 				const feature: MonitorMapFeature = {
 					type: "Feature",
 					properties: {
@@ -163,8 +163,8 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 	});
 
 	clusterIconThresholds: Array<SJVAirEntryLevel> = $derived.by(() => {
-		if (!monitorsManager.meta || !monitorsManager.pollutant) return [];
-		return monitorsManager.meta.entryType(monitorsManager.pollutant).asIter.levels ?? [];
+		if (!this.dataSource.meta || !this.dataSource.pollutant) return [];
+		return this.dataSource.meta.entryType(this.dataSource.pollutant).asIter.levels ?? [];
 	});
 
 	get mapLayer(): Parameters<MaptilerMap["addLayer"]>[0] {
@@ -195,8 +195,9 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 		};
 	}
 
-	constructor() {
+	constructor(private dataSource: MonitorsDataSource = monitorsManager) {
 		super();
+		this.icons = new MonitorsIconManager(dataSource);
 
 		$effect.root(() => {
 			// Push filter changes to the active layer(s) imperatively
@@ -304,4 +305,4 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 }
 
 export const monitorsMapIntegration = new MonitorsMapIntegration();
-export type { MonitorsMapIntegration };
+export { MonitorsMapIntegration };
