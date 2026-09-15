@@ -61,7 +61,7 @@ export const initializeMap: Attachment<HTMLDivElement> = (container: string | HT
 		}
 	});
 
-	map.once("idle", () => {
+	map.once("load", () => {
 		mapManager.map = map;
 	});
 

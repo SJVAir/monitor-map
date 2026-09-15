@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
-	import { onDestroy } from "svelte";
+	import { onDestroy, untrack } from "svelte";
 	import MapShell from "$lib/map/MapShell.svelte";
 	import MonitorsDisplayOptions from "$lib/monitors/components/MonitorsDisplayOptions.svelte";
 	import MapLayersDisplayOptions from "$lib/components/MapLayersDisplayOptions.svelte";
@@ -54,10 +54,15 @@
 	// applies a later "?pollutant=" change (e.g. navigating in from elsewhere) to an already-running manager.
 	$effect(() => {
 		const urlPollutant = route.search.pollutant;
+		// Read monitorsManager.pollutant via untrack: this effect must only react to the URL
+		// changing (e.g. navigating in from elsewhere), not to monitorsManager.pollutant itself.
+		// Tracking it here would make a UI-driven pollutant change (e.g. the display-options
+		// toggle) re-trigger this effect before the manager->URL effect below can sync the URL,
+		// so this effect would see the still-stale URL and immediately revert the user's change.
 		if (
 			monitorsManager.initialized &&
 			(urlPollutant === "pm25" || urlPollutant === "o3") &&
-			monitorsManager.pollutant !== urlPollutant
+			untrack(() => monitorsManager.pollutant) !== urlPollutant
 		) {
 			monitorsManager.pollutant = urlPollutant;
 		}

@@ -70,8 +70,12 @@
 	const TRANSITION_MS = 300;
 
 	$effect(() => {
+		// mapManager.map is only ever assigned once its own initial "load" has
+		// already fired (see initializeMap in map.svelte.ts), so by the time this
+		// effect sees a non-null map, it's already safe to reveal — waiting for a
+		// further "idle" event here is unreliable since one may never fire again.
 		if (mapManager.map && ready) {
-			mapManager.map.once("idle", () => disableLoadScreen());
+			disableLoadScreen();
 		}
 	});
 
