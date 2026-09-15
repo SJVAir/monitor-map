@@ -1,6 +1,6 @@
 import {
 	getMonitors,
-	getMonitorsLatest,
+	getMonitorsList,
 	getMonitorsMeta,
 	type MonitorData,
 	type MonitorLatestType,
@@ -9,8 +9,9 @@ import {
 } from "@sjvair/sdk";
 import { XMap } from "@tstk/builtin-extensions";
 import { Interval } from "@tstk/utils";
+import type { MonitorsDataSource } from "./types";
 
-class MonitorsManager {
+class MonitorsManager implements MonitorsDataSource {
 	autoUpdate: Interval = new Interval(async () => await this.update(), 2 * 60 * 1000);
 	initialized: boolean = $state(false);
 
@@ -28,7 +29,7 @@ class MonitorsManager {
 	async init(urlPollutant?: string | number | boolean): Promise<void> {
 		if (this.initialized) return;
 
-		[this.list, this.meta] = await Promise.all([getMonitors(), getMonitorsMeta()]);
+		[this.list, this.meta] = await Promise.all([getMonitorsList(), getMonitorsMeta()]);
 
 		this.pollutant =
 			urlPollutant === "pm25" || urlPollutant === "o3" ? urlPollutant : this.meta.default_pollutant;
@@ -41,7 +42,7 @@ class MonitorsManager {
 		if (!this.initialized) return;
 
 		[this.list, this.latest] = await Promise.all([
-			getMonitors(),
+			getMonitorsList(),
 			getMonitorsLatestMap(this.pollutant || this.meta?.default_pollutant || "pm25")
 		]);
 	}
@@ -50,7 +51,7 @@ class MonitorsManager {
 async function getMonitorsLatestMap(
 	pollutant: "pm25" | "o3"
 ): Promise<XMap<string, MonitorLatestType<"pm25" | "o3">>> {
-	const monitors = await getMonitorsLatest(pollutant);
+	const monitors = await getMonitors(pollutant);
 	const latest = new XMap<string, MonitorLatestType<"pm25" | "o3">>();
 
 	for (const monitor of monitors) {

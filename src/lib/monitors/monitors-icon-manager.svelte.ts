@@ -2,7 +2,7 @@ import type { MonitorData, SJVAirEntryLevel } from "@sjvair/sdk";
 import { asDataURI, circle, square, triangle } from "$lib/map/icons";
 import { MapIconManager } from "$lib/map/integrations/map-icon-manager";
 import { mapManager } from "$lib/map/map.svelte";
-import { monitorsManager } from "./monitors.svelte";
+import type { MonitorsDataSource } from "./types";
 
 const MONITOR_ICONS = { circle, square, triangle };
 const MONITOR_ICON_BORDER_WIDTH = 2;
@@ -42,14 +42,14 @@ export abstract class MonitorShapeIconManager extends MapIconManager {
 		return 24;
 	}
 
-	constructor() {
+	constructor(private dataSource: Pick<MonitorsDataSource, "levels">) {
 		super();
 
 		$effect.root(() => {
 			$effect(() => {
-				if (monitorsManager.levels) {
+				if (this.dataSource.levels) {
 					const iconLevels = [
-						...monitorsManager.levels,
+						...this.dataSource.levels,
 						{ name: "default", color: MONITOR_ICON_DEFAULT_COLOR },
 						{ name: "display", color: MONITOR_ICON_DISPLAY_COLOR }
 					];

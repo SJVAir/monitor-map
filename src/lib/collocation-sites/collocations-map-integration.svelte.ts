@@ -22,7 +22,7 @@ class CollocationSitesMapIntegration extends MapIconLayerIntegration<Collocation
 	referenceId: string = "collocation-sites";
 	enabled: boolean = $state(false);
 
-	icons: CollocationIconManager = new CollocationIconManager();
+	icons: CollocationIconManager = new CollocationIconManager(monitorsManager);
 	tooltipManager: TooltipManager = new TooltipManager();
 
 	features: Array<CollocationSiteMapFeature> = $derived.by(() => {
