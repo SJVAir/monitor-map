@@ -19,6 +19,15 @@ function setCursorDefault() {
 export class TooltipManager {
 	static activeHandle: TooltipHandle | null = null;
 
+	/**
+	 * Host-controlled master switch. When false, enable() is a no-op
+	 * regardless of how many times or when internal code (e.g. a map
+	 * integration's apply()) calls it -- unlike isEnabled below, this is
+	 * checked fresh on every enable() call, so it can't be raced by an
+	 * apply() invocation that fires before a host sets this to false.
+	 */
+	enabled: boolean = true;
+
 	private isEnabled: boolean = false;
 	private _tooltips: XMap<string, TooltipHandle> = new XMap();
 
@@ -27,7 +36,7 @@ export class TooltipManager {
 	}
 
 	enable(layerId?: string) {
-		if (!mapManager.map || this.isEnabled) return;
+		if (!this.enabled || !mapManager.map || this.isEnabled) return;
 		mapManager.map.on("zoom", handleZoom);
 		this.forEachHandle(layerId, (h) => h.enable());
 		this.isEnabled = true;
