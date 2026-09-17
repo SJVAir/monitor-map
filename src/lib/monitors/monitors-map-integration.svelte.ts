@@ -33,6 +33,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 	referenceId: string = "monitors";
 	enabled: boolean = $state(true);
 	clustered: boolean = $state(true);
+	tooltipsEnabled: boolean = $state(true);
 
 	icons: MonitorsIconManager;
 	tooltipManager: TooltipManager = new TooltipManager();
@@ -269,13 +270,13 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			this.renderer.remove();
 			this.icons.loadIcons().then(() => {
 				this.renderer.apply(this.handleMonitorClick);
-				this.tooltipManager.enable();
+				if (this.tooltipsEnabled) this.tooltipManager.enable();
 				this.applySelectedState();
 			});
 		} else {
 			this.tooltipManager.disable();
 			this.renderer.remove();
-			this.tooltipManager.enable();
+			if (this.tooltipsEnabled) this.tooltipManager.enable();
 			clickManager.unregister([this.referenceId]);
 			super.apply();
 			this.icons.loadIcons().then(() => {
