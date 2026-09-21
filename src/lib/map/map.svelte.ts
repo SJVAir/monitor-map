@@ -61,7 +61,15 @@ export const initializeMap: Attachment<HTMLDivElement> = (container: string | HT
 		}
 	});
 
-	map.once("load", () => {
+	// "load" fires once the style and initial viewport tiles have loaded --
+	// in practice this can hang indefinitely (observed: never fires, even
+	// after 20+s, despite the style/tiles being independently fetchable) for
+	// reasons that don't affect "idle", which fires once the map has
+	// finished rendering after becoming idle. MapShell's own effect no
+	// longer waits for a *second* idle event to hide the load screen (see
+	// its comment), so listening for "idle" here doesn't reintroduce the
+	// hang that change was fixing.
+	map.once("idle", () => {
 		mapManager.map = map;
 	});
 
