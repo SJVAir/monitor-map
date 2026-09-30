@@ -164,6 +164,16 @@ to the next, even later in the same session or as the natural next step of a tas
 already in progress (e.g. bumping a dependency and then "finishing" by releasing it).
 Always stop and ask first, and wait for an explicit yes.
 
+## Known issues
+
+- **Case-insensitive name collision in `src/lib/map/`:** `Map.svelte` and
+  `map.svelte.ts` (→ `dist/lib/map/map.svelte.js`). ~19 files import the module
+  as `"./map.svelte"`, which on macOS resolves to the `Map.svelte` component and
+  fails with `MISSING_EXPORT mapManager`. Breaks any consumer building on a Mac
+  (sjvair-mobile's iOS CI works around it with a Vite plugin). Fix: rename the
+  module (e.g. `map-manager.svelte.ts`) and update its imports, then publish and
+  have sjvair-mobile drop its workaround.
+
 ## Code Style
 
 - **Tabs** for indentation (not spaces)
@@ -172,4 +182,5 @@ Always stop and ask first, and wait for an explicit yes.
 - Print width: 100 characters
 - Prettier + ESLint (flat config, v10); run `npm run format` before committing
 - Tailwind CSS v4 for styling; prefer utility classes and arbitrary values (`grid-cols-[2fr_1fr]`) over custom `<style>` blocks
+- Never give a component and a `.svelte.ts` module the same base name in one folder (`Foo.svelte` + `foo.svelte.ts`) — `./foo.svelte` matches the component on case-insensitive filesystems (macOS); import rune modules with their full extension (`./foo.svelte.js`)
 - Svelte's `class:` directive cannot handle Tailwind arbitrary values with brackets or colons — for simple toggles use a `$derived` class string; for complex multi-property responsive rules use a `<style>` block with semantic class names and `class:name={condition}`
