@@ -56,7 +56,7 @@ while `mapManager.styleLoading` is true: a basemap change is in flight, and the
 `MonitorMapLayout` (used by `monitorMapRoutes`) is a **thin, opinionated
 wrapper** around `MapShell` that wires up every integration, every manager,
 and the options toolbar/panel (`src/lib/options/`) and legend (`src/lib/legend/`) — this is what the widget build and
-`v3-mobile` use. 4.0.0 replaces the old display-options menu and legend components (and their
+the `sjvair-mobile` Capacitor app (`../mobile`) use. 4.0.0 replaces the old display-options menu and legend components (and their
 exports) with these.
 
 `MapShell` is the **generic primitive** underneath it: it owns only layout
@@ -153,20 +153,19 @@ alongside compiled `.ts`→`.js`; it deliberately leaves `.svelte` files
 themselves uncompiled (consumers must compile them with their own Svelte
 version — this is standard for published Svelte component libraries, not a gap).
 
-Two consequences for any consuming app:
+Consequences for any consuming app:
 
-- It must configure its own bundler alias so a bare `$lib`/`$lib/*` import
-  **originating from a file inside this package** resolves to this package's
-  own `dist/lib`, not the host app's `$lib`/`src/lib` — a plain global alias
-  string can't do this since it can't discriminate by importer. See
-  `v3-mobile`'s `mobile.vite.config.ts` (`monitorMapLibAlias()`) for the
-  reference implementation (a `resolveId` hook scoped by `importer` path).
+- No `$lib` alias is needed: `svelte-package` rewrites every internal `$lib`
+  import (including `.svelte` files and `<enhanced:img>` image paths) to a
+  relative path, so `dist/lib` contains no `$lib` references.
 - `LoadScreen.svelte` uses `<enhanced:img>`, which isn't valid HTML until the
   host app's own Vite config runs `@sveltejs/enhanced-img`'s `enhancedImages()`
   plugin — hence it's a `peerDependency`, not just a `devDependency` here.
-  `enhancedImages()`'s internal path resolution goes through the same Vite
-  `resolveId` chain as normal imports, so the scoped `$lib` alias above covers
-  its `$lib`-prefixed image paths too — no separate fix needed for that.
+- The app's Tailwind must scan this package for classes (e.g. sjvair-mobile's
+  `@source "../node_modules/@sjvair/monitor-map/dist/lib";`).
+- Until the macOS name collision below is fixed, a consumer building on macOS
+  needs a resolver workaround (sjvair-mobile's `monitorMapCaseFix()` in its
+  `vite.config.ts`).
 
 If you touch `vite.config.lib.ts` — it no longer exists; don't recreate it.
 
