@@ -25,6 +25,11 @@ class CollocationSitesMapIntegration extends MapIconLayerIntegration<Collocation
 	icons: CollocationIconManager = new CollocationIconManager(monitorsManager);
 	tooltipManager: TooltipManager = new TooltipManager();
 
+	/** The option only applies while monitors are shown with PM2.5. */
+	get available(): boolean {
+		return monitorsMapIntegration.enabled && monitorsManager.pollutant === "pm25";
+	}
+
 	features: Array<CollocationSiteMapFeature> = $derived.by(() => {
 		if (
 			!monitorsManager.meta ||
@@ -93,8 +98,10 @@ class CollocationSitesMapIntegration extends MapIconLayerIntegration<Collocation
 				mapManager.setDataSource(this.referenceId, features);
 			});
 
+			// Remove the layer while the option is unavailable (Ozone or Pollutant = None); restore
+			// it when it becomes available again if the user still has it checked.
 			$effect(() => {
-				if (monitorsManager.pollutant === "o3") {
+				if (!this.available) {
 					untrack(() => this.remove());
 				} else if (untrack(() => this.enabled)) {
 					untrack(() => this.apply());
@@ -104,6 +111,10 @@ class CollocationSitesMapIntegration extends MapIconLayerIntegration<Collocation
 	}
 
 	apply() {
+		if (!this.available) {
+			this.remove();
+			return;
+		}
 		if (!mapManager.map) return;
 
 		if (!this.tooltipManager.has(this.referenceId)) {
@@ -113,6 +124,11 @@ class CollocationSitesMapIntegration extends MapIconLayerIntegration<Collocation
 		this.tooltipManager.enable();
 
 		super.apply();
+	}
+
+	remove() {
+		this.tooltipManager.disable();
+		super.remove();
 	}
 }
 

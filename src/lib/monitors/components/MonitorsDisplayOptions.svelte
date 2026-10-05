@@ -26,11 +26,6 @@
 	// pollutant, so it's always shown, like "inactive".
 	const uiOnlyDisplayOptions = new Set(["inactive", "inside"]);
 
-	// "sjvair" (SJVAir non-FEM) isn't its own backend monitor type — it groups is_sjvair-flagged
-	// purpleair devices with airgradient devices (see monitorsMapIntegration.filters/featuresByType),
-	// so its visibility follows whichever of those two types supports the current pollutant.
-	const sjvairUnderlyingTypes = ["purpleair", "airgradient"];
-
 	function pollutantSupportedByType(type: string): boolean {
 		const deviceMeta = monitorsManager.meta?.monitors[type];
 		return (
@@ -41,7 +36,6 @@
 	const monitorDisplayOptions = $derived.by(() => {
 		return Object.entries(monitorsMapIntegration.displayOptions).filter(([key]) => {
 			if (uiOnlyDisplayOptions.has(key)) return true;
-			if (key === "sjvair") return sjvairUnderlyingTypes.some(pollutantSupportedByType);
 			return pollutantSupportedByType(key);
 		});
 	});

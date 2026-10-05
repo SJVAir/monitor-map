@@ -4,6 +4,16 @@ import type { HMSSmokeGeoJSON } from "@sjvair/sdk/hms";
 import { mapManager } from "$lib/map/map.svelte";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
 import { hmsManager } from "./hms.svelte";
+import type { SmokeDensityStyle } from "$lib/legend/legend-data";
+
+/** Smoke fill styles, shared by the map layer and the legend so they can't drift apart. */
+export const SMOKE_DENSITY_STYLES = {
+	light: { label: "Light", color: "#bfc8c3", opacity: 0.2 },
+	medium: { label: "Medium", color: "#757b78", opacity: 0.3 },
+	heavy: { label: "Heavy", color: "#333634", opacity: 0.4 }
+} satisfies Record<string, SmokeDensityStyle>;
+
+export const SMOKE_LEGEND: Array<SmokeDensityStyle> = Object.values(SMOKE_DENSITY_STYLES);
 
 type SmokeProperties = {
 	id: string;
@@ -36,20 +46,28 @@ class HMSSmokeMapIntegration extends MapGeoJSONIntegration<SmokeProperties> {
 					"match",
 					["get", "density"],
 					"light",
-					"#bfc8c3",
+					SMOKE_DENSITY_STYLES.light.color,
 					"medium",
-					"#757b78",
-					"#333634"
+					SMOKE_DENSITY_STYLES.medium.color,
+					SMOKE_DENSITY_STYLES.heavy.color
 				],
-				"fill-opacity": ["match", ["get", "density"], "light", 0.2, "medium", 0.3, 0.4],
+				"fill-opacity": [
+					"match",
+					["get", "density"],
+					"light",
+					SMOKE_DENSITY_STYLES.light.opacity,
+					"medium",
+					SMOKE_DENSITY_STYLES.medium.opacity,
+					SMOKE_DENSITY_STYLES.heavy.opacity
+				],
 				"fill-outline-color": [
 					"match",
 					["get", "density"],
 					"light",
-					"#bfc8c3",
+					SMOKE_DENSITY_STYLES.light.color,
 					"medium",
-					"#757b78",
-					"#333634"
+					SMOKE_DENSITY_STYLES.medium.color,
+					SMOKE_DENSITY_STYLES.heavy.color
 				]
 			}
 		};
