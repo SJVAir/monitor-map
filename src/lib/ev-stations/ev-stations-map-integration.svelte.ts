@@ -138,12 +138,15 @@ class EvStationsMapIntegration
 
 			// Every effect below early-returns while disabled so a data refresh can't re-add the layer.
 			// `enabled` is read untracked: the base class's own effect already applies/removes on
-			// enabled changes, and tracking it here would apply twice.
+			// enabled changes, and tracking it here would apply twice. The guard comes after each
+			// effect's tracked reads so its dependencies are always collected; returning before
+			// reading anything would leave the effect permanently dead.
+
 			// Push filter changes to the unclustered layer
 			$effect(() => {
-				if (!untrack(() => this.enabled)) return;
 				const filter = this.filters;
 				if (!mapManager.map || this.clustered) return;
+				if (!untrack(() => this.enabled)) return;
 				if (mapManager.map.getLayer(this.referenceId)) {
 					mapManager.map.setFilter(this.referenceId, filter);
 				}
@@ -151,26 +154,26 @@ class EvStationsMapIntegration
 
 			// Sync unclustered source when features change
 			$effect(() => {
-				if (!untrack(() => this.enabled)) return;
 				const features = this.features;
 				if (!mapManager.map || this.clustered) return;
+				if (!untrack(() => this.enabled)) return;
 				mapManager.setDataSource(this.referenceId, features);
 			});
 
 			// Sync clustered sources when featuresByLevel changes
 			$effect(() => {
-				if (!untrack(() => this.enabled)) return;
 				void this.featuresByLevel;
 				if (!mapManager.map || !this.clustered) return;
+				if (!untrack(() => this.enabled)) return;
 				this.renderer.syncFeatures();
 			});
 
 			// Re-apply when clustered mode switches or data first arrives
 			$effect(() => {
-				if (!untrack(() => this.enabled)) return;
 				void this.clustered;
 				const hasFeatures = Object.keys(this.featuresByLevel).length > 0;
 				if (!untrack(() => mapManager.map) || !hasFeatures) return;
+				if (!untrack(() => this.enabled)) return;
 				untrack(() => this.apply());
 			});
 		});

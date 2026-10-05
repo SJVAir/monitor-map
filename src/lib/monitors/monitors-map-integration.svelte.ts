@@ -201,13 +201,17 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			// Every effect below early-returns while disabled (Pollutant = None) so a data refresh
 			// can't re-add the layer. `enabled` is read untracked: the base class's own effect
 			// already applies/removes on enabled changes, and tracking it here would apply twice.
+			// The guard comes after each effect's tracked reads so its dependencies are always
+			// collected; returning before reading anything would leave the effect permanently dead.
+
 			// Push filter changes to the active layer(s) imperatively
 			$effect(() => {
-				if (!untrack(() => this.enabled)) return;
 				const filter = this.filters;
+				const clustered = this.clustered;
 				if (!mapManager.map) return;
+				if (!untrack(() => this.enabled)) return;
 
-				if (this.clustered) {
+				if (clustered) {
 					this.renderer.syncFilter();
 				} else {
 					if (mapManager.map.getLayer(this.referenceId)) {
@@ -218,25 +222,25 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 
 			// Sync unclustered source data when features change
 			$effect(() => {
-				if (!untrack(() => this.enabled)) return;
 				const features = this.features;
 				if (!mapManager.map || this.clustered) return;
+				if (!untrack(() => this.enabled)) return;
 				mapManager.setDataSource(this.referenceId, features);
 			});
 
 			// Keep cluster source data in sync when features or display options change
 			$effect(() => {
-				if (!untrack(() => this.enabled)) return;
 				void this.featuresByType;
 				if (!mapManager.map || !this.clustered) return;
+				if (!untrack(() => this.enabled)) return;
 				this.renderer.syncFeatures();
 			});
 
 			// Push updated icon expressions to cluster layers when the pollutant changes
 			$effect(() => {
-				if (!untrack(() => this.enabled)) return;
 				const thresholds = this.clusterIconThresholds;
 				if (!mapManager.map || !this.clustered || !thresholds.length) return;
+				if (!untrack(() => this.enabled)) return;
 				this.renderer.syncThresholds();
 			});
 
@@ -244,10 +248,10 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			// featuresByType is tracked so this fires once data is available; untrack on apply()
 			// prevents reactive reads inside it from leaking into this effect's dependency graph.
 			$effect(() => {
-				if (!untrack(() => this.enabled)) return;
 				void this.clustered;
 				const hasFeatures = Object.keys(this.featuresByType).length > 0;
 				if (!untrack(() => mapManager.map) || !hasFeatures) return;
+				if (!untrack(() => this.enabled)) return;
 				untrack(() => this.apply());
 			});
 
