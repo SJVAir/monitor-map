@@ -61,7 +61,7 @@
 			"max-md:pt-1 md:absolute md:top-full md:z-20 md:min-w-64 md:pt-1",
 			alignRight ? "md:right-0" : "md:left-0",
 			open ? "block" : "hidden",
-			!disabled && "md:group-hover/menu:block"
+			!disabled && "md:group-hover/menu:block md:group-has-[:focus-visible]/menu:block"
 		]}
 	>
 		<div class="py-1 md:max-h-[69vh] md:overflow-y-auto md:rounded-md md:bg-white md:shadow-lg">
