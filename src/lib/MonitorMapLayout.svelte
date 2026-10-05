@@ -97,22 +97,6 @@
 		}
 	});
 
-	// Refetch monitors when the pollutant changes after the initial load. Clearing first blanks
-	// the markers instead of briefly coloring them with the previous pollutant's readings.
-	let fetchedPollutant: string | null = null;
-	$effect(() => {
-		const pollutant = monitorsManager.pollutant;
-		if (!monitorsManager.initialized) return;
-		if (fetchedPollutant !== null && fetchedPollutant !== pollutant) {
-			untrack(() => {
-				monitorsManager.list = [];
-				monitorsManager.latest = null;
-				monitorsManager.update();
-			});
-		}
-		fetchedPollutant = pollutant;
-	});
-
 	// Clear selected icon scale when the detail panel closes
 	$effect(() => {
 		if (panelOpen) return;
