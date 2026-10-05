@@ -3,7 +3,7 @@
 	import type { Attachment } from "svelte/attachments";
 	import { MenuIcon, XIcon } from "@lucide/svelte";
 	import { provideOptionsMenus } from "./options-state.svelte.js";
-	import { isWideLayout } from "./layout";
+	import { isWideLayout, WIDE_LAYOUT_QUERY } from "./layout";
 
 	interface Props {
 		/** OptionsGroup / OptionsMenu content */
@@ -26,6 +26,18 @@
 		document.addEventListener("click", handler);
 		return () => document.removeEventListener("click", handler);
 	};
+
+	// Open menus mean different things in the toolbar (dropdowns) and the panel (expanded
+	// sections), so crossing the breakpoint (e.g. rotating a phone) starts from a closed state.
+	$effect(() => {
+		const query = window.matchMedia(WIDE_LAYOUT_QUERY);
+		function onchange() {
+			menus.closeAll();
+			panelOpen = false;
+		}
+		query.addEventListener("change", onchange);
+		return () => query.removeEventListener("change", onchange);
+	});
 
 	function onkeydown(e: KeyboardEvent) {
 		if (e.key !== "Escape") return;
