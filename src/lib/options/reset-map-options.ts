@@ -1,4 +1,3 @@
-import { tick } from "svelte";
 import { monitorsManager } from "$lib/monitors/monitors.svelte";
 import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte";
 import { collocationSitesMapIntegration } from "$lib/collocation-sites/collocations-map-integration.svelte";
@@ -20,8 +19,9 @@ export function resetMapOptions(): void {
 			hmsSmoke: hmsSmokeMapIntegration,
 			evStations: evStationsMapIntegration,
 			wind: windMapIntegration,
-			// Defer basemap reset until integration effects flush so layers re-enabled by this reset apply against the current loaded style before setStyle() loads a new one.
-			mapStyle: { reset: () => void tick().then(() => mapStyleState.reset()) }
+			// The basemap reset may start loading a new style; integrations skip the style while
+			// mapManager.styleLoading is set and the refresh on "style.load" re-applies them.
+			mapStyle: mapStyleState
 		},
 		monitorsManager.meta?.default_pollutant ?? null
 	);

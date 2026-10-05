@@ -38,6 +38,8 @@ export abstract class MapIconLayerIntegration<
 		if (!mapManager.map) return;
 
 		this.icons.loadIcons().then(() => {
+			// A basemap change started while icons loaded; the refresh on "style.load" re-applies.
+			if (mapManager.styleLoading) return;
 			this.removeLayerAndSource();
 			mapManager.map?.addSource(this.referenceId, this.mapSource);
 			super.apply();

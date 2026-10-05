@@ -14,12 +14,15 @@ export abstract class MapLayerIntegration extends MapIntegration {
 		// Each integration manages its own lifecycle. Tracking both mapManager.map and
 		// this.enabled means apply/remove fire automatically on map load and on enabled
 		// changes. untrack on the call itself prevents reactive reads inside apply/remove
-		// from leaking back into this effect's dependency graph.
+		// from leaking back into this effect's dependency graph. While a new basemap style is
+		// loading nothing is applied or removed: the refresh on "style.load" does both.
 		$effect.root(() => {
 			$effect(() => {
-				if (mapManager.map && this.enabled) {
+				const enabled = this.enabled;
+				if (!mapManager.map || mapManager.styleLoading) return;
+				if (enabled) {
 					untrack(() => this.apply());
-				} else if (mapManager.map && !this.enabled) {
+				} else {
 					untrack(() => this.remove());
 				}
 			});

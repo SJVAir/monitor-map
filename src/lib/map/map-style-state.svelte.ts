@@ -29,7 +29,11 @@ class MapStyleState {
 		if (!map || this.variant === this.applied) return;
 		this.applied = this.variant;
 		// setStyle wipes every custom source/layer; re-add enabled integrations once it loads.
-		map.once("style.load", () => integrationsManager.refresh());
+		map.once("style.load", () => {
+			mapManager.styleLoading = false;
+			integrationsManager.refresh();
+		});
+		mapManager.styleLoading = true;
 		map.setStyle(this.variant);
 	}
 }

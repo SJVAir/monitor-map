@@ -15,6 +15,12 @@ const excludeLayers = ["Sport", "Tourism", "Culture", "Shopping", "Food", "Trans
 
 class MapManager {
 	map: MaptilerMap | null = $state(null);
+	/**
+	 * True between `setStyle()` and the new style's "style.load". Plain (non-reactive) on purpose:
+	 * integrations skip touching the style while it's set, and the `integrationsManager.refresh()`
+	 * that runs on "style.load" applies/removes every integration afterwards.
+	 */
+	styleLoading: boolean = false;
 
 	setDataSource(sourceId: string, features: Array<Feature<Geometry, GeoJsonProperties>>): void {
 		const source = mapManager.map?.getSource(sourceId);
