@@ -11,7 +11,18 @@ export abstract class MapGeoJSONIntegration<
 	abstract mapSource: Parameters<MaptilerMap["addSource"]>[1];
 
 	remove() {
-		super.remove();
+		this.removeLayerAndSource();
+	}
+
+	/**
+	 * Removes only this integration's own layer and source. Non-virtual on purpose: `apply()`
+	 * paths call it to clear stale map state before re-adding, without triggering a subclass's
+	 * `remove()` override (which also tears down tooltips/click handlers that apply just set up).
+	 */
+	protected removeLayerAndSource(): void {
+		if (mapManager.map?.getLayer(this.referenceId)) {
+			mapManager.map.removeLayer(this.referenceId);
+		}
 		if (mapManager.map?.getSource(this.referenceId)) {
 			mapManager.map.removeSource(this.referenceId);
 		}
@@ -27,7 +38,7 @@ export abstract class MapIconLayerIntegration<
 		if (!mapManager.map) return;
 
 		this.icons.loadIcons().then(() => {
-			this.remove();
+			this.removeLayerAndSource();
 			mapManager.map?.addSource(this.referenceId, this.mapSource);
 			super.apply();
 		});
