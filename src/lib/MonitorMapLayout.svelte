@@ -100,12 +100,12 @@
 		<MapLayersDisplayOptions />
 		<MapStyleDisplayOptions />
 	{/snippet}
+	{#snippet search()}
+		<Search />
+	{/snippet}
 	{#snippet overlays()}
 		<div class="pointer-events-none absolute bottom-0 left-0 z-10">
 			<MapLegend />
-		</div>
-		<div class="absolute top-4 left-20 z-10">
-			<Search />
 		</div>
 	{/snippet}
 	{@render children()}

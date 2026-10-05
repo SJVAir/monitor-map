@@ -19,8 +19,10 @@
 		 * trigger the escape-hatch full-page navigation below.
 		 */
 		knownRoutes?: Array<string>;
-		/** Rendered inside the display-options menu toggle */
+		/** Menus (OptionsGroup/OptionsMenu) rendered inside the options toolbar/panel */
 		menu?: Snippet;
+		/** Rendered last in the toolbar (wide) or beside the menu button (narrow) */
+		search?: Snippet;
 		/** Freeform absolutely-positioned content over the map (legend, search, etc.) */
 		overlays?: Snippet;
 		/** The routed detail panel content */
@@ -50,7 +52,7 @@
 <script lang="ts">
 	import LoadScreen, { disable as disableLoadScreen } from "$lib/LoadScreen.svelte";
 	import Map from "$lib/map/Map.svelte";
-	import Menu from "$lib/map/Menu.svelte";
+	import OptionsBar from "$lib/options/OptionsBar.svelte";
 	import { mapManager } from "$lib/map/map.svelte";
 	import { useMonitorMapRouter } from "$lib/router-context";
 
@@ -60,6 +62,7 @@
 		panelOpen,
 		knownRoutes = [],
 		menu,
+		search,
 		overlays,
 		children,
 		basePath: providedBasePath,
@@ -124,10 +127,8 @@
 	<div class="relative flex-1 overflow-hidden">
 		<Map {integrations} />
 		{@render overlays?.()}
-		{#if menu}
-			<div class="absolute top-4 left-4 z-10">
-				<Menu>{@render menu()}</Menu>
-			</div>
+		{#if menu || search}
+			<OptionsBar {search}>{@render menu?.()}</OptionsBar>
 		{/if}
 	</div>
 	<div
