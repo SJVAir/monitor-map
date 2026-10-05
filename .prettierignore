@@ -2,3 +2,6 @@
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+
+# Specs and plans (hand-written docs; not formatted)
+docs/
