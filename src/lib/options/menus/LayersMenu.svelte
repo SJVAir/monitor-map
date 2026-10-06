@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FlameIcon, LayersIcon, PlugZapIcon } from "@lucide/svelte";
+	import { FlameIcon, LayersIcon, EvChargerIcon } from "@lucide/svelte";
 	import OptionsMenu from "../OptionsMenu.svelte";
 	import CheckboxRow from "../rows/CheckboxRow.svelte";
 	import SubmenuRow from "../rows/SubmenuRow.svelte";
@@ -31,7 +31,7 @@
 	</CheckboxRow>
 	<SubmenuRow label="EV Chargers" bind:checked={evStationsMapIntegration.enabled}>
 		{#snippet icon()}
-			<PlugZapIcon size={18} color="#708090" />
+			<EvChargerIcon size={18} color="#708090" />
 		{/snippet}
 		<CheckboxRow label="Level 2" bind:checked={evStationsMapIntegration.displayOptions.lvl2.value}>
 			{#snippet icon()}
