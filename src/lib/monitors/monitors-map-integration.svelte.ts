@@ -44,8 +44,8 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 		),
 		purpleair: new MapDisplayOption("PurpleAir", true, this.icons.get("outside-display-circle")),
 		vozbox: new MapDisplayOption("VOZbox", true, this.icons.get("outside-display-circle")),
-		inactive: new MapDisplayOption("Inactive", false, this.icons.get("outside-default-square")),
-		inside: new MapDisplayOption("Inside", false, this.icons.get("inside-display-square"))
+		inactive: new MapDisplayOption("Inactive", false, this.icons.get("outside-default-circle")),
+		inside: new MapDisplayOption("Inside", false, this.icons.get("inside-display-circle"))
 	}));
 
 	/** Set by the app to handle navigation when a monitor is clicked. Receives the monitor ID. */
