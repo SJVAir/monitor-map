@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BanIcon, HazeIcon, SunDimIcon } from "@lucide/svelte";
+	import { BanIcon } from "@lucide/svelte";
 	import OptionsMenu from "../OptionsMenu.svelte";
 	import RadioRow from "../rows/RadioRow.svelte";
 	import { useOptionsMenus } from "../options-state.svelte.js";
@@ -11,14 +11,18 @@
 	} from "../pollutant-param";
 	import { monitorsManager } from "$lib/monitors/monitors.svelte";
 	import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte";
+	import pm25Icon from "$lib/assets/icons/pm25/pm25-02-particle-field.svg";
+	import ozoneIcon from "$lib/assets/icons/ozone/ozone-08-sunrise-haze.svg";
 
 	interface PollutantOption {
 		value: PollutantSelection;
 		label: string;
 		unit?: string;
 		help?: string;
-		icon: typeof HazeIcon;
-		color: string;
+		/** Lucide component, or an image URL for multi-color SVG icons */
+		icon: typeof BanIcon | string;
+		/** Tint for Lucide icons; image icons carry their own colors */
+		color?: string;
 	}
 
 	const options: Array<PollutantOption> = [
@@ -27,16 +31,14 @@
 			label: "PM2.5",
 			unit: "µg/m³",
 			help: "Fine particles from smoke, dust, and vehicle exhaust.",
-			icon: HazeIcon,
-			color: "#bc8f8f"
+			icon: pm25Icon
 		},
 		{
 			value: "o3",
 			label: "Ozone",
 			unit: "ppb",
 			help: "Ground-level gas that forms in sunlight on hot days.",
-			icon: SunDimIcon,
-			color: "#daa520"
+			icon: ozoneIcon
 		},
 		{ value: "none", label: "None", icon: BanIcon, color: "#778899" }
 	];
@@ -57,9 +59,17 @@
 	}
 </script>
 
+{#snippet pollutantIcon(option: PollutantOption, size: number)}
+	{#if typeof option.icon === "string"}
+		<img src={option.icon} alt="" width={size} height={size} class="shrink-0" />
+	{:else}
+		<option.icon {size} color={option.color} />
+	{/if}
+{/snippet}
+
 <OptionsMenu id="pollutant" label={selected.label}>
 	{#snippet icon()}
-		<selected.icon size={20} color={selected.color} />
+		{@render pollutantIcon(selected, 20)}
 	{/snippet}
 	{#each options as option, i (option.value)}
 		{#if i > 0}<hr class="my-1 border-gray-200" />{/if}
@@ -72,7 +82,7 @@
 			onselect={() => select(option.value)}
 		>
 			{#snippet icon()}
-				<option.icon size={18} color={option.color} />
+				{@render pollutantIcon(option, 18)}
 			{/snippet}
 		</RadioRow>
 	{/each}
