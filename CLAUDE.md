@@ -13,9 +13,10 @@ npm run check        # Type-check Svelte components
 npm run check:watch  # Type-check in watch mode
 npm run lint         # Prettier check + ESLint
 npm run format       # Auto-format with Prettier
+npm test             # Vitest (pure logic in tests/**)
 ```
 
-No test framework is configured.
+Vitest covers the pure modules (`legend-data`, `group-state`, `pollutant-param`, `basemap`, `map-option-defaults`, `monitor-groups`); specs live in top-level `tests/` so they never ship in the package.
 
 ## Architecture Overview
 
@@ -42,23 +43,36 @@ The core architectural pattern is a plugin system for map features:
 
 New map features should extend one of these base classes rather than manipulating the map directly.
 
+Integration effect pattern: an integration's own `$effect`s that guard on `enabled` read it
+via `untrack` (the base `MapLayerIntegration` effect already applies/removes on `enabled`
+changes) — and that guard must come **after** the effect's tracked reads, or an early return
+leaves the effect with no dependencies and it never runs again. Integrations must not touch the
+style (add/remove sources or layers, register clicks — including inside `icons.loadIcons().then(...)`)
+while `mapManager.styleLoading` is true: a basemap change is in flight, and the
+`integrationsManager.refresh()` on `style.load` applies/removes every integration afterwards.
+
 ### Modularization: `MapShell` vs `MonitorMapLayout`
 
 `MonitorMapLayout` (used by `monitorMapRoutes`) is a **thin, opinionated
 wrapper** around `MapShell` that wires up every integration, every manager,
-and the full display-options menu — this is what the widget build and
-`v3-mobile` use today, unchanged.
+and the options toolbar/panel (`src/lib/options/`) and legend (`src/lib/legend/`) — this is what the widget build and
+the `sjvair-mobile` Capacitor app (`../mobile`) use. 4.0.0 replaces the old display-options menu and legend components (and their
+exports) with these.
 
 `MapShell` is the **generic primitive** underneath it: it owns only layout
 concerns that don't know which integrations exist (load screen, panel
 resize/transition, the sv-router click escape-hatch) and takes
-`integrations`, `ready`, `panelOpen`, `knownRoutes`, and `menu`/`overlays`/
+`integrations`, `ready`, `panelOpen`, `knownRoutes`, and `menu`/`search`/`overlays`/
 `children` snippets as props. A host that wants a reduced feature set (e.g.
 only the monitors integration, no EV stations/wind/HMS) should compose
 `MapShell` directly instead of going through `monitorMapRoutes`/
 `MonitorMapLayout` — see `src/lib/MonitorMapLayout.svelte` itself as the
 reference example of how to wire a manager, an integration list, and menu/
 overlay content into it.
+
+`MapShell`'s `menu` snippet renders inside `OptionsBar` — compose `OptionsGroup`/`OptionsMenu`/row components there; its `search` snippet is placed in the toolbar. The toolbar vs. full-screen panel switch is pure CSS at Tailwind `md`; only `isWideLayout()` (`src/lib/options/layout.ts`) is read at click time.
+
+The five exported menus (`PollutantMenu`, `MonitorsMenu`, `LayersMenu`, `OverlaysMenu`, `SettingsMenu`) are bound to the singleton managers/integrations; a host with a custom `MonitorsDataSource` composes `OptionsMenu` with the row components (`CheckboxRow`, `RadioRow`, `SubmenuRow`, `GroupRow`) instead.
 
 `MapShell` only needs monitor-map's router context (`useMonitorMapRouter`)
 when `routerEscapeHatch` is enabled (the default) and no `basePath` prop is
@@ -79,6 +93,8 @@ state shared across the whole page.
 2. **`monitorsManager`** (`src/lib/monitors/monitors.svelte.ts`) holds all reactive monitor state and runs a 2-minute auto-update interval
 3. **`MonitorsMapIntegration`** (`monitors-map-integration.svelte.ts`) is a `MapGeoJSONIntegration` subclass that derives GeoJSON features from its injected `MonitorsDataSource` (default: `monitorsManager`) via `$derived.by()`
 4. **`MonitorsIconManager`** generates and caches colored SVG icons (circle/square/triangle) keyed by color, also driven by an injected `MonitorsDataSource`'s `levels`
+
+Pollutant **None** is not a `monitorsManager.pollutant` value: it disables `monitorsMapIntegration` (URL `?pollutant=none`); see `src/lib/options/pollutant-param.ts`. The pollutant↔URL (`?pollutant=`) sync lives in `MonitorMapLayout`; the refetch when the pollutant changes after the initial load lives in `monitorsManager` itself, so any host changing `monitorsManager.pollutant` gets it.
 
 ### `MonitorsDataSource`: reusing the monitors map display with different data
 
@@ -137,20 +153,19 @@ alongside compiled `.ts`→`.js`; it deliberately leaves `.svelte` files
 themselves uncompiled (consumers must compile them with their own Svelte
 version — this is standard for published Svelte component libraries, not a gap).
 
-Two consequences for any consuming app:
+Consequences for any consuming app:
 
-- It must configure its own bundler alias so a bare `$lib`/`$lib/*` import
-  **originating from a file inside this package** resolves to this package's
-  own `dist/lib`, not the host app's `$lib`/`src/lib` — a plain global alias
-  string can't do this since it can't discriminate by importer. See
-  `v3-mobile`'s `mobile.vite.config.ts` (`monitorMapLibAlias()`) for the
-  reference implementation (a `resolveId` hook scoped by `importer` path).
+- No `$lib` alias is needed: `svelte-package` rewrites every internal `$lib`
+  import (including `.svelte` files and `<enhanced:img>` image paths) to a
+  relative path, so `dist/lib` contains no `$lib` references.
 - `LoadScreen.svelte` uses `<enhanced:img>`, which isn't valid HTML until the
   host app's own Vite config runs `@sveltejs/enhanced-img`'s `enhancedImages()`
   plugin — hence it's a `peerDependency`, not just a `devDependency` here.
-  `enhancedImages()`'s internal path resolution goes through the same Vite
-  `resolveId` chain as normal imports, so the scoped `$lib` alias above covers
-  its `$lib`-prefixed image paths too — no separate fix needed for that.
+- The app's Tailwind must scan this package for classes (e.g. sjvair-mobile's
+  `@source "../node_modules/@sjvair/monitor-map/dist/lib";`).
+- Until the macOS name collision below is fixed, a consumer building on macOS
+  needs a resolver workaround (sjvair-mobile's `monitorMapCaseFix()` in its
+  `vite.config.ts`).
 
 If you touch `vite.config.lib.ts` — it no longer exists; don't recreate it.
 
@@ -173,6 +188,22 @@ Always stop and ask first, and wait for an explicit yes.
   (sjvair-mobile's iOS CI works around it with a Vite plugin). Fix: rename the
   module (e.g. `map-manager.svelte.ts`) and update its imports, then publish and
   have sjvair-mobile drop its workaround.
+- **Stale cluster layers when toggling clustering during startup:** if Marker
+  Clusters is toggled while the first `icons.loadIcons()` is still pending, the
+  pending clustered `renderer.apply` in `MonitorsMapIntegration` /
+  `EvStationsMapIntegration` still fires afterwards, leaving cluster layers next
+  to the unclustered layer until the next toggle. Fix: re-check `this.clustered`
+  and `this.enabled` (or a generation token) inside the `loadIcons().then(...)`.
+- **`mapManager.styleLoading` has no recovery path:** it's set before
+  `setStyle()` in `mapStyleState` and only cleared on `style.load`. If a basemap
+  fails to load, every integration's base effect stays inert (layer toggles do
+  nothing) until a later style change succeeds. Fix: also clear it on the map's
+  `error` event (and/or a timeout), then call `integrationsManager.refresh()`.
+- **Escape doesn't close a keyboard-opened dropdown:** toolbar dropdowns also
+  open via `md:group-has-[:focus-visible]/menu:block` in `OptionsMenu.svelte`,
+  but Escape only clears the click-open state, so the dropdown stays visible
+  while its trigger keeps focus. Fix: blur the focused element inside the menu
+  on Escape (in `OptionsBar`'s keydown handler).
 
 ## Code Style
 

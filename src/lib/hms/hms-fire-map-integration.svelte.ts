@@ -89,7 +89,7 @@ class HMSFireMapIntegration extends MapIconLayerIntegration<FireProperties> {
 		this.icons
 			.loadIcons()
 			.then(() => {
-				if (!mapManager.map || !this.enabled) return;
+				if (!mapManager.map || !this.enabled || mapManager.styleLoading) return;
 				this.remove();
 				this.zoomedIn = mapManager.map.getZoom() >= ZOOM_THRESHOLD;
 				mapManager.map.addSource(this.referenceId, this.mapSource);

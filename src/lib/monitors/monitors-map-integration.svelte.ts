@@ -20,12 +20,6 @@ import type { MonitorMapFeature, MonitorMarkerProperties, MonitorsDataSource } f
 const filters = {
 	monitor(deviceType: MonitorType): ExpressionSpecification {
 		return ["==", ["get", "type"], deviceType];
-	},
-	purpleair(): ExpressionSpecification {
-		return ["all", ["==", ["get", "type"], "purpleair"], ["==", ["get", "is_sjvair"], false]];
-	},
-	sjvPurpleair(): ExpressionSpecification {
-		return ["all", ["==", ["get", "type"], "purpleair"], ["==", ["get", "is_sjvair"], true]];
 	}
 };
 
@@ -39,13 +33,17 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 	private renderer: MonitorsClusterRenderer = new MonitorsClusterRenderer(this);
 
 	displayOptions = $derived.by(() => ({
-		purpleair: new MapDisplayOption("PurpleAir", true, this.icons.get("outside-display-square")),
-		sjvair: new MapDisplayOption("SJVAir non-FEM", true, this.icons.get("outside-display-circle")),
-		aqview: new MapDisplayOption("AQview", true, this.icons.get("outside-display-triangle")),
-		bam1022: new MapDisplayOption("SJVAir FEM", true, this.icons.get("outside-display-triangle")),
 		airnow: new MapDisplayOption("AirNow", true, this.icons.get("outside-display-triangle")),
-		vozbox: new MapDisplayOption("VOZbox", true, this.icons.get("outside-display-circle")),
 		aqlite: new MapDisplayOption("AQLite", true, this.icons.get("outside-display-triangle")),
+		aqview: new MapDisplayOption("AQview", true, this.icons.get("outside-display-triangle")),
+		bam1022: new MapDisplayOption("SJVAir", true, this.icons.get("outside-display-triangle")),
+		airgradient: new MapDisplayOption(
+			"AirGradient",
+			true,
+			this.icons.get("outside-display-circle")
+		),
+		purpleair: new MapDisplayOption("PurpleAir", true, this.icons.get("outside-display-circle")),
+		vozbox: new MapDisplayOption("VOZbox", true, this.icons.get("outside-display-circle")),
 		inactive: new MapDisplayOption("Inactive", false, this.icons.get("outside-default-square")),
 		inside: new MapDisplayOption("Inside", false, this.icons.get("inside-display-square"))
 	}));
@@ -115,14 +113,13 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 		];
 		const statusFilters: ExpressionSpecification = ["any", ["==", ["get", "is_active"], true]];
 
-		if (this.displayOptions.purpleair.value) monitorFilters.push(filters.purpleair());
+		if (this.displayOptions.airnow.value) monitorFilters.push(filters.monitor("airnow"));
+		if (this.displayOptions.aqlite.value) monitorFilters.push(filters.monitor("aqlite"));
 		if (this.displayOptions.aqview.value) monitorFilters.push(filters.monitor("aqview"));
 		if (this.displayOptions.bam1022.value) monitorFilters.push(filters.monitor("bam1022"));
-		if (this.displayOptions.airnow.value) monitorFilters.push(filters.monitor("airnow"));
+		if (this.displayOptions.airgradient.value) monitorFilters.push(filters.monitor("airgradient"));
+		if (this.displayOptions.purpleair.value) monitorFilters.push(filters.monitor("purpleair"));
 		if (this.displayOptions.vozbox.value) monitorFilters.push(filters.monitor("vozbox"));
-		if (this.displayOptions.aqlite.value) monitorFilters.push(filters.monitor("aqlite"));
-		if (this.displayOptions.sjvair.value)
-			monitorFilters.push(filters.sjvPurpleair(), filters.monitor("airgradient"));
 		if (this.displayOptions.inside.value)
 			locationFilters.push(["==", ["get", "location"], "inside"]);
 		if (this.displayOptions.inactive.value) statusFilters.push(["==", ["get", "is_active"], false]);
@@ -131,8 +128,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 	});
 
 	// Groups features by monitor type for per-type cluster sources, applying display option
-	// filters so cluster aggregates only include visible monitors. sjvair purpleair is remapped
-	// to "airgradient" since they share the same shape (circle).
+	// filters so cluster aggregates only include visible monitors.
 	featuresByType: Record<string, MonitorMapFeature[]> = $derived.by(() => {
 		const opts = this.displayOptions;
 		const byType: Record<string, MonitorMapFeature[]> = {};
@@ -144,20 +140,19 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			if (p.location === "inside" && !opts.inside.value) continue;
 
 			const typeVisible: Partial<Record<MonitorType, boolean>> = {
-				purpleair: p.is_sjvair ? opts.sjvair.value : opts.purpleair.value,
-				airgradient: opts.sjvair.value,
+				airnow: opts.airnow.value,
+				aqlite: opts.aqlite.value,
 				aqview: opts.aqview.value,
 				bam1022: opts.bam1022.value,
-				airnow: opts.airnow.value,
-				vozbox: opts.vozbox.value,
-				aqlite: opts.aqlite.value
+				airgradient: opts.airgradient.value,
+				purpleair: opts.purpleair.value,
+				vozbox: opts.vozbox.value
 			};
 			if (!(typeVisible[p.type] ?? true)) continue;
 
-			const key = p.type === "purpleair" && p.is_sjvair ? "airgradient" : p.type;
-			const arr = byType[key] ?? [];
+			const arr = byType[p.type] ?? [];
 			arr.push(feat);
-			byType[key] = arr;
+			byType[p.type] = arr;
 		}
 		return byType;
 	});
@@ -200,12 +195,20 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 		this.icons = new MonitorsIconManager(dataSource);
 
 		$effect.root(() => {
+			// Every effect below early-returns while disabled (Pollutant = None) so a data refresh
+			// can't re-add the layer. `enabled` is read untracked: the base class's own effect
+			// already applies/removes on enabled changes, and tracking it here would apply twice.
+			// The guard comes after each effect's tracked reads so its dependencies are always
+			// collected; returning before reading anything would leave the effect permanently dead.
+
 			// Push filter changes to the active layer(s) imperatively
 			$effect(() => {
 				const filter = this.filters;
+				const clustered = this.clustered;
 				if (!mapManager.map) return;
+				if (!untrack(() => this.enabled)) return;
 
-				if (this.clustered) {
+				if (clustered) {
 					this.renderer.syncFilter();
 				} else {
 					if (mapManager.map.getLayer(this.referenceId)) {
@@ -218,6 +221,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			$effect(() => {
 				const features = this.features;
 				if (!mapManager.map || this.clustered) return;
+				if (!untrack(() => this.enabled)) return;
 				mapManager.setDataSource(this.referenceId, features);
 			});
 
@@ -225,6 +229,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			$effect(() => {
 				void this.featuresByType;
 				if (!mapManager.map || !this.clustered) return;
+				if (!untrack(() => this.enabled)) return;
 				this.renderer.syncFeatures();
 			});
 
@@ -232,6 +237,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			$effect(() => {
 				const thresholds = this.clusterIconThresholds;
 				if (!mapManager.map || !this.clustered || !thresholds.length) return;
+				if (!untrack(() => this.enabled)) return;
 				this.renderer.syncThresholds();
 			});
 
@@ -242,6 +248,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 				void this.clustered;
 				const hasFeatures = Object.keys(this.featuresByType).length > 0;
 				if (!untrack(() => mapManager.map) || !hasFeatures) return;
+				if (!untrack(() => this.enabled)) return;
 				untrack(() => this.apply());
 			});
 
@@ -268,6 +275,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			this.tooltipManager.disable();
 			this.renderer.remove();
 			this.icons.loadIcons().then(() => {
+				if (mapManager.styleLoading) return;
 				this.renderer.apply(this.handleMonitorClick);
 				this.tooltipManager.enable();
 				this.applySelectedState();
@@ -279,6 +287,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			clickManager.unregister([this.referenceId]);
 			super.apply();
 			this.icons.loadIcons().then(() => {
+				if (mapManager.styleLoading) return;
 				clickManager.register([this.referenceId], this.handleMonitorClick);
 				this.applySelectedState();
 			});
@@ -286,6 +295,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 	}
 
 	remove() {
+		this.tooltipManager.disable();
 		clickManager.unregister([this.referenceId]);
 		this.renderer.remove();
 		super.remove();

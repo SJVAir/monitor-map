@@ -6,7 +6,7 @@ SDK. It ships two ways:
 - **A code-split widget** (`npm run build`), embedded via a `<div id="SJVAirMonitorMap">`
   in a Django template on sjvair.com.
 - **A component library** (`npm run build:lib`, published to npm as
-  `@sjvair/monitor-map`), imported by the `v3-mobile` Capacitor app and by other SJVAir
+  `@sjvair/monitor-map`), imported by the `sjvair-mobile` Capacitor app and by other SJVAir
   projects (e.g. `data-dashboard`) that want to embed the map or reuse its map-display
   logic against their own data.
 
@@ -47,7 +47,7 @@ export const { route, navigate, p, isActive, Router } = createRouter({
 <Router />
 ```
 
-This is what the sjvair.com widget and `v3-mobile` use today, via `MonitorMapLayout`
+This is what the sjvair.com widget and `sjvair-mobile` use today, via `MonitorMapLayout`
 (the thin wrapper `monitorMapRoutes` points to).
 
 ### Embedding `MapShell` directly, with a reduced integration set

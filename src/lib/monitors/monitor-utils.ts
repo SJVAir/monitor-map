@@ -40,18 +40,14 @@ export function getOrder(monitor: MonitorData): number {
 
 export function getTypeShape(type: string): string {
 	switch (type) {
-		case "airgradient":
-			return "circle";
-
 		case "airnow":
 		case "aqview":
 		case "bam1022":
 		case "aqlite":
 			return "triangle";
 
+		case "airgradient":
 		case "purpleair":
-			return "square";
-
 		case "vozbox":
 			return "circle";
 

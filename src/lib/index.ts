@@ -59,7 +59,6 @@ export { hmsSmokeMapIntegration } from "./hms/hms-smoke-map-integration.svelte";
 // Components
 export { default as Map } from "./map/Map.svelte";
 export { default as MapShell, type MapShellProps } from "./map/MapShell.svelte";
-export { default as Menu } from "./map/Menu.svelte";
 export {
 	default as LoadScreen,
 	loadScreenState,
@@ -67,12 +66,37 @@ export {
 	disable as disableLoadScreen
 } from "./LoadScreen.svelte";
 export type { LoadScreenState } from "./LoadScreen.svelte";
-export { default as MonitorsDisplayOptions } from "./monitors/components/MonitorsDisplayOptions.svelte";
-export { default as EvStationsDisplayOptions } from "./ev-stations/components/EvStationsDisplayOptions.svelte";
-export { default as MapLayersDisplayOptions } from "./components/MapLayersDisplayOptions.svelte";
-export { default as MapStyleDisplayOptions } from "./map/MapStyleDisplayOptions.svelte";
-export { default as ToggleSwitch } from "./components/ToggleSwitch.svelte";
-export { default as SegmentedControl } from "./components/SegmentedControl.svelte";
+
+// Options toolbar / panel (compose these inside MapShell's `menu` snippet)
+export { default as OptionsBar } from "./options/OptionsBar.svelte";
+export { default as OptionsGroup } from "./options/OptionsGroup.svelte";
+export { default as OptionsMenu } from "./options/OptionsMenu.svelte";
+export { default as CheckboxRow } from "./options/rows/CheckboxRow.svelte";
+export { default as RadioRow } from "./options/rows/RadioRow.svelte";
+export { default as SubmenuRow } from "./options/rows/SubmenuRow.svelte";
+export { default as GroupRow } from "./options/rows/GroupRow.svelte";
+export { default as MarkerIcon } from "./options/rows/MarkerIcon.svelte";
+export { default as PollutantMenu } from "./options/menus/PollutantMenu.svelte";
+export { default as MonitorsMenu } from "./options/menus/MonitorsMenu.svelte";
+export { default as LayersMenu } from "./options/menus/LayersMenu.svelte";
+export { default as OverlaysMenu } from "./options/menus/OverlaysMenu.svelte";
+export { default as SettingsMenu } from "./options/menus/SettingsMenu.svelte";
+export { resetMapOptions } from "./options/reset-map-options";
+export { mapStyleState } from "./map/map-style-state.svelte.js";
+export type { MapStyleState } from "./map/map-style-state.svelte.js";
+
+// Legend
+export { default as Legend } from "./legend/Legend.svelte";
+export { default as LegendBar } from "./legend/LegendBar.svelte";
+export {
+	pollutantLegendSection,
+	fireSmokeLegendSections,
+	type LegendSection,
+	type LegendBarData,
+	type LegendCategory
+} from "./legend/legend-data";
+export { FIRE_LEGEND_CATEGORIES } from "./hms/hms-fire-icon-manager";
+export { SMOKE_LEGEND } from "./hms/hms-smoke-map-integration.svelte";
 
 // Integration base classes (extend these to add custom map features)
 export { MapIntegration } from "./map/integrations/map-integration.svelte";

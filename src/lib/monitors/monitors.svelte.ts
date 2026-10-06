@@ -9,6 +9,7 @@ import {
 } from "@sjvair/sdk";
 import { XMap } from "@tstk/builtin-extensions";
 import { Interval } from "@tstk/utils";
+import { untrack } from "svelte";
 import type { MonitorsDataSource } from "./types";
 
 class MonitorsManager implements MonitorsDataSource {
@@ -25,6 +26,27 @@ class MonitorsManager implements MonitorsDataSource {
 	levels: Array<SJVAirEntryLevel> | null = $derived(
 		this.meta?.entryType(this.pollutant ?? this.meta.default_pollutant).asIter.levels || null
 	);
+
+	constructor() {
+		// Refetch monitors when the pollutant changes after the initial load, wherever the change
+		// comes from (Pollutant menu, URL sync, a host's own UI). Clearing first blanks the markers
+		// instead of briefly coloring them with the previous pollutant's readings.
+		let fetchedPollutant: string | null = null;
+		$effect.root(() => {
+			$effect(() => {
+				const pollutant = this.pollutant;
+				if (!this.initialized) return;
+				if (fetchedPollutant !== null && fetchedPollutant !== pollutant) {
+					untrack(() => {
+						this.list = [];
+						this.latest = null;
+						this.update();
+					});
+				}
+				fetchedPollutant = pollutant;
+			});
+		});
+	}
 
 	async init(urlPollutant?: string | number | boolean): Promise<void> {
 		if (this.initialized) return;

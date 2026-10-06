@@ -26,7 +26,7 @@ class EvStationsMapIntegration
 	implements EvStationsClusterContext
 {
 	referenceId: string = "ev-stations";
-	enabled: boolean = $state(true);
+	enabled: boolean = $state(false);
 	clustered: boolean = $state(true);
 
 	icons: EvStationIconManager = new EvStationIconManager();
@@ -35,8 +35,8 @@ class EvStationsMapIntegration
 	private currentPopup: Popup | null = null;
 
 	displayOptions = $derived.by(() => ({
-		lvl2: new MapDisplayOption("Level 2", false, this.icons.get("ev-station-lvl2")!),
-		lvl3: new MapDisplayOption("Level 3", false, this.icons.get("ev-station-lvl3")!)
+		lvl2: new MapDisplayOption("Level 2", true, this.icons.get("ev-station-lvl2")!),
+		lvl3: new MapDisplayOption("Level 3", true, this.icons.get("ev-station-lvl3")!)
 	}));
 
 	features: Array<EvStationMapFeature> = $derived.by(() => {
@@ -115,23 +115,38 @@ class EvStationsMapIntegration
 		super();
 
 		$effect.root(() => {
-			// Lazy-fetch level data when integration is enabled and level is toggled on
+			// Lazy-fetch level data only once the integration is enabled and the level is on
 			$effect(() => {
-				if (this.displayOptions.lvl2.value && evStationsManager.lvl2Stations === undefined) {
+				if (
+					this.enabled &&
+					this.displayOptions.lvl2.value &&
+					evStationsManager.lvl2Stations === undefined
+				) {
 					evStationsManager.loadLvl2Stations();
 				}
 			});
 
 			$effect(() => {
-				if (this.displayOptions.lvl3.value && evStationsManager.lvl3Stations === undefined) {
+				if (
+					this.enabled &&
+					this.displayOptions.lvl3.value &&
+					evStationsManager.lvl3Stations === undefined
+				) {
 					evStationsManager.loadLvl3Stations();
 				}
 			});
+
+			// Every effect below early-returns while disabled so a data refresh can't re-add the layer.
+			// `enabled` is read untracked: the base class's own effect already applies/removes on
+			// enabled changes, and tracking it here would apply twice. The guard comes after each
+			// effect's tracked reads so its dependencies are always collected; returning before
+			// reading anything would leave the effect permanently dead.
 
 			// Push filter changes to the unclustered layer
 			$effect(() => {
 				const filter = this.filters;
 				if (!mapManager.map || this.clustered) return;
+				if (!untrack(() => this.enabled)) return;
 				if (mapManager.map.getLayer(this.referenceId)) {
 					mapManager.map.setFilter(this.referenceId, filter);
 				}
@@ -141,6 +156,7 @@ class EvStationsMapIntegration
 			$effect(() => {
 				const features = this.features;
 				if (!mapManager.map || this.clustered) return;
+				if (!untrack(() => this.enabled)) return;
 				mapManager.setDataSource(this.referenceId, features);
 			});
 
@@ -148,6 +164,7 @@ class EvStationsMapIntegration
 			$effect(() => {
 				void this.featuresByLevel;
 				if (!mapManager.map || !this.clustered) return;
+				if (!untrack(() => this.enabled)) return;
 				this.renderer.syncFeatures();
 			});
 
@@ -156,6 +173,7 @@ class EvStationsMapIntegration
 				void this.clustered;
 				const hasFeatures = Object.keys(this.featuresByLevel).length > 0;
 				if (!untrack(() => mapManager.map) || !hasFeatures) return;
+				if (!untrack(() => this.enabled)) return;
 				untrack(() => this.apply());
 			});
 		});
@@ -171,6 +189,7 @@ class EvStationsMapIntegration
 			this.tooltipManager.disable();
 			this.renderer.remove();
 			this.icons.loadIcons().then(() => {
+				if (mapManager.styleLoading) return;
 				this.renderer.apply(this.handleStationClick);
 				this.tooltipManager.enable();
 			});
@@ -180,6 +199,7 @@ class EvStationsMapIntegration
 			clickManager.unregister([this.referenceId]);
 			super.apply();
 			this.icons.loadIcons().then(() => {
+				if (mapManager.styleLoading) return;
 				clickManager.register([this.referenceId], this.handleStationClick);
 				this.tooltipManager.enable();
 			});

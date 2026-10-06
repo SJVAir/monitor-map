@@ -13,22 +13,16 @@ export function getIconId<T extends MonitorData>(monitor: T, level: SJVAirEntryL
 	const id = `${monitor.location}-${monitor.is_active ? level.name : "default"}`;
 
 	switch (monitor.type) {
-		case "airgradient":
-			return `${id}-circle`;
-
 		case "airnow":
 		case "aqview":
 		case "bam1022":
-			return `${id}-triangle`;
-
-		case "purpleair":
-			return `${id}-${monitor.is_sjvair ? "circle" : "square"}`;
-
-		case "vozbox":
-			return `${id}-circle`;
-
 		case "aqlite":
 			return `${id}-triangle`;
+
+		case "airgradient":
+		case "purpleair":
+		case "vozbox":
+			return `${id}-circle`;
 
 		default:
 			throw new Error(`Map icon for ${monitor.device} has not been set`);

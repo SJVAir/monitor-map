@@ -111,19 +111,19 @@
 
 <div
 	class={[
-		"flex flex-col overflow-hidden bg-white shadow-md transition-all duration-300 select-none",
-		collapsed ? "h-12 w-12 rounded-full" : "w-90 rounded-3xl",
-		!collapsed && results.length ? "max-h-90" : "max-h-12"
+		"flex flex-col overflow-hidden bg-white shadow transition-all duration-300 select-none",
+		collapsed ? "h-10 w-10 rounded-md" : "w-[min(22.5rem,calc(100vw-5.5rem))] rounded-lg",
+		!collapsed && results.length ? "max-h-90" : "max-h-10"
 	]}
 	use:clickOutside
 >
-	<div class="flex h-12 w-full shrink-0 items-center">
+	<div class="flex h-10 w-full shrink-0 items-center">
 		<button
-			class="bg-brand flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-4 border-white"
+			class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-gray-700"
 			onclick={openSearch}
 			aria-label="Open search"
 		>
-			<SearchIcon size="24" color="#FFFFFF" />
+			<SearchIcon size="20" />
 		</button>
 		<div class="flex h-full w-full items-center overflow-hidden">
 			<input
