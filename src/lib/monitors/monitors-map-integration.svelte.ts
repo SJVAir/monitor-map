@@ -42,7 +42,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			true,
 			this.icons.get("outside-display-circle")
 		),
-		purpleair: new MapDisplayOption("PurpleAir", true, this.icons.get("outside-display-square")),
+		purpleair: new MapDisplayOption("PurpleAir", true, this.icons.get("outside-display-circle")),
 		vozbox: new MapDisplayOption("VOZbox", true, this.icons.get("outside-display-circle")),
 		inactive: new MapDisplayOption("Inactive", false, this.icons.get("outside-default-square")),
 		inside: new MapDisplayOption("Inside", false, this.icons.get("inside-display-square"))
@@ -128,9 +128,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 	});
 
 	// Groups features by monitor type for per-type cluster sources, applying display option
-	// filters so cluster aggregates only include visible monitors. SJVAir-owned purpleair is
-	// clustered with "airgradient" since they share the same shape (circle); its visibility still
-	// follows the PurpleAir option.
+	// filters so cluster aggregates only include visible monitors.
 	featuresByType: Record<string, MonitorMapFeature[]> = $derived.by(() => {
 		const opts = this.displayOptions;
 		const byType: Record<string, MonitorMapFeature[]> = {};
@@ -152,10 +150,9 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			};
 			if (!(typeVisible[p.type] ?? true)) continue;
 
-			const key = p.type === "purpleair" && p.is_sjvair ? "airgradient" : p.type;
-			const arr = byType[key] ?? [];
+			const arr = byType[p.type] ?? [];
 			arr.push(feat);
-			byType[key] = arr;
+			byType[p.type] = arr;
 		}
 		return byType;
 	});
