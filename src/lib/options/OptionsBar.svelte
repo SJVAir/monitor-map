@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import type { Attachment } from "svelte/attachments";
-	import { MenuIcon, XIcon } from "@lucide/svelte";
+	import { SlidersHorizontalIcon, XIcon } from "@lucide/svelte";
 	import { provideOptionsMenus } from "./options-state.svelte.js";
 	import { isWideLayout, WIDE_LAYOUT_QUERY } from "./layout";
 
@@ -65,7 +65,7 @@
 				aria-controls={panelId}
 				onclick={() => (panelOpen = true)}
 			>
-				<MenuIcon size={22} />
+				<SlidersHorizontalIcon size={22} />
 			</button>
 			{#if search}
 				<div class="md:order-last">{@render search()}</div>
