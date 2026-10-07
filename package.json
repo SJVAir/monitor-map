@@ -37,7 +37,7 @@
 	],
 	"peerDependencies": {
 		"@internationalized/date": "^3.12.4",
-		"@sveltejs/enhanced-img": "^0.11.0",
+		"@sveltejs/enhanced-img": "^0.11.0 || ^1.0.0",
 		"bits-ui": "^2.19.2",
 		"sv-router": "^0.19.0",
 		"svelte": "^5.0.0"
@@ -46,7 +46,7 @@
 		"@eslint/compat": "^2.1.1",
 		"@eslint/js": "^10.0.1",
 		"@fontsource-variable/inter": "^5.3.0",
-		"@sveltejs/enhanced-img": "^0.11.0",
+		"@sveltejs/enhanced-img": "^1.0.0",
 		"@sveltejs/package": "^2.5.8",
 		"@sveltejs/vite-plugin-svelte": "^7.3.0",
 		"@tailwindcss/vite": "^4.3.3",
