@@ -39,7 +39,7 @@ export {
 
 // State managers
 export { monitorsManager } from "./monitors/monitors.svelte";
-export type { MonitorsManager } from "./monitors/monitors.svelte";
+export type { MonitorsManager, MonitorsInitOptions } from "./monitors/monitors.svelte";
 export { collocationSitesManager } from "./collocation-sites/collocations.svelte";
 export type { CollocationSitesManager } from "./collocation-sites/collocations.svelte";
 export { evStationsManager } from "./ev-stations/ev-stations.svelte";
