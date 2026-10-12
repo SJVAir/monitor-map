@@ -26,10 +26,11 @@ This is a **Svelte 5 + Vite** app that visualizes real-time air quality monitor 
 ### Entry & Routing
 
 - `src/main.ts` — mounts `App.svelte` into `#SJVAirMonitorMap`
-- `src/router.ts` — creates the sv-router instance (`createRouter`); exports `{ p, navigate, isActive, route }`
-- `src/App.svelte` — persistent shell: holds the map, menu overlays, and `<Router />` outlet. Uses a CSS grid with animated `grid-template-columns` / `grid-template-rows` to slide the detail panel in from the right (desktop, 2/3 + 1/3 split) or up from the bottom (mobile, 50/50). After the 300 ms CSS transition, calls `map.resize()` so MapTiler reflows.
-- `src/MonitorDetailPanel.svelte` — lazy-loaded via `() => import(...)` in the router; rendered at `/monitor/:id`
-- `src/MapView.svelte` — empty sentinel component for the `/` route (the map lives in `App.svelte`, not the outlet)
+- `src/router.ts` — creates the sv-router instance (`createRouter(monitorMapRoutes)`); exports `{ p, navigate, isActive, route }`
+- `src/App.svelte` — the widget's root: calls `provideMonitorMapRouter(...)` with `basePath: ""` and renders `<Router />`. Everything else lives in `src/lib/` and is shared with host apps.
+- `src/lib/routes.ts` — the eager `monitorMapRoutes` the widget uses: `MonitorMapLayout` as the layout, `MainMapView` at `/`, and `MonitorDetailPanel` at `/monitor/:id` as a lazy `() => import(...)`. `src/lib/lazy-routes.ts` is the on-demand variant for hosts (see Package entries).
+- `src/lib/MonitorMapLayout.svelte` — the layout: wires managers, integrations, menus and legend into `MapShell`, which holds the map and slides the routed detail panel in from the right (desktop, 2/3 + 1/3) or up from the bottom (mobile, 50/50), calling `map.resize()` after the 300 ms transition.
+- `src/lib/MainMapView.svelte` — empty sentinel component for the `/` route (the map lives in the layout, not the outlet)
 
 ### Integration Plugin System
 
@@ -102,7 +103,7 @@ state shared across the whole page.
 
 ### Monitor Data Flow
 
-1. **`App.svelte`** calls `monitorsManager.init()` and `collocationSitesManager.init()` on mount, which fetch metadata, monitor list, and latest readings from `@sjvair/sdk`
+1. **`MonitorMapLayout`** calls `monitorsManager.init()`, `collocationSitesManager.init()` and `hmsManager.init()` when it is created, which fetch metadata, monitor list, and latest readings from `@sjvair/sdk`
 2. **`monitorsManager`** (`src/lib/monitors/monitors.svelte.ts`) holds all reactive monitor state and runs a 2-minute auto-update interval
 3. **`MonitorsMapIntegration`** (`monitors-map-integration.svelte.ts`) is a `MapGeoJSONIntegration` subclass that derives GeoJSON features from its injected `MonitorsDataSource` (default: `monitorsManager`) via `$derived.by()`
 4. **`MonitorsIconManager`** generates and caches colored SVG icons (circle/square/triangle) keyed by color, also driven by an injected `MonitorsDataSource`'s `levels`

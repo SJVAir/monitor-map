@@ -98,18 +98,38 @@ map should pass `{ autoUpdate: false }` (`monitorsManager.init(undefined, { auto
 the map layout starts polling when it mounts. If any call sharing a run wants polling, it
 starts.
 
+### The monitor detail panel
+
+`/monitor/:id` under the map's routes opens a panel for that monitor. It loads the monitor
+itself, so a link works whatever pollutant the map is showing and needs no `?pollutant=`
+parameter: the panel shows the map's pollutant when the monitor reports it and otherwise the
+one it does report, saying so. An inactive monitor gets a panel with its past data and a
+note that it has no current readings; an unknown id gets "Monitor not found."
+
 ### Embedding `MapShell` directly, with a reduced integration set
 
 `MonitorMapLayout` is an opinionated wrapper around the lower-level `MapShell`
-component: it wires up every integration, every manager, and the full display-options
-menu. A host that only wants some of that — say, just the monitors integration, with no
+component: it wires up every integration, every manager, and the full options toolbar and
+legend. A host that only wants some of that — say, just the monitors integration, with no
 EV stations/wind/HMS — should compose `MapShell` directly instead:
 
 ```svelte
 <script>
-	import { MapShell, monitorsMapIntegration, monitorsManager, Menu } from "@sjvair/monitor-map";
+	import {
+		MapShell,
+		MonitorsMenu,
+		OptionsGroup,
+		PollutantMenu,
+		monitorsMapIntegration,
+		monitorsManager
+	} from "@sjvair/monitor-map";
 
-	monitorsManager.init();
+	let failed = $state(false);
+	function load() {
+		failed = false;
+		monitorsManager.init().catch(() => (failed = true));
+	}
+	load();
 </script>
 
 <MapShell
@@ -119,12 +139,24 @@ EV stations/wind/HMS — should compose `MapShell` directly instead:
 	routerEscapeHatch={false}
 >
 	{#snippet menu()}
-		<Menu>
-			<!-- display options for the integrations you included -->
-		</Menu>
+		<OptionsGroup>
+			<PollutantMenu />
+			<MonitorsMenu />
+		</OptionsGroup>
+	{/snippet}
+	{#snippet loadError()}
+		{#if failed}
+			<button onclick={load}>Couldn't load air monitors. Try again</button>
+		{/if}
 	{/snippet}
 </MapShell>
 ```
+
+The `menu` snippet renders inside the options toolbar; compose `OptionsGroup` with the
+exported menus (`PollutantMenu`, `MonitorsMenu`, `LayersMenu`, `OverlaysMenu`,
+`SettingsMenu`), or `OptionsMenu` with the row components for a custom data source. The
+optional `loadError` snippet renders on the load screen, under the logo, which stays up
+until `ready` is true; use it to show a failed initial load with a retry.
 
 See `src/lib/MonitorMapLayout.svelte` for the reference example of wiring a manager, an
 integration list, and menu/overlay content into `MapShell`.
@@ -203,13 +235,13 @@ npm run check        # Type-check Svelte components
 npm run check:watch  # Type-check in watch mode
 npm run lint         # Prettier check + ESLint
 npm run format       # Auto-format with Prettier
+npm test             # Vitest (specs in tests/**)
+npm run test:bundle  # build:lib, then check the light entries keep maplibre off the eager path
 ```
-
-No test framework is currently configured.
 
 ## Publishing
 
 Publishing to npm (`@sjvair/monitor-map`) happens via GitHub Actions
 (`.github/workflows/release-package.yml`) whenever a GitHub Release is published (or the
-workflow is triggered manually). Bump `version` in `package.json` before cutting the
-release.
+workflow is triggered manually). The workflow runs `npm test` and `npm run test:bundle`
+before publishing. Bump `version` in `package.json` before cutting the release.
