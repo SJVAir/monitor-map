@@ -13,10 +13,11 @@ npm run check        # Type-check Svelte components
 npm run check:watch  # Type-check in watch mode
 npm run lint         # Prettier check + ESLint
 npm run format       # Auto-format with Prettier
-npm test             # Vitest (pure logic in tests/**)
+npm test             # Vitest (specs in tests/**)
+npm run test:bundle  # build:lib, then check the light entries keep maplibre off the eager path
 ```
 
-Vitest covers the pure modules (`legend-data`, `group-state`, `pollutant-param`, `basemap`, `map-option-defaults`, `monitor-groups`); specs live in top-level `tests/` so they never ship in the package.
+Vitest covers the pure modules (`legend-data`, `group-state`, `pollutant-param`, `basemap`, `map-option-defaults`, `monitor-groups`) and `monitorsManager` (`tests/monitors/monitors-manager.test.ts`, with `@sjvair/sdk` mocked and the module re-imported per test); specs live in top-level `tests/` so they never ship in the package. `vitest.config.ts` loads the Svelte plugin so rune modules compile; they compile in server mode there, so `$effect`s do not run in specs.
 
 ## Architecture Overview
 
@@ -141,6 +142,37 @@ VITE_NREL_KEY=
 VITE_OPENWEATHERMAP_KEY=
 ```
 
+### Package entries
+
+`package.json` `exports` has three entries, all built by `svelte-package` into `dist/lib`:
+
+- `.` (`src/lib/index.ts`) — everything; its `monitorMapRoutes` (`src/lib/routes.ts`) is
+  eager. The widget build uses this.
+- `./core` (`src/lib/core.ts`) — router context and `monitorsManager` only. Nothing it
+  imports may reach `@maptiler/sdk`, `@maptiler/weather` or `uplot` at runtime.
+- `./routes` (`src/lib/lazy-routes.ts`) — `monitorMapRoutes` with a lazy layout and lazy
+  routes. Each must stay a literal `() => import("./X.svelte")`: sv-router detects lazy
+  components by regex on the function source.
+
+`core.ts` and `lazy-routes.ts` are pure re-exports/route tables of the modules `.` uses, so
+the singletons stay single across entries. `npm run test:bundle`
+(`tests/bundle/check-bundle.mjs`) bundles both entries from `dist/lib` and fails if maplibre,
+maptiler or uplot is reachable without a dynamic import, if an `exports` target is missing,
+or if a lazy route is not a literal `() => import(...)`; the release workflow runs it before
+publishing.
+
+### `monitorsManager.init()` rules
+
+`init()` is safe to call from several places. Overlapping calls share one promise; a
+rejection clears it so a later call retries. An explicit `"pm25"`/`"o3"` wins over a call
+without one regardless of order, and the most recent of two explicit values wins; if one
+arrives mid-run the run refetches the latest readings before setting `initialized`. The
+latest readings are requested in parallel with the list (chained off meta when no pollutant
+was given). Once initialized, `init()` is a no-op and `MonitorMapLayout`'s URL effect
+applies pollutant changes. `MonitorMapLayout` stops polling on destroy and calls
+`monitorsManager.resumeAutoUpdate()` on mount, which refreshes once and restarts polling
+only if it was stopped.
+
 ## Library Packaging (`build:lib`)
 
 `npm run build:lib` runs `svelte-package` (not a hand-rolled Vite/Rollup lib
@@ -194,6 +226,31 @@ Always stop and ask first, and wait for an explicit yes.
   but Escape only clears the click-open state, so the dropdown stays visible
   while its trigger keeps focus. Fix: blur the focused element inside the menu
   on Escape (in `OptionsBar`'s keydown handler).
+- **A data-only `monitorsManager.init()` starts polling:** `init()` always calls
+  `autoUpdate.start()`, so a host that initializes the manager in the background
+  without showing the map (sjvair-mobile, after My Air's first load) refetches
+  the ~1 MB monitor list every 2 minutes until the map has been opened and
+  closed once. Fix: an opt-out (e.g. `init(pollutant, { autoUpdate: false })`),
+  with `MonitorMapLayout` starting the poll itself.
+- **A rejected `monitorsManager.init()` leaves the load screen up:**
+  `MonitorMapLayout` calls `init()` without handling a rejection, so a failed
+  monitors request is an unhandled rejection and `ready` never becomes true.
+  Fix: catch it in the layout, show an error state with a retry (a later
+  `init()` call starts a fresh run).
+- **Blank outlet on a cold deep link with the lazy routes entry:** with
+  `@sjvair/monitor-map/routes`, the router outlet is empty until the layout
+  chunk loads, because `LoadScreen` lives inside that chunk. Fix, if it ever
+  shows: have the host warm the chunk with a dynamic import, or give hosts a
+  light placeholder to render while it loads.
+- **`monitorsManager`'s refetch effect is untested:** specs compile rune modules in
+  server mode, so the constructor `$effect` that refetches when `pollutant` changes
+  after init never runs in `tests/monitors/monitors-manager.test.ts`. Its dependence
+  on `#runInit` assigning `pollutant` and `latest` before setting `initialized` last
+  (otherwise init triggers a redundant refetch and blanks the map) is verified by
+  reading only. Test-only gap; the shipped code is correct. Fix: run that spec
+  client-compiled (a second Vitest project or per-file config with the browser
+  resolve condition, tests wrapped in `$effect.root` + `flushSync`) and add two
+  cases: init does not refetch, and a pollutant change after init refetches once.
 
 ## Code Style
 

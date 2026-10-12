@@ -1,7 +1,7 @@
 {
 	"name": "@sjvair/monitor-map",
 	"description": "SJVAir's interactive monitor map",
-	"version": "4.0.3",
+	"version": "4.1.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/SJVAir/monitor-map"
@@ -16,7 +16,8 @@
 		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"test": "vitest run"
+		"test": "vitest run",
+		"test:bundle": "npm run build:lib && node tests/bundle/check-bundle.mjs"
 	},
 	"type": "module",
 	"svelte": "./dist/lib/index.js",
@@ -26,6 +27,16 @@
 			"svelte": "./dist/lib/index.js",
 			"types": "./dist/lib/index.d.ts",
 			"default": "./dist/lib/index.js"
+		},
+		"./core": {
+			"svelte": "./dist/lib/core.js",
+			"types": "./dist/lib/core.d.ts",
+			"default": "./dist/lib/core.js"
+		},
+		"./routes": {
+			"svelte": "./dist/lib/lazy-routes.js",
+			"types": "./dist/lib/lazy-routes.d.ts",
+			"default": "./dist/lib/lazy-routes.js"
 		}
 	},
 	"files": [

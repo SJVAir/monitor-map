@@ -21,5 +21,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: npm install -g npm@latest
       - run: npm ci
-      - run: npm run build:lib
+      - run: npm test
+      # Builds dist/lib, then fails the release if the light entries reach maplibre.
+      - run: npm run test:bundle
       - run: npm publish --access public --provenance

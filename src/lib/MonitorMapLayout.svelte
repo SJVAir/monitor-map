@@ -62,6 +62,8 @@
 	}
 
 	monitorsManager.init(route.search.pollutant);
+	// A previous instance of this layout stopped polling in onDestroy; init() is a no-op by now.
+	monitorsManager.resumeAutoUpdate();
 	collocationSitesManager.init();
 	hmsManager.init();
 	monitorsMapIntegration.onMonitorClick = (id: string) => {
