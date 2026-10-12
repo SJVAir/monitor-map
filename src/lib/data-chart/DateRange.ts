@@ -1,4 +1,4 @@
-import { subDays, startOfDay, endOfDay, isToday } from "date-fns";
+import { subDays, startOfDay, endOfDay, isToday, parseISO } from "date-fns";
 import type { DateValue } from "@internationalized/date";
 
 export type DateRange = { start: string; end: string };
@@ -19,4 +19,14 @@ export function createDateRange(start?: DateValue, end?: DateValue): DateRange {
 		start: startDate.toISOString(),
 		end: endDate.toISOString()
 	};
+}
+
+/** Whether the range ends on the current calendar day, i.e. it can still gain entries. */
+export function includesToday(range: DateRange): boolean {
+	return isToday(parseISO(range.end));
+}
+
+/** The same range with its end moved to the present. */
+export function extendToNow(range: DateRange): DateRange {
+	return { start: range.start, end: new Date().toISOString() };
 }

@@ -1,14 +1,18 @@
-import { getMonitorEntries, type MonitorEntry, type MonitorLatestType } from "@sjvair/sdk";
+import { getMonitorEntries, type MonitorDetails, type MonitorEntry } from "@sjvair/sdk";
 import { getUnixTime, parseISO, differenceInMinutes, addMinutes } from "date-fns";
-import { monitorsManager } from "../monitors/monitors.svelte";
+import type { PanelPollutant } from "../monitors/panel-pollutant";
 import type { DateRange } from "./DateRange";
 
+/** The monitor fields the chart reads. */
+export type ChartMonitor = Pick<MonitorDetails, "id" | "name" | "type" | "data_source">;
+
 export async function fetchChartData(
-	m: MonitorLatestType<"pm25" | "o3">,
-	d: DateRange
+	m: ChartMonitor,
+	d: DateRange,
+	entryType: PanelPollutant
 ): Promise<uPlot.AlignedData> {
 	return await getMonitorEntries({
-		entryType: monitorsManager.pollutant ?? "pm25",
+		entryType,
 		monitorId: m.id,
 		timestampGte: d.start,
 		timestampLte: d.end

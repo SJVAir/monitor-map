@@ -17,7 +17,7 @@ npm test             # Vitest (specs in tests/**)
 npm run test:bundle  # build:lib, then check the light entries keep maplibre off the eager path
 ```
 
-Vitest covers the pure modules (`legend-data`, `group-state`, `pollutant-param`, `basemap`, `map-option-defaults`, `monitor-groups`) and `monitorsManager` (`tests/monitors/monitors-manager.test.ts`, with `@sjvair/sdk` mocked and the module re-imported per test), plus `mapStyleState` and `MapIconLayerIntegration` against a fake map (`tests/map/`); specs live in top-level `tests/` so they never ship in the package. `vitest.config.ts` loads the Svelte plugin so rune modules compile, and defines two projects. `server` (everything outside `tests/client/`) compiles them in server mode, so `$effect`s do not run in those specs. `client` (`tests/client/**`) uses the custom environment in `tests/client/environment.ts` to compile them for the client with Svelte's browser build, so `$effect`s run; it has no DOM, so it is for rune modules, not components. Svelte is inlined there, so after `vi.resetModules()` a spec must take `flushSync` from a fresh `await import("svelte")`.
+Vitest covers the pure modules (`legend-data`, `group-state`, `pollutant-param`, `basemap`, `map-option-defaults`, `monitor-groups`, `panel-pollutant`, `level-colors`, the `DateRange` helpers) and `monitorsManager` (`tests/monitors/monitors-manager.test.ts`, with `@sjvair/sdk` mocked and the module re-imported per test), `MonitorDetailsState` (`tests/monitors/monitor-details.test.ts`), plus `mapStyleState` and `MapIconLayerIntegration` against a fake map (`tests/map/`); specs live in top-level `tests/` so they never ship in the package. `vitest.config.ts` loads the Svelte plugin so rune modules compile, and defines two projects. `server` (everything outside `tests/client/`) compiles them in server mode, so `$effect`s do not run in those specs. `client` (`tests/client/**`) uses the custom environment in `tests/client/environment.ts` to compile them for the client with Svelte's browser build, so `$effect`s run; it has no DOM, so it is for rune modules, not components. Svelte is inlined there, so after `vi.resetModules()` a spec must take `flushSync` from a fresh `await import("svelte")`.
 
 ## Architecture Overview
 
@@ -106,6 +106,7 @@ state shared across the whole page.
 2. **`monitorsManager`** (`src/lib/monitors/monitors.svelte.ts`) holds all reactive monitor state and runs a 2-minute auto-update interval
 3. **`MonitorsMapIntegration`** (`monitors-map-integration.svelte.ts`) is a `MapGeoJSONIntegration` subclass that derives GeoJSON features from its injected `MonitorsDataSource` (default: `monitorsManager`) via `$derived.by()`
 4. **`MonitorsIconManager`** generates and caches colored SVG icons (circle/square/triangle) keyed by color, also driven by an injected `MonitorsDataSource`'s `levels`
+5. **`MonitorDetailPanel`** does not read `monitorsManager.latest`: it owns a `MonitorDetailsState` (`monitors/monitor-details.svelte.ts`) that fetches its monitor with `getMonitorDetails(id)`, so it can show a monitor that has no reading for the map's pollutant, or is inactive. `choosePanelPollutant` (`monitors/panel-pollutant.ts`) picks what it shows: the map's pollutant when the monitor has it, otherwise the one it has. Only an active monitor's readings count as current: the API keeps returning an inactive monitor's last reading, however old. The panel re-fetches its monitor whenever `monitorsManager.latest` is replaced; `DataChart` takes `pollutant` and `refreshTick` props and reloads on a tick only while its date range is live (ended on the day it was chosen). Inside `DataChart`, effects that should react to a prop's value read it through a `$derived`, because the panel recomputes what it passes on every refresh.
 
 Pollutant **None** is not a `monitorsManager.pollutant` value: it disables `monitorsMapIntegration` (URL `?pollutant=none`); see `src/lib/options/pollutant-param.ts`. The pollutant↔URL (`?pollutant=`) sync lives in `MonitorMapLayout`; the refetch when the pollutant changes after the initial load lives in `monitorsManager` itself, so any host changing `monitorsManager.pollutant` gets it.
 
@@ -231,7 +232,34 @@ Always stop and ask first, and wait for an explicit yes.
 
 ## Known issues
 
-None currently.
+All minor, deferred from the review of the detail panel's own-data change (PR #122):
+
+- **The chart is rebuilt on every monitor refresh:** `DataChart`'s rebuild effect calls
+  `rebuild` synchronously, so it tracks `monitor` (via `monitor.type`), `colors` and
+  `pollutantLabel`. Each `details.refresh()` destroys and recreates uPlot even when no chart
+  data changed. That incidental tracking is also the only thing that redraws on a color or
+  label change. Fix: read `monitor.type` through a `$derived` and list `colors` and
+  `pollutantLabel` in the effect explicitly.
+- **The data box parses readings with `parseInt`:** `readingPollutants` accepts anything
+  `Number()` finds finite, but `MonitorDetailPanel` renders `Math.round(parseInt(value, 10))`.
+  A value like `".5"` would show `NaN` and `"1e3"` would show `1`; the API's `"0.00"`-style
+  decimals are unaffected. `parseInt` also truncates, so `4.93` shows `4`. Fix:
+  `Math.round(Number(reading.value))`, if rounding is the intended display.
+- **A reading with no matching level crashes the data box:** when `getCurrentLevel` finds no
+  level (e.g. a negative value) the panel passes `color: ""`, and `DataBox`'s `darken("")`
+  throws. Predates PR #122; not known to occur with real data. Fix: fall back to a neutral
+  color.
+- **The chart's title and axis label are hardcoded:** `DataChart` uses "PM 2.5" / "Ozone"
+  rather than `meta.entryType(pollutant).label`, which the panel's note and data box use
+  ("PM2.5"). Fix: take the label from the metadata.
+- **A monitor with no current readings still shows the widget link, the subscription manager
+  and a temperature box:** the spec listed only name, badges, the no-readings line, chart and
+  data providers for that state. Decide whether those belong there; the widget itself errors
+  for an inactive monitor (a backend widget bug).
+- **The chart's refresh logic and the panel's effects are untested:** `DataChart`'s request
+  guard, background (`silent`) refresh and `live` flag, and `MonitorDetailPanel`'s load,
+  refresh and temperature effects, were verified in a browser only. Fix: component specs in
+  the `client` Vitest project, which would need a DOM environment.
 
 ## Code Style
 

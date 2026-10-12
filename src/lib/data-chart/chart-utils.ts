@@ -1,19 +1,10 @@
-import { monitorsManager } from "../monitors/monitors.svelte";
+import type { LevelColors } from "./level-colors";
 import { tooltipsPlugin, uPlotCursorConfig } from "./tooltip";
 import { fromUnixTime, getUnixTime, isToday, isAfter } from "date-fns";
 import type uPlot from "uplot";
 import type { MonitorType } from "@sjvair/sdk";
 
 const PM25_AVG_60_STROKE = "3572b0";
-
-function getColors(): Array<[number, string]> {
-	const levels = monitorsManager.levels ?? [];
-	const colors = levels.map((level) => [level.range[0], level.color.replace(/^#/, "")]) as Array<
-		[number, string]
-	>;
-	colors.push([Infinity, "000000"]);
-	return colors;
-}
 
 const baseXSeriesConfig = {};
 
@@ -23,26 +14,33 @@ const baseYSeriesConfig = {
 	width: 1
 };
 
-const pm25SeriesConfig = {
+/** The level stops plus a final black stop, so values above the top level still get a color. */
+function gradientStops(colors: LevelColors): LevelColors {
+	return [...colors, [Infinity, "000000"]];
+}
+
+const pm25SeriesConfig = (stops: LevelColors) => ({
 	...baseYSeriesConfig,
 	label: "Real Time",
 	width: 2,
-	stroke: (u: uPlot) => scaleGradient(u, "y", 1, getColors(), true)
-};
+	stroke: (u: uPlot) => scaleGradient(u, "y", 1, stops, true)
+});
 
-const pm25Avg60SeriesConfig = {
+const pm25Avg60SeriesConfig = (stops: LevelColors) => ({
 	...baseYSeriesConfig,
 	label: "60 Minute Average",
-	stroke: (u: uPlot) => autograd(u, PM25_AVG_60_STROKE)
-};
+	stroke: (u: uPlot) => autograd(u, PM25_AVG_60_STROKE, stops)
+});
 
 export function getChartConfig(
 	sourceName: MonitorType,
 	maxDiff: number,
 	width: number,
-	height: number
+	height: number,
+	colors: LevelColors,
+	label: string
 ): uPlot.Options {
-	const series: Array<uPlot.Series> = getSeriesConfigs(sourceName);
+	const series: Array<uPlot.Series> = getSeriesConfigs(sourceName, gradientStops(colors));
 	const getStroke = (u: uPlot, sIdx: number): string => {
 		const stroke = series[sIdx].stroke! as (u: uPlot, sIdx: number) => string | CanvasGradient;
 		return stroke(u, sIdx) as string;
@@ -51,7 +49,7 @@ export function getChartConfig(
 	return {
 		width,
 		height,
-		cursor: uPlotCursorConfig.get(),
+		cursor: uPlotCursorConfig.get(colors),
 		// @ts-expect-error: select missing pseudo "required" options
 		select: {
 			show: false
@@ -94,7 +92,7 @@ export function getChartConfig(
 				}
 			},
 			{
-				label: monitorsManager.pollutant === "pm25" ? "PM 2.5" : "Ozone",
+				label,
 				side: 3,
 				values: (_: uPlot, ticks: number[]) =>
 					ticks.map((v: number) => v.toFixed(maxDiff < 5 ? 1 : 0))
@@ -106,9 +104,8 @@ export function getChartConfig(
 	};
 }
 
-function getSeriesConfigs(monitorType: MonitorType) {
-	const singleSeriesConfig = Object.assign({}, pm25Avg60SeriesConfig);
-	singleSeriesConfig.width = 2;
+function getSeriesConfigs(monitorType: MonitorType, stops: LevelColors) {
+	const singleSeriesConfig = { ...pm25Avg60SeriesConfig(stops), width: 2 };
 
 	switch (monitorType) {
 		case "airnow":
@@ -120,15 +117,15 @@ function getSeriesConfigs(monitorType: MonitorType) {
 
 		case "airgradient":
 		case "purpleair":
-			return [baseXSeriesConfig, pm25SeriesConfig];
+			return [baseXSeriesConfig, pm25SeriesConfig(stops)];
 	}
 }
 
-function autograd(u: uPlot, fallback: string) {
+function autograd(u: uPlot, fallback: string, stops: LevelColors) {
 	if (u.series.length > 2) {
 		return fallback;
 	}
-	return scaleGradient(u, "y", 1, getColors(), true);
+	return scaleGradient(u, "y", 1, stops, true);
 }
 
 function scaleGradient(
