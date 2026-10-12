@@ -61,7 +61,19 @@
 		monitorsMapIntegration.enabled = false;
 	}
 
-	monitorsManager.init(route.search.pollutant);
+	// The load screen stays up until the monitors load, so a failure has to be shown on it.
+	let loadFailed = $state(false);
+
+	function loadMonitors() {
+		loadFailed = false;
+		// A rejected init() can be retried: a later call starts a fresh run.
+		monitorsManager.init(route.search.pollutant).catch((error) => {
+			console.error(error);
+			loadFailed = true;
+		});
+	}
+
+	loadMonitors();
 	// A previous instance of this layout stopped polling in onDestroy; init() is a no-op by now.
 	monitorsManager.resumeAutoUpdate();
 	collocationSitesManager.init();
@@ -129,6 +141,20 @@
 	knownRoutes={[`${basePath}/monitor/`]}
 	{basePath}
 >
+	{#snippet loadError()}
+		{#if loadFailed}
+			<div class="flex flex-col items-center gap-3 px-4 text-center" role="alert">
+				<p class="text-gray-700">Couldn't load air monitors.</p>
+				<button
+					type="button"
+					class="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+					onclick={loadMonitors}
+				>
+					Try again
+				</button>
+			</div>
+		{/if}
+	{/snippet}
 	{#snippet menu()}
 		<OptionsGroup>
 			<PollutantMenu />
