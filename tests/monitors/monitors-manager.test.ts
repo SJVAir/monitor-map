@@ -230,3 +230,29 @@ describe("monitorsManager.resumeAutoUpdate", () => {
 		expect(manager.autoUpdate.isActive).toBe(true);
 	});
 });
+
+describe("monitorsManager.update", () => {
+	it("drops a response for a pollutant that is no longer selected", async () => {
+		await manager.init();
+		const stale = deferred<ReturnType<typeof readings>>();
+		sdk.getMonitors.mockReturnValueOnce(stale.promise);
+
+		const update = manager.update();
+		manager.pollutant = "o3";
+		manager.latest = null;
+		stale.resolve(readings("pm25"));
+		await update;
+
+		expect(manager.latest).toBeNull();
+	});
+
+	it("applies a response for the pollutant that is still selected", async () => {
+		await manager.init();
+		sdk.getMonitorsList.mockResolvedValue([{ id: "a" }, { id: "b" }]);
+
+		await manager.update();
+
+		expect(manager.list).toEqual([{ id: "a" }, { id: "b" }]);
+		expect(manager.latest?.get("a")).toEqual({ id: "a", pollutant: "pm25" });
+	});
+});

@@ -121,10 +121,18 @@ class MonitorsManager implements MonitorsDataSource {
 	async update(): Promise<void> {
 		if (!this.initialized) return;
 
-		[this.list, this.latest] = await Promise.all([
+		const pollutant = this.pollutant;
+		const [list, latest] = await Promise.all([
 			getMonitorsList(),
-			getMonitorsLatestMap(this.pollutant || this.meta?.default_pollutant || "pm25")
+			getMonitorsLatestMap(pollutant || this.meta?.default_pollutant || "pm25")
 		]);
+
+		// The pollutant changed while this was in flight: these readings belong to the previous
+		// one, and the change has already started its own update.
+		if (this.pollutant !== pollutant) return;
+
+		this.list = list;
+		this.latest = latest;
 	}
 }
 
