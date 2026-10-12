@@ -47,8 +47,9 @@ export const { route, navigate, p, isActive, Router } = createRouter({
 <Router />
 ```
 
-This is what the sjvair.com widget and `sjvair-mobile` use today, via `MonitorMapLayout`
-(the thin wrapper `monitorMapRoutes` points to).
+This is what the sjvair.com widget uses, via `MonitorMapLayout` (the thin wrapper
+`monitorMapRoutes` points to). `sjvair-mobile` mounts the same route tree through the
+subpath entries described next, so the map stays off its startup path.
 
 ### Keeping the map off a host app's startup path
 
