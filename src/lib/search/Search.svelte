@@ -3,7 +3,7 @@
 	import { Marker } from "@maptiler/sdk";
 	import { MapPinIcon, SearchIcon } from "@lucide/svelte";
 	import { useMonitorMapRouter } from "../router-context";
-	import { mapManager } from "$lib/map/map.svelte";
+	import { mapManager } from "$lib/map/map-manager.svelte.js";
 	import { debounce } from "$lib/utils";
 	import { monitorSearch, geocode, type SearchResult } from "./service";
 	import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte";

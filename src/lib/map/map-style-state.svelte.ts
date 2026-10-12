@@ -1,5 +1,5 @@
 import type { MapStyleVariant, ReferenceMapStyle } from "@maptiler/sdk";
-import { DefaultMapStyle, mapManager } from "./map.svelte";
+import { DefaultMapStyle, mapManager } from "./map-manager.svelte.js";
 import { integrationsManager } from "./integrations/integrations-manager";
 import { variantForStyle } from "./basemap";
 

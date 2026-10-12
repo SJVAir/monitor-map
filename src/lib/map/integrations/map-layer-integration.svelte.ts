@@ -1,6 +1,6 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
 import { untrack } from "svelte";
-import { mapManager } from "../map.svelte";
+import { mapManager } from "../map-manager.svelte.js";
 import { MapIntegration } from "./map-integration.svelte";
 
 export abstract class MapLayerIntegration extends MapIntegration {

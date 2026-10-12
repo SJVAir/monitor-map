@@ -6,7 +6,7 @@ import {
 import type { MonitorType, SJVAirEntryLevel } from "@sjvair/sdk";
 import { untrack } from "svelte";
 import type { Geometry } from "geojson";
-import { mapManager } from "$lib/map/map.svelte";
+import { mapManager } from "$lib/map/map-manager.svelte.js";
 import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager";
 import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
 import { monitorsManager } from "./monitors.svelte";
