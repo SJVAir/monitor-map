@@ -59,8 +59,12 @@ describe("publishedPollutants", () => {
 });
 
 describe("choosePanelPollutant", () => {
-	const purpleair = { type: "purpleair", latest: { pm25: reading("4.9") } };
-	const airnow = { type: "airnow", latest: { pm25: reading("6.2"), o3: reading("31") } };
+	const purpleair = { type: "purpleair", is_active: true, latest: { pm25: reading("4.9") } };
+	const airnow = {
+		type: "airnow",
+		is_active: true,
+		latest: { pm25: reading("6.2"), o3: reading("31") }
+	};
 
 	it("uses the map's pollutant when the monitor has a reading for it", () => {
 		expect(choosePanelPollutant("o3", airnow, META)).toEqual({ pollutant: "o3", hasReading: true });
@@ -85,7 +89,7 @@ describe("choosePanelPollutant", () => {
 	});
 
 	it("keeps the map's pollutant for a monitor with no reading whose type publishes it", () => {
-		const inactive = { type: "airnow", latest: {} };
+		const inactive = { type: "airnow", is_active: false, latest: {} };
 		expect(choosePanelPollutant("o3", inactive, META)).toEqual({
 			pollutant: "o3",
 			hasReading: false
@@ -93,7 +97,7 @@ describe("choosePanelPollutant", () => {
 	});
 
 	it("uses the published pollutant for a monitor with no reading of the map's kind", () => {
-		const inactive = { type: "purpleair", latest: {} };
+		const inactive = { type: "purpleair", is_active: false, latest: {} };
 		expect(choosePanelPollutant("o3", inactive, META)).toEqual({
 			pollutant: "pm25",
 			hasReading: false
@@ -101,9 +105,32 @@ describe("choosePanelPollutant", () => {
 	});
 
 	it("has no pollutant when the monitor has no reading and its type publishes neither", () => {
-		const inactive = { type: "hidden", latest: {} };
+		const inactive = { type: "hidden", is_active: false, latest: {} };
 		expect(choosePanelPollutant("pm25", inactive, META)).toEqual({
 			pollutant: null,
+			hasReading: false
+		});
+	});
+
+	// The API keeps returning an inactive monitor's last reading, however old it is.
+	it("does not treat an inactive monitor's leftover reading as current", () => {
+		const stale = { type: "purpleair", is_active: false, latest: { pm25: reading("27.00") } };
+
+		expect(choosePanelPollutant("pm25", stale, META)).toEqual({
+			pollutant: "pm25",
+			hasReading: false
+		});
+		expect(choosePanelPollutant("o3", stale, META)).toEqual({
+			pollutant: "pm25",
+			hasReading: false
+		});
+	});
+
+	it("charts the pollutant an inactive monitor last reported when its type publishes neither", () => {
+		const stale = { type: "hidden", is_active: false, latest: { pm25: reading("3.1") } };
+
+		expect(choosePanelPollutant("o3", stale, META)).toEqual({
+			pollutant: "pm25",
 			hasReading: false
 		});
 	});

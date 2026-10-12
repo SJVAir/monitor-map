@@ -5,6 +5,7 @@ export type PanelPollutant = (typeof PANEL_POLLUTANTS)[number];
 /** The slice of the SDK's `MonitorDetails` this module reads. */
 export interface PanelMonitor {
 	type: string;
+	is_active: boolean;
 	// Only the panel pollutants are read; the SDK's `latest` has more entry types, without an
 	// index signature.
 	latest: Partial<Record<PanelPollutant, { value?: string }>>;
@@ -45,8 +46,8 @@ export function publishedPollutants(monitorType: string, meta: PanelMeta): Panel
 
 /**
  * The pollutant the detail panel shows: the map's when the monitor has it, otherwise the one
- * the monitor has. A monitor with no current reading still gets a pollutant when its type
- * publishes one, so its past data can be charted.
+ * the monitor has. A monitor with no current reading (inactive, or nothing reported) still
+ * gets a pollutant when there is one to chart, so its past data can be browsed.
  */
 export function choosePanelPollutant(
 	mapPollutant: PanelPollutant | null,
@@ -54,16 +55,20 @@ export function choosePanelPollutant(
 	meta: PanelMeta
 ): PanelPollutantChoice {
 	const withReading = readingPollutants(monitor);
-	if (withReading.length > 0) {
+	// The API keeps returning an inactive monitor's last reading, however old, so only an
+	// active monitor's readings count as current.
+	if (monitor.is_active && withReading.length > 0) {
 		const pollutant =
 			mapPollutant && withReading.includes(mapPollutant) ? mapPollutant : withReading[0];
 		return { pollutant, hasReading: true };
 	}
 
+	// Nothing current: chart what the type publishes, or failing that what it last reported.
 	const published = publishedPollutants(monitor.type, meta);
-	if (published.length > 0) {
+	const chartable = published.length > 0 ? published : withReading;
+	if (chartable.length > 0) {
 		const pollutant =
-			mapPollutant && published.includes(mapPollutant) ? mapPollutant : published[0];
+			mapPollutant && chartable.includes(mapPollutant) ? mapPollutant : chartable[0];
 		return { pollutant, hasReading: false };
 	}
 

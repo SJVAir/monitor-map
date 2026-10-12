@@ -78,6 +78,15 @@ describe("MonitorDetailsState", () => {
 		expect(logged).not.toHaveBeenCalled();
 	});
 
+	// When the error body is not JSON the SDK rejects with the Response itself as the cause.
+	it("reports a 404 whose body the SDK could not parse as not found", async () => {
+		sdk.getMonitorDetails.mockRejectedValue(new Error("Unexpected", { cause: { status: 404 } }));
+
+		await details.load("nope");
+
+		expect(details.status).toBe("not-found");
+	});
+
 	it("reports any other failure as failed, and loads on retry", async () => {
 		sdk.getMonitorDetails.mockRejectedValueOnce(httpError(500));
 

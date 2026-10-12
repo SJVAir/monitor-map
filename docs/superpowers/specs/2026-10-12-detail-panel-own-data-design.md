@@ -49,6 +49,9 @@ Success means:
   window and never return newer points.
 - `monitorsManager.update()` assigns a new `latest` map on every refresh, so `latest`
   changing identity is the signal that the map refreshed.
+- The per-monitor lookup keeps returning an inactive monitor's last reading, however old:
+  of 40 inactive monitors sampled locally, 29 had a PM2.5 or ozone value, some about eight
+  months old. So a reading counts as current only when `is_active` is true.
 - For PurpleAir PM2.5 the API returns different stages from different endpoints: the bulk
   `current` endpoint returns `calibrated`, the per-monitor endpoints return `cleaned`. Other
   monitor types agree. This is recorded as a backend fix and is out of scope here.
@@ -94,11 +97,12 @@ Pure functions, no runes.
   marks as published for that monitor type.
 - `choosePanelPollutant(mapPollutant, monitor, meta)` returns
   `{ pollutant, hasReading }`:
-  1. If `readingPollutants` contains `mapPollutant`, that, with `hasReading: true`.
-  2. Else the first of `readingPollutants`, with `hasReading: true`.
-  3. Else, for a monitor with no current reading: `mapPollutant` if `publishedPollutants`
-     contains it, otherwise the first published one, with `hasReading: false`.
-  4. Else `pollutant: null`.
+  1. For an active monitor: `mapPollutant` if `readingPollutants` contains it, else the
+     first of `readingPollutants`, with `hasReading: true`.
+  2. Otherwise (inactive, or nothing reported), with `hasReading: false`: `mapPollutant` if
+     the type publishes it, else the first published one; if the type publishes neither,
+     the same choice among the pollutants it last reported.
+  3. Else `pollutant: null`.
 
 ### `DateRange.ts` (changed)
 

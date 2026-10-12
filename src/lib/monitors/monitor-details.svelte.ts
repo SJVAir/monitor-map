@@ -55,8 +55,12 @@ export class MonitorDetailsState {
 	}
 }
 
-/** The SDK rejects a failed request with `cause.result.status` set to the HTTP status. */
+/**
+ * The SDK rejects a failed request with `cause.result.status` set to the HTTP status, or,
+ * when it could not parse the error body, with the `Response` itself as the cause.
+ */
 function isNotFound(error: unknown): boolean {
-	const cause = (error as { cause?: { result?: { status?: unknown } } } | null)?.cause;
-	return cause?.result?.status === 404;
+	const cause = (error as { cause?: { status?: unknown; result?: { status?: unknown } } } | null)
+		?.cause;
+	return cause?.result?.status === 404 || cause?.status === 404;
 }

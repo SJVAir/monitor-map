@@ -151,6 +151,9 @@
 		const data = await fetchChartData(monitor, chartManager.dateRange, pollutant);
 		// A newer request (another range, monitor, pollutant or refresh) owns the chart now.
 		if (request !== chartRequest) return;
+		// A failed request resolves to [] (an empty range is [[], []]); a background refresh
+		// that failed keeps the chart already on screen.
+		if (silent && data.length === 0) return;
 		chartManager.chartData = data;
 		chartManager.loading = false;
 	}

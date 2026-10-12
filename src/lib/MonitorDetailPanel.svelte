@@ -31,8 +31,11 @@
 	// Shown only once the metadata is in too; labels and levels come from it.
 	const monitor = $derived(details.status === "ready" && meta ? details.monitor : null);
 
+	// Through a $derived: the router replaces `route.params` on every navigation, including
+	// a search-only change or Back to the same monitor, which must not reload the panel.
+	const routeId = $derived(route.params.id);
 	$effect(() => {
-		const id = route.params.id;
+		const id = routeId;
 		if (id) untrack(() => details.load(id));
 	});
 
@@ -67,7 +70,9 @@
 		if (!meta || !panel?.pollutant || !panel.hasReading || !mapPollutant) return;
 		if (panel.pollutant === mapPollutant) return;
 		const shown = meta.entryType(panel.pollutant).label;
-		const missing = meta.entryType(mapPollutant).label.toLowerCase();
+		const label = meta.entryType(mapPollutant).label;
+		// Mid-sentence: lowercase a plain word ("Ozone"), keep a symbol ("PM2.5") as written.
+		const missing = /^[A-Z][a-z]+$/.test(label) ? label.toLowerCase() : label;
 		return `Showing ${shown}. This monitor has no ${missing} readings.`;
 	});
 
@@ -98,15 +103,26 @@
 		{ min: 95, color: Colors.red }
 	];
 
+	// Re-run for each refreshed copy of the monitor, as before, but never show one monitor's
+	// temperature on another: cleared when the id changes, and a late answer is dropped.
+	let tempMonitorId: string | undefined;
 	$effect(() => {
-		if (monitor && monitor.position) {
-			fetchTempByCoords(monitor.position.coordinates).then((temperature) => {
+		const current = monitor;
+		const id = current?.id;
+		if (id !== tempMonitorId) {
+			tempMonitorId = id;
+			tempData = undefined;
+		}
+		if (!current?.position) return;
+		fetchTempByCoords(current.position.coordinates)
+			.then((temperature) => {
+				if (untrack(() => monitor?.id) !== id) return;
 				tempData = {
 					value: `${temperature}°F`,
 					color: valueToColor(temperature, tempColors)
 				};
-			});
-		}
+			})
+			.catch(console.error);
 	});
 </script>
 
