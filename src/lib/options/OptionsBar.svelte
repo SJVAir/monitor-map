@@ -42,7 +42,14 @@
 	function onkeydown(e: KeyboardEvent) {
 		if (e.key !== "Escape") return;
 		panelOpen = false;
-		if (isWideLayout()) menus.closeAll();
+		if (!isWideLayout()) return;
+		// Focus on a row would be left inside the hidden dropdown; hand it back to the trigger.
+		const focused = document.activeElement;
+		const trigger = focused
+			?.closest("[data-options-menu]")
+			?.querySelector<HTMLElement>(":scope > button");
+		menus.closeAll();
+		if (trigger !== focused) trigger?.focus();
 	}
 </script>
 

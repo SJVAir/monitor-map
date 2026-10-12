@@ -33,9 +33,18 @@
 
 <div
 	role="presentation"
+	data-options-menu
 	class="group/menu relative md:first:[&>button]:rounded-l-md md:last:[&>button]:rounded-r-md"
 	onmouseenter={() => {
 		if (isWideLayout()) menus.closeOthers(id);
+	}}
+	onfocusout={(e) => {
+		// Toolbar only: focus moving on to something outside this menu (tabbing past the last
+		// row) closes its dropdown. No destination means a click on something unfocusable, which
+		// the outside-click handler in OptionsBar decides.
+		const next = e.relatedTarget;
+		if (!isWideLayout() || !(next instanceof Node) || e.currentTarget.contains(next)) return;
+		menus.close(id);
 	}}
 >
 	<button
@@ -61,7 +70,7 @@
 			"max-md:pt-1 md:absolute md:top-full md:z-20 md:min-w-64 md:pt-1",
 			alignRight ? "md:right-0" : "md:left-0",
 			open ? "block" : "hidden",
-			!disabled && "md:group-hover/menu:block md:group-has-[:focus-visible]/menu:block"
+			!disabled && "md:group-hover/menu:block"
 		]}
 	>
 		<div class="py-1 md:max-h-[69vh] md:overflow-y-auto md:rounded-md md:bg-white md:shadow-lg">
