@@ -274,8 +274,9 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			clickManager.unregister([this.referenceId]);
 			this.tooltipManager.disable();
 			this.renderer.remove();
-			this.icons.loadIcons().then(() => {
-				if (mapManager.styleLoading) return;
+			// Clustering may be toggled again before the icons arrive; only the latest apply runs.
+			this.supersedePending();
+			this.whenIconsLoad(() => {
 				this.renderer.apply(this.handleMonitorClick);
 				this.tooltipManager.enable();
 				this.applySelectedState();
@@ -286,8 +287,7 @@ class MonitorsMapIntegration extends MapIconLayerIntegration<MonitorMarkerProper
 			this.tooltipManager.enable();
 			clickManager.unregister([this.referenceId]);
 			super.apply();
-			this.icons.loadIcons().then(() => {
-				if (mapManager.styleLoading) return;
+			this.whenIconsLoad(() => {
 				clickManager.register([this.referenceId], this.handleMonitorClick);
 				this.applySelectedState();
 			});

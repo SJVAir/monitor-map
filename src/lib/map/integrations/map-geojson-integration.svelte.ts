@@ -33,16 +33,45 @@ export abstract class MapIconLayerIntegration<
 	T = Record<string, unknown>
 > extends MapGeoJSONIntegration<T> {
 	abstract icons: MapIconManager;
+	private generation = 0;
+
+	/**
+	 * Drops every callback still waiting on icons. `apply()` and `remove()` call it, so a
+	 * subclass overriding `apply()` without calling `super.apply()` first must call it itself.
+	 */
+	protected supersedePending(): void {
+		this.generation++;
+	}
+
+	/**
+	 * Runs `run` once the icons have loaded, unless an `apply()` or `remove()` has happened
+	 * since (the state it was scheduled for is gone) or a basemap change is in flight (the
+	 * refresh on "style.load" re-applies).
+	 */
+	protected whenIconsLoad(run: () => void): void {
+		const generation = this.generation;
+		this.icons
+			.loadIcons()
+			.then(() => {
+				if (generation !== this.generation || mapManager.styleLoading) return;
+				run();
+			})
+			.catch(console.error);
+	}
 
 	apply() {
 		if (!mapManager.map) return;
 
-		this.icons.loadIcons().then(() => {
-			// A basemap change started while icons loaded; the refresh on "style.load" re-applies.
-			if (mapManager.styleLoading) return;
+		this.supersedePending();
+		this.whenIconsLoad(() => {
 			this.removeLayerAndSource();
 			mapManager.map?.addSource(this.referenceId, this.mapSource);
 			super.apply();
 		});
+	}
+
+	remove() {
+		this.supersedePending();
+		super.remove();
 	}
 }
