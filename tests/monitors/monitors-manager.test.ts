@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
-import type { MonitorsManager } from "$lib/monitors/monitors.svelte";
+import type { MonitorsManager } from "$lib/monitors/monitors.svelte.js";
 
 const sdk = vi.hoisted(() => ({
 	getMonitors: vi.fn(),
@@ -35,7 +35,7 @@ beforeEach(async () => {
 
 	// A fresh module per test: monitorsManager is a module-level singleton.
 	vi.resetModules();
-	manager = (await import("$lib/monitors/monitors.svelte")).monitorsManager;
+	manager = (await import("$lib/monitors/monitors.svelte.js")).monitorsManager;
 	start = vi.spyOn(manager.autoUpdate, "start");
 });
 
@@ -66,6 +66,8 @@ describe("monitorsManager.init", () => {
 		expect(manager.pollutant).toBe("o3");
 		expect(manager.latest?.get("a")).toEqual({ id: "a", pollutant: "o3" });
 		expect(sdk.getMonitorsList).toHaveBeenCalledTimes(1);
+		// It arrived before meta did, so the default pollutant's readings are never requested.
+		expect(sdk.getMonitors.mock.calls).toEqual([["o3"]]);
 	});
 
 	it("lets an explicit pollutant win over a later call without one", async () => {
@@ -168,6 +170,18 @@ describe("monitorsManager.init", () => {
 
 		await manager.init();
 		expect(manager.initialized).toBe(true);
+	});
+
+	it("rejects once when the list and the latest-readings requests both fail", async () => {
+		sdk.getMonitorsList.mockRejectedValueOnce(new Error("list failed"));
+		sdk.getMonitors.mockRejectedValueOnce(new Error("latest failed"));
+
+		// Vitest fails the run on an unhandled rejection, so this also pins that neither is left
+		// unhandled.
+		await expect(manager.init("o3")).rejects.toThrow();
+		await flush();
+
+		expect(manager.initialized).toBe(false);
 	});
 
 	it("does not carry a failed run's pollutant into the retry", async () => {

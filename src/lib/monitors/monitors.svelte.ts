@@ -81,12 +81,14 @@ class MonitorsManager implements MonitorsDataSource {
 			this.meta = meta;
 			return meta;
 		});
-		// The latest readings only need the pollutant, so they never wait for the list.
+		// The latest readings only need the pollutant, so they never wait for the list. An explicit
+		// pollutant may still arrive before meta does, in which case the default is never fetched.
 		const latestRequest = fetchedPollutant
 			? getMonitorsLatestMap(fetchedPollutant)
 			: metaRequest.then((meta) => {
-					fetchedPollutant = meta.default_pollutant;
-					return getMonitorsLatestMap(meta.default_pollutant);
+					const pollutant = this.#requestedPollutant ?? meta.default_pollutant;
+					fetchedPollutant = pollutant;
+					return getMonitorsLatestMap(pollutant);
 				});
 
 		// One Promise.all so a failure in either never leaves the other unhandled.
