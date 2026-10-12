@@ -1,7 +1,7 @@
 # The monitor detail panel loads its own monitor
 
 Date: 2026-10-12
-Target release: next minor
+Target release: 4.2.0 (minor)
 Branch: `feat/detail-panel-own-data`
 
 ## Goal
