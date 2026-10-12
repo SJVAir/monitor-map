@@ -194,3 +194,39 @@ describe("monitorsManager.init", () => {
 		expect(start).toHaveBeenCalledTimes(1);
 	});
 });
+describe("monitorsManager.resumeAutoUpdate", () => {
+	it("does nothing before initialization", () => {
+		manager.resumeAutoUpdate();
+
+		expect(sdk.getMonitorsList).not.toHaveBeenCalled();
+		expect(start).not.toHaveBeenCalled();
+		expect(manager.autoUpdate.isActive).toBe(false);
+	});
+
+	it("does not refetch while polling is already active", async () => {
+		await manager.init();
+		sdk.getMonitorsList.mockClear();
+		sdk.getMonitors.mockClear();
+
+		manager.resumeAutoUpdate();
+		await flush();
+
+		expect(sdk.getMonitorsList).not.toHaveBeenCalled();
+		expect(sdk.getMonitors).not.toHaveBeenCalled();
+		expect(start).toHaveBeenCalledTimes(1);
+	});
+
+	it("refreshes once and restarts polling after it was stopped", async () => {
+		await manager.init("o3");
+		manager.autoUpdate.stop();
+		sdk.getMonitorsList.mockClear();
+		sdk.getMonitors.mockClear();
+
+		manager.resumeAutoUpdate();
+		await flush();
+
+		expect(sdk.getMonitorsList).toHaveBeenCalledTimes(1);
+		expect(sdk.getMonitors.mock.calls).toEqual([["o3"]]);
+		expect(manager.autoUpdate.isActive).toBe(true);
+	});
+});

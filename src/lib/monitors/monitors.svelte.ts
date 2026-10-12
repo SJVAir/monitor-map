@@ -107,6 +107,17 @@ class MonitorsManager implements MonitorsDataSource {
 		this.initialized = true;
 	}
 
+	/**
+	 * Restarts polling after something stopped it (MonitorMapLayout stops it on destroy),
+	 * refreshing first since the data may be stale. A no-op before init or while polling.
+	 */
+	resumeAutoUpdate(): void {
+		if (!this.initialized || this.autoUpdate.isActive) return;
+
+		this.update().catch(console.error);
+		this.autoUpdate.start();
+	}
+
 	async update(): Promise<void> {
 		if (!this.initialized) return;
 
