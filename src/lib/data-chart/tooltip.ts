@@ -1,12 +1,5 @@
 import { format, fromUnixTime } from "date-fns";
-import { monitorsManager } from "../monitors/monitors.svelte";
-
-function getColors(): Array<[number, string]> {
-	return (monitorsManager.levels ?? []).map((level) => [
-		level.range[0],
-		level.color.replace(/^#/, "")
-	]) as Array<[number, string]>;
-}
+import type { LevelColors } from "./level-colors";
 
 let cursLeft = -100;
 let cursTop = -100;
@@ -16,7 +9,7 @@ export const uPlotCursorConfig = {
 		cursLeft = left;
 		cursTop = top;
 	},
-	get: (): uPlot.Cursor => ({
+	get: (colors: LevelColors): uPlot.Cursor => ({
 		left: cursLeft,
 		top: cursTop,
 		y: false,
@@ -24,7 +17,6 @@ export const uPlotCursorConfig = {
 			size: 7,
 			fill: (u: uPlot, sIdx: number) => {
 				const xIdx = u.cursor.idxs![sIdx];
-				const colors = getColors();
 
 				if (xIdx != null && u.series.length >= 2 && sIdx === 1) {
 					const val = u.data[sIdx][xIdx]!;

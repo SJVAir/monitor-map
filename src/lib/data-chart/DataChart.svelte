@@ -1,6 +1,6 @@
 <script lang="ts">
+	import { untrack } from "svelte";
 	import type { Attachment } from "svelte/attachments";
-	import type { MonitorLatestType } from "@sjvair/sdk";
 	import type { DateRange as CalendarRange } from "bits-ui";
 	import { parseAbsolute } from "@internationalized/date";
 	import { Maximize, SquareX } from "@lucide/svelte";
@@ -9,13 +9,23 @@
 	import { getMonitorEntriesCSVUrl } from "@sjvair/sdk/monitors";
 	import { format, parseISO } from "date-fns";
 	import { RangeCalendar } from "$lib/components/ui/range-calendar";
-	import { DataChartManager } from "./data-chart.svelte";
-	import { createDateRange } from "./DateRange";
-	import { fetchChartData } from "./requests";
-	import { getChartConfig } from "./chart-utils";
+	import type { PanelPollutant } from "../monitors/panel-pollutant";
 	import { monitorsManager } from "../monitors/monitors.svelte";
+	import { DataChartManager } from "./data-chart.svelte";
+	import { createDateRange, extendToNow, includesToday } from "./DateRange";
+	import { fetchChartData, type ChartMonitor } from "./requests";
+	import { getChartConfig } from "./chart-utils";
+	import { levelColors } from "./level-colors";
 
-	let { monitor }: { monitor: MonitorLatestType<"pm25" | "o3"> } = $props();
+	interface Props {
+		monitor: ChartMonitor;
+		/** The pollutant to chart. Independent of the pollutant the map is coloring by. */
+		pollutant: PanelPollutant;
+		/** Bumped by the owner whenever fresh data may exist; see the effect below. */
+		refreshTick?: number;
+	}
+
+	let { monitor, pollutant, refreshTick = 0 }: Props = $props();
 
 	const chartManager = new DataChartManager();
 	let expanded = $state(false);
@@ -42,10 +52,34 @@
 				? "No Data Available For Selected Date Range"
 				: ""
 	);
-	const pollutantLabel = $derived(monitorsManager.pollutant === "pm25" ? "PM 2.5" : "Ozone");
+	const pollutantLabel = $derived(pollutant === "pm25" ? "PM 2.5" : "Ozone");
+	// Level definitions are shared metadata, not the map's current selection.
+	const colors = $derived(
+		levelColors(monitorsManager.meta?.entryType(pollutant).asIter.levels ?? [])
+	);
 
+	// Reload for another monitor or pollutant, not for a new object describing the same one.
 	$effect(() => {
-		if (monitor) loadChartData();
+		void monitor.id;
+		void pollutant;
+		untrack(() => loadChartData());
+	});
+
+	// Whether the chosen range ended on the day it was chosen, so it should follow the present.
+	// Remembered, not re-tested per tick: a panel left open past midnight keeps following.
+	let live = includesToday(chartManager.dateRange);
+	let seenTick = untrack(() => refreshTick);
+
+	// A range that ended in the past cannot gain entries, so only a live one reloads.
+	$effect(() => {
+		const tick = refreshTick;
+		if (tick === seenTick) return;
+		seenTick = tick;
+		if (!live) return;
+		untrack(() => {
+			chartManager.dateRange = extendToNow(chartManager.dateRange);
+			loadChartData({ silent: true });
+		});
 	});
 
 	$effect(() => {
@@ -82,7 +116,7 @@
 			instance?.destroy?.();
 			el.innerHTML = "";
 			const maxDiff = Math.max(...flatData) - Math.min(...flatData);
-			const opts = getChartConfig(monitor.type, maxDiff, width, height);
+			const opts = getChartConfig(monitor.type, maxDiff, width, height, colors, pollutantLabel);
 			instance = new uPlot(opts, chartManager.chartData, el);
 		};
 
@@ -103,9 +137,16 @@
 		};
 	};
 
-	async function loadChartData() {
-		chartManager.loading = true;
-		chartManager.chartData = await fetchChartData(monitor, chartManager.dateRange);
+	let chartRequest = 0;
+
+	// `silent` keeps the current chart on screen while a timed refresh loads.
+	async function loadChartData({ silent = false } = {}) {
+		const request = ++chartRequest;
+		if (!silent) chartManager.loading = true;
+		const data = await fetchChartData(monitor, chartManager.dateRange, pollutant);
+		// A newer request (another range, monitor, pollutant or refresh) owns the chart now.
+		if (request !== chartRequest) return;
+		chartManager.chartData = data;
 		chartManager.loading = false;
 	}
 
@@ -113,6 +154,7 @@
 		if (calendarValue?.start && calendarValue?.end) {
 			dataRange = calendarValue;
 			chartManager.dateRange = createDateRange(dataRange.start, dataRange.end);
+			live = includesToday(chartManager.dateRange);
 			calendarOpen = false;
 			loadChartData();
 		}
@@ -121,7 +163,7 @@
 	function downloadCSV() {
 		const url = getMonitorEntriesCSVUrl({
 			monitorId: monitor.id,
-			entryType: monitorsManager.pollutant ?? "pm25",
+			entryType: pollutant,
 			timestampGte: chartManager.dateRange.start,
 			timestampLte: chartManager.dateRange.end
 		});

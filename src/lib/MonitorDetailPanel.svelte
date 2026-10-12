@@ -132,7 +132,7 @@
 			{/if}
 
 			<div class="w-full">
-				<DataChart {monitor} />
+				<DataChart {monitor} pollutant={monitorsManager.pollutant ?? "pm25"} />
 			</div>
 
 			<div class="w-full">
