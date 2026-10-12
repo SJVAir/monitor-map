@@ -10,7 +10,7 @@ import {
 import { XMap } from "@tstk/builtin-extensions";
 import { Interval } from "@tstk/utils";
 import { untrack } from "svelte";
-import type { MonitorsDataSource } from "./types";
+import type { MonitorsDataSource, MonitorsPollutant } from "./types";
 
 class MonitorsManager implements MonitorsDataSource {
 	autoUpdate: Interval = new Interval(async () => await this.update(), 2 * 60 * 1000);
@@ -26,6 +26,9 @@ class MonitorsManager implements MonitorsDataSource {
 	levels: Array<SJVAirEntryLevel> | null = $derived(
 		this.meta?.entryType(this.pollutant ?? this.meta.default_pollutant).asIter.levels || null
 	);
+
+	#initPromise: Promise<void> | null = null;
+	#requestedPollutant: MonitorsPollutant | null = null;
 
 	constructor() {
 		// Refetch monitors when the pollutant changes after the initial load, wherever the change
@@ -48,14 +51,58 @@ class MonitorsManager implements MonitorsDataSource {
 		});
 	}
 
-	async init(urlPollutant?: string | number | boolean): Promise<void> {
-		if (this.initialized) return;
+	/**
+	 * Safe to call from several places: overlapping calls share one run, and a failed run can
+	 * be retried. An explicit "pm25"/"o3" wins over a call without one, whichever came first;
+	 * between two explicit values the most recent wins.
+	 */
+	init(urlPollutant?: string | number | boolean): Promise<void> {
+		if (this.initialized) return Promise.resolve();
 
-		[this.list, this.meta] = await Promise.all([getMonitorsList(), getMonitorsMeta()]);
+		if (urlPollutant === "pm25" || urlPollutant === "o3") {
+			this.#requestedPollutant = urlPollutant;
+		}
 
-		this.pollutant =
-			urlPollutant === "pm25" || urlPollutant === "o3" ? urlPollutant : this.meta.default_pollutant;
-		this.latest = await getMonitorsLatestMap(this.pollutant);
+		this.#initPromise ??= this.#runInit().finally(() => {
+			this.#initPromise = null;
+			this.#requestedPollutant = null;
+		});
+
+		return this.#initPromise;
+	}
+
+	async #runInit(): Promise<void> {
+		// The pollutant the latest readings were requested for.
+		let fetchedPollutant = this.#requestedPollutant;
+
+		const metaRequest = getMonitorsMeta();
+		const listAndMeta = Promise.all([getMonitorsList(), metaRequest]).then(([list, meta]) => {
+			this.list = list;
+			this.meta = meta;
+			return meta;
+		});
+		// The latest readings only need the pollutant, so they never wait for the list.
+		const latestRequest = fetchedPollutant
+			? getMonitorsLatestMap(fetchedPollutant)
+			: metaRequest.then((meta) => {
+					fetchedPollutant = meta.default_pollutant;
+					return getMonitorsLatestMap(meta.default_pollutant);
+				});
+
+		// One Promise.all so a failure in either never leaves the other unhandled.
+		const [meta, firstLatest] = await Promise.all([listAndMeta, latestRequest]);
+		let latest = firstLatest;
+
+		// An explicit pollutant may have arrived while the requests above were in flight.
+		let wanted = this.#requestedPollutant ?? meta.default_pollutant;
+		while (wanted !== fetchedPollutant) {
+			latest = await getMonitorsLatestMap(wanted);
+			fetchedPollutant = wanted;
+			wanted = this.#requestedPollutant ?? meta.default_pollutant;
+		}
+
+		this.pollutant = fetchedPollutant;
+		this.latest = latest;
 		this.autoUpdate.start();
 		this.initialized = true;
 	}

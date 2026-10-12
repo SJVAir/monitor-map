@@ -1,0 +1,196 @@
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
+import type { MonitorsManager } from "$lib/monitors/monitors.svelte";
+
+const sdk = vi.hoisted(() => ({
+	getMonitors: vi.fn(),
+	getMonitorsList: vi.fn(),
+	getMonitorsMeta: vi.fn()
+}));
+vi.mock("@sjvair/sdk", () => sdk);
+
+const LIST = [{ id: "a" }];
+const META = { default_pollutant: "pm25" };
+const readings = (pollutant: string) => [{ id: "a", pollutant }];
+
+function deferred<T>() {
+	let resolve!: (value: T) => void;
+	let reject!: (reason: unknown) => void;
+	const promise = new Promise<T>((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+	return { promise, resolve, reject };
+}
+
+// Lets every already-resolved promise chain run before the next assertion.
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+let manager: MonitorsManager;
+let start: MockInstance;
+
+beforeEach(async () => {
+	sdk.getMonitorsList.mockReset().mockResolvedValue(LIST);
+	sdk.getMonitorsMeta.mockReset().mockResolvedValue(META);
+	sdk.getMonitors.mockReset().mockImplementation(async (pollutant: string) => readings(pollutant));
+
+	// A fresh module per test: monitorsManager is a module-level singleton.
+	vi.resetModules();
+	manager = (await import("$lib/monitors/monitors.svelte")).monitorsManager;
+	start = vi.spyOn(manager.autoUpdate, "start");
+});
+
+afterEach(() => {
+	manager.autoUpdate.stop();
+});
+
+describe("monitorsManager.init", () => {
+	it("shares one run between overlapping calls", async () => {
+		const first = manager.init();
+		const second = manager.init();
+
+		expect(second).toBe(first);
+		await Promise.all([first, second]);
+
+		expect(sdk.getMonitorsList).toHaveBeenCalledTimes(1);
+		expect(sdk.getMonitorsMeta).toHaveBeenCalledTimes(1);
+		expect(sdk.getMonitors.mock.calls).toEqual([["pm25"]]);
+		expect(start).toHaveBeenCalledTimes(1);
+		expect(manager.initialized).toBe(true);
+		expect(manager.list).toEqual(LIST);
+		expect(manager.pollutant).toBe("pm25");
+	});
+
+	it("lets an explicit pollutant win over an earlier call without one", async () => {
+		await Promise.all([manager.init(), manager.init("o3")]);
+
+		expect(manager.pollutant).toBe("o3");
+		expect(manager.latest?.get("a")).toEqual({ id: "a", pollutant: "o3" });
+		expect(sdk.getMonitorsList).toHaveBeenCalledTimes(1);
+	});
+
+	it("lets an explicit pollutant win over a later call without one", async () => {
+		await Promise.all([manager.init("o3"), manager.init()]);
+
+		expect(manager.pollutant).toBe("o3");
+		expect(sdk.getMonitors.mock.calls).toEqual([["o3"]]);
+	});
+
+	it("uses the most recent of two explicit pollutants", async () => {
+		await Promise.all([manager.init("pm25"), manager.init("o3")]);
+
+		expect(manager.pollutant).toBe("o3");
+		expect(manager.latest?.get("a")).toEqual({ id: "a", pollutant: "o3" });
+	});
+
+	it("refetches once when an explicit pollutant arrives mid-run", async () => {
+		const list = deferred<typeof LIST>();
+		const defaultReadings = deferred<ReturnType<typeof readings>>();
+		const explicitReadings = deferred<ReturnType<typeof readings>>();
+		sdk.getMonitorsList.mockReturnValue(list.promise);
+		sdk.getMonitors
+			.mockReturnValueOnce(defaultReadings.promise)
+			.mockReturnValueOnce(explicitReadings.promise);
+
+		const run = manager.init();
+		await flush();
+		expect(sdk.getMonitors.mock.calls).toEqual([["pm25"]]);
+
+		manager.init("o3");
+		list.resolve(LIST);
+		defaultReadings.resolve(readings("pm25"));
+		await flush();
+
+		expect(sdk.getMonitors.mock.calls).toEqual([["pm25"], ["o3"]]);
+		expect(manager.initialized).toBe(false);
+
+		explicitReadings.resolve(readings("o3"));
+		await run;
+
+		expect(manager.initialized).toBe(true);
+		expect(manager.pollutant).toBe("o3");
+		expect(manager.latest?.get("a")).toEqual({ id: "a", pollutant: "o3" });
+		expect(sdk.getMonitorsList).toHaveBeenCalledTimes(1);
+	});
+
+	it("requests an explicit pollutant's readings without waiting for the list", async () => {
+		const list = deferred<typeof LIST>();
+		sdk.getMonitorsList.mockReturnValue(list.promise);
+
+		const run = manager.init("o3");
+		expect(sdk.getMonitors.mock.calls).toEqual([["o3"]]);
+
+		list.resolve(LIST);
+		await run;
+	});
+
+	it("requests the default pollutant's readings once meta arrives, without the list", async () => {
+		const list = deferred<typeof LIST>();
+		sdk.getMonitorsList.mockReturnValue(list.promise);
+
+		const run = manager.init();
+		await flush();
+		expect(sdk.getMonitors.mock.calls).toEqual([["pm25"]]);
+		expect(manager.initialized).toBe(false);
+
+		list.resolve(LIST);
+		await run;
+		expect(manager.initialized).toBe(true);
+	});
+
+	it.each(["none", "pm10", true, 42, undefined])(
+		"falls back to the default pollutant for %s",
+		async (value) => {
+			await manager.init(value);
+
+			expect(manager.pollutant).toBe("pm25");
+			expect(sdk.getMonitors.mock.calls).toEqual([["pm25"]]);
+		}
+	);
+
+	it("can be retried after the list request fails", async () => {
+		sdk.getMonitorsList.mockRejectedValueOnce(new Error("offline"));
+
+		await expect(manager.init()).rejects.toThrow("offline");
+		expect(manager.initialized).toBe(false);
+		expect(start).not.toHaveBeenCalled();
+
+		await manager.init();
+		expect(manager.initialized).toBe(true);
+		expect(sdk.getMonitorsList).toHaveBeenCalledTimes(2);
+		expect(start).toHaveBeenCalledTimes(1);
+	});
+
+	it("can be retried after the latest-readings request fails", async () => {
+		sdk.getMonitors.mockRejectedValueOnce(new Error("latest failed"));
+
+		await expect(manager.init()).rejects.toThrow("latest failed");
+		expect(manager.initialized).toBe(false);
+
+		await manager.init();
+		expect(manager.initialized).toBe(true);
+	});
+
+	it("does not carry a failed run's pollutant into the retry", async () => {
+		sdk.getMonitorsList.mockRejectedValueOnce(new Error("offline"));
+
+		await expect(manager.init("o3")).rejects.toThrow("offline");
+		await manager.init();
+
+		expect(manager.pollutant).toBe("pm25");
+	});
+
+	it("does nothing once initialized", async () => {
+		await manager.init();
+		sdk.getMonitorsList.mockClear();
+		sdk.getMonitorsMeta.mockClear();
+		sdk.getMonitors.mockClear();
+
+		await manager.init("o3");
+
+		expect(sdk.getMonitorsList).not.toHaveBeenCalled();
+		expect(sdk.getMonitorsMeta).not.toHaveBeenCalled();
+		expect(sdk.getMonitors).not.toHaveBeenCalled();
+		expect(manager.pollutant).toBe("pm25");
+		expect(start).toHaveBeenCalledTimes(1);
+	});
+});
