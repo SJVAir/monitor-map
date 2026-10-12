@@ -1,0 +1,69 @@
+/** The pollutants the detail panel can show, in order of preference. */
+export const PANEL_POLLUTANTS = ["pm25", "o3"] as const;
+export type PanelPollutant = (typeof PANEL_POLLUTANTS)[number];
+
+/** The slice of the SDK's `MonitorDetails` this module reads. */
+export interface PanelMonitor {
+	type: string;
+	latest: Record<string, { value?: string } | undefined>;
+}
+
+/** The slice of the SDK's `MonitorsMeta` this module reads. */
+export interface PanelMeta {
+	monitors: Record<string, { entries: Record<string, unknown> } | undefined>;
+}
+
+export interface PanelPollutantChoice {
+	/** Null when the monitor has no reading and its type publishes neither pollutant. */
+	pollutant: PanelPollutant | null;
+	/** Whether the monitor has a current reading for `pollutant`. */
+	hasReading: boolean;
+}
+
+/** The panel pollutants this monitor has a current, numeric reading for. */
+export function readingPollutants(monitor: Pick<PanelMonitor, "latest">): PanelPollutant[] {
+	return PANEL_POLLUTANTS.filter((pollutant) => {
+		const value = monitor.latest[pollutant]?.value;
+		return typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value));
+	});
+}
+
+/**
+ * The panel pollutants this monitor type publishes. The API marks each entry type with a
+ * `published` flag the SDK does not type; a type that carries the entry without the flag
+ * counts as publishing it.
+ */
+export function publishedPollutants(monitorType: string, meta: PanelMeta): PanelPollutant[] {
+	const entries = meta.monitors[monitorType]?.entries ?? {};
+	return PANEL_POLLUTANTS.filter((pollutant) => {
+		const entry = entries[pollutant] as { published?: boolean } | undefined;
+		return entry !== undefined && entry.published !== false;
+	});
+}
+
+/**
+ * The pollutant the detail panel shows: the map's when the monitor has it, otherwise the one
+ * the monitor has. A monitor with no current reading still gets a pollutant when its type
+ * publishes one, so its past data can be charted.
+ */
+export function choosePanelPollutant(
+	mapPollutant: PanelPollutant | null,
+	monitor: PanelMonitor,
+	meta: PanelMeta
+): PanelPollutantChoice {
+	const withReading = readingPollutants(monitor);
+	if (withReading.length > 0) {
+		const pollutant =
+			mapPollutant && withReading.includes(mapPollutant) ? mapPollutant : withReading[0];
+		return { pollutant, hasReading: true };
+	}
+
+	const published = publishedPollutants(monitor.type, meta);
+	if (published.length > 0) {
+		const pollutant =
+			mapPollutant && published.includes(mapPollutant) ? mapPollutant : published[0];
+		return { pollutant, hasReading: false };
+	}
+
+	return { pollutant: null, hasReading: false };
+}
