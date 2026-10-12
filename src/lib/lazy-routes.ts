@@ -1,15 +1,20 @@
 import type { Routes } from "sv-router";
+import LazyMapLayout from "./LazyMapLayout.svelte";
+import LazyMonitorDetailPanel from "./LazyMonitorDetailPanel.svelte";
+import MainMapView from "./MainMapView.svelte";
 
 /**
  * Lazy routes entry (`@sjvair/monitor-map/routes`): the same route tree as the main entry's
- * `monitorMapRoutes`, but the layout and every route load on demand, so a host router can
- * reference it at startup without loading the map.
+ * `monitorMapRoutes`, but the map layout and the monitor panel load on demand, so a host
+ * router can reference it at startup without loading the map.
  *
- * Each component must stay a literal `() => import(...)`: sv-router recognises lazy
- * components by matching the function's source text, so a helper wrapper would break it.
+ * The components here are light wrappers that load the real ones themselves
+ * (`./lazy-chunks.ts`) and show the load screen meanwhile. They are deliberately not
+ * `() => import(...)` routes: sv-router renders nothing for a route until every lazy component
+ * on it has loaded, which left the outlet empty on a cold link into the map.
  */
 export const monitorMapRoutes: Routes = {
-	layout: () => import("./MonitorMapLayout.svelte"),
-	"/": () => import("./MainMapView.svelte"),
-	"/monitor/:id": () => import("./MonitorDetailPanel.svelte")
+	layout: LazyMapLayout,
+	"/": MainMapView,
+	"/monitor/:id": LazyMonitorDetailPanel
 };

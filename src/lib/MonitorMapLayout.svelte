@@ -14,6 +14,7 @@
 		currentSelection,
 		parsePollutantParam
 	} from "$lib/options/pollutant-param";
+	import LoadError from "$lib/LoadError.svelte";
 	import Legend from "$lib/legend/Legend.svelte";
 	import {
 		fireSmokeLegendSections,
@@ -143,16 +144,7 @@
 >
 	{#snippet loadError()}
 		{#if loadFailed}
-			<div class="flex flex-col items-center gap-3 px-4 text-center" role="alert">
-				<p class="text-gray-700">Couldn't load air monitors.</p>
-				<button
-					type="button"
-					class="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-					onclick={loadMonitors}
-				>
-					Try again
-				</button>
-			</div>
+			<LoadError message="Couldn't load air monitors." onretry={loadMonitors} />
 		{/if}
 	{/snippet}
 	{#snippet menu()}

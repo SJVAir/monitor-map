@@ -83,8 +83,8 @@ export const { route, navigate, p, isActive, Router } = createRouter({
   `useMonitorMapRouter`, `ROUTER_KEY`, `MonitorMapRouterApi`) and `monitorsManager`, with
   no map code behind them.
 - `@sjvair/monitor-map/routes` exports a `monitorMapRoutes` with the same route tree, whose
-  layout and routes load on demand. On a cold deep link into the map, the router outlet is
-  empty until that chunk arrives.
+  map layout and monitor panel load on demand. The load screen shows while they do, including
+  on a cold deep link into the map, with a retry if a chunk fails to load.
 
 Both entries share their modules with the package root, so `monitorsManager` is the same
 instance whichever entry it is imported from.
