@@ -1,6 +1,6 @@
 <script lang="ts">
 	import "@maptiler/sdk/dist/maptiler-sdk.css";
-	import { initializeMap } from "./map.svelte";
+	import { initializeMap } from "./map-manager.svelte.js";
 	import { integrationsManager } from "$lib/map/integrations/integrations-manager";
 	import type { SomeMapIntegration } from "./integrations/types";
 

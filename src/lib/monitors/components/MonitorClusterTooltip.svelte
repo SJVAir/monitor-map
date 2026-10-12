@@ -6,7 +6,7 @@
 	import { area } from "@turf/area";
 	import { convertArea } from "@turf/helpers";
 	import DataBox from "$lib/components/DataBox.svelte";
-	import { mapManager } from "$lib/map/map.svelte";
+	import { mapManager } from "$lib/map/map-manager.svelte.js";
 	import type { MonitorClusterMapFeature, MonitorMapFeature } from "../types";
 	import { monitorsManager } from "../monitors.svelte";
 	import { getCurrentLevel } from "../monitor-utils";

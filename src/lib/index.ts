@@ -41,8 +41,8 @@ export { evStationsManager } from "./ev-stations/ev-stations.svelte";
 export type { EvStationsManager } from "./ev-stations/ev-stations.svelte";
 export { hmsManager } from "./hms/hms.svelte";
 export type { HMSManager } from "./hms/hms.svelte";
-export { mapManager, DefaultMapStyle, initializeMap } from "./map/map.svelte";
-export type { MapManager } from "./map/map.svelte";
+export { mapManager, DefaultMapStyle, initializeMap } from "./map/map-manager.svelte.js";
+export type { MapManager } from "./map/map-manager.svelte.js";
 
 // Map integrations
 export {

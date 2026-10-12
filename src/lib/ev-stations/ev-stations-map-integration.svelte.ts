@@ -6,7 +6,7 @@ import type {
 } from "@maptiler/sdk";
 import type { Geometry } from "geojson";
 import { untrack } from "svelte";
-import { mapManager } from "$lib/map/map.svelte";
+import { mapManager } from "$lib/map/map-manager.svelte.js";
 import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager";
 import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
 import { MapDisplayOption } from "$lib/map/integrations/map-display-option.svelte";

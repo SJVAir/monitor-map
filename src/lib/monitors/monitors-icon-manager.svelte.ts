@@ -1,7 +1,7 @@
 import type { MonitorData, SJVAirEntryLevel } from "@sjvair/sdk";
 import { asDataURI, circle, square, triangle } from "$lib/map/icons";
 import { MapIconManager } from "$lib/map/integrations/map-icon-manager";
-import { mapManager } from "$lib/map/map.svelte";
+import { mapManager } from "$lib/map/map-manager.svelte.js";
 import type { MonitorsDataSource } from "./types";
 
 const MONITOR_ICONS = { circle, square, triangle };

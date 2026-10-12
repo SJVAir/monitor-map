@@ -1,6 +1,6 @@
 import type { GeoJSONSource, MapLayerEventType, Popup } from "@maptiler/sdk";
 import type { Point } from "geojson";
-import { mapManager } from "$lib/map/map.svelte";
+import { mapManager } from "$lib/map/map-manager.svelte.js";
 import { mountPopup } from "$lib/map/utils";
 import { clickManager, type ClickHandler } from "$lib/map/integrations/click-manager";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte";

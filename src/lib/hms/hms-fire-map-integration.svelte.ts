@@ -1,7 +1,7 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
 import type { Feature } from "geojson";
 import type { Point } from "geojson";
-import { mapManager } from "$lib/map/map.svelte";
+import { mapManager } from "$lib/map/map-manager.svelte.js";
 import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
 import { hmsManager } from "./hms.svelte";
 import { HMSFireIconManager, getTierIconId } from "./hms-fire-icon-manager";

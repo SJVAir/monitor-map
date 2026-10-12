@@ -1,7 +1,7 @@
 import type { Map as MaptilerMap } from "@maptiler/sdk";
 import type { Feature, MultiPolygon } from "geojson";
 import type { HMSSmokeGeoJSON } from "@sjvair/sdk/hms";
-import { mapManager } from "$lib/map/map.svelte";
+import { mapManager } from "$lib/map/map-manager.svelte.js";
 import { MapGeoJSONIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
 import { hmsManager } from "./hms.svelte";
 import type { SmokeDensityStyle } from "$lib/legend/legend-data";

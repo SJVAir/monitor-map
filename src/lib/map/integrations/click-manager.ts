@@ -1,5 +1,5 @@
 import type { MapGeoJSONFeature, MapMouseEvent } from "@maptiler/sdk";
-import { mapManager } from "../map.svelte";
+import { mapManager } from "../map-manager.svelte.js";
 
 export type ClickHandler = (features: MapGeoJSONFeature[], evt: MapMouseEvent & object) => void;
 

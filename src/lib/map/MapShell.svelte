@@ -53,7 +53,7 @@
 	import LoadScreen, { disable as disableLoadScreen } from "$lib/LoadScreen.svelte";
 	import Map from "$lib/map/Map.svelte";
 	import OptionsBar from "$lib/options/OptionsBar.svelte";
-	import { mapManager } from "$lib/map/map.svelte";
+	import { mapManager } from "$lib/map/map-manager.svelte.js";
 	import { useMonitorMapRouter } from "$lib/router-context";
 
 	let {
@@ -74,7 +74,7 @@
 
 	$effect(() => {
 		// mapManager.map is only ever assigned once its own initial "load" has
-		// already fired (see initializeMap in map.svelte.ts), so by the time this
+		// already fired (see initializeMap in map-manager.svelte.ts), so by the time this
 		// effect sees a non-null map, it's already safe to reveal — waiting for a
 		// further "idle" event here is unreliable since one may never fire again.
 		if (mapManager.map && ready) {

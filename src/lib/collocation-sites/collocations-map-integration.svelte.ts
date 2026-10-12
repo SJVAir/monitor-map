@@ -1,6 +1,6 @@
 import { type Popup, type MapLayerEventType, type Map as MaptilerMap } from "@maptiler/sdk";
 import type { Geometry } from "geojson";
-import { mapManager } from "$lib/map/map.svelte";
+import { mapManager } from "$lib/map/map-manager.svelte.js";
 import { MapIconLayerIntegration } from "$lib/map/integrations/map-geojson-integration.svelte";
 import { CollocationIconManager, getCollocationIconId } from "./collocations-icon-manager.svelte";
 import { TooltipManager } from "$lib/map/integrations/tooltip.svelte";
