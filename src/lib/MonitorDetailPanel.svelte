@@ -1,11 +1,14 @@
 <script lang="ts">
-	import type { ComponentProps } from "svelte";
+	import { untrack, type ComponentProps } from "svelte";
 	import type { SJVAirEntryLevel } from "@sjvair/sdk";
 	import DataBox from "$lib/components/DataBox.svelte";
+	import LoadError from "$lib/LoadError.svelte";
 	import MonitorWidgetModal from "$lib/monitors/components/MonitorWidgetModal.svelte";
 	import MonitorSubscriptionManager from "$lib/monitors/components/MonitorSubscriptionManager.svelte";
 	import DataChart from "$lib/data-chart/DataChart.svelte";
 	import { monitorsManager } from "$lib";
+	import { MonitorDetailsState } from "$lib/monitors/monitor-details.svelte";
+	import { choosePanelPollutant } from "$lib/monitors/panel-pollutant";
 	import { useMonitorMapRouter } from "./router-context";
 	import { fetchTempByCoords } from "$lib/weather";
 	import { Colors, valueToColor } from "$lib/colors";
@@ -21,24 +24,70 @@
 	}
 	const { route, navigate, basePath } = useMonitorMapRouter();
 
-	const monitor = $derived(monitorsManager.latest?.get(route.params.id ?? ""));
+	// The panel fetches its own monitor: the map's readings only hold monitors that have a
+	// current reading for the map's pollutant.
+	const details = new MonitorDetailsState();
+	const meta = $derived(monitorsManager.meta);
+	// Shown only once the metadata is in too; labels and levels come from it.
+	const monitor = $derived(details.status === "ready" && meta ? details.monitor : null);
+
+	$effect(() => {
+		const id = route.params.id;
+		if (id) untrack(() => details.load(id));
+	});
+
+	// Bumped whenever the map's readings are replaced, i.e. its 2-minute refresh ran. The data
+	// box follows it; the chart decides for itself whether its date range can have new entries.
+	let refreshTick = $state(0);
+	let seenLatest = untrack(() => monitorsManager.latest);
+
+	$effect(() => {
+		const latest = monitorsManager.latest;
+		// Null while a pollutant change is loading; wait for the readings that follow.
+		if (!latest || latest === seenLatest) return;
+		// The first readings of a cold load arrive alongside this panel's own request.
+		const first = seenLatest === null;
+		seenLatest = latest;
+		if (first) return;
+		untrack(() => {
+			details.refresh();
+			refreshTick++;
+		});
+	});
+
+	const panel = $derived(
+		monitor && meta ? choosePanelPollutant(monitorsManager.pollutant, monitor, meta) : null
+	);
+	const reading = $derived(
+		monitor && panel?.pollutant && panel.hasReading ? monitor.latest[panel.pollutant] : undefined
+	);
+	// Set when the panel shows a different pollutant than the map is coloring by.
+	const pollutantNote = $derived.by(() => {
+		const mapPollutant = monitorsManager.pollutant;
+		if (!meta || !panel?.pollutant || !panel.hasReading || !mapPollutant) return;
+		if (panel.pollutant === mapPollutant) return;
+		const shown = meta.entryType(panel.pollutant).label;
+		const missing = meta.entryType(mapPollutant).label.toLowerCase();
+		return `Showing ${shown}. This monitor has no ${missing} readings.`;
+	});
+
 	let tempData: TempDataBox | undefined = $state();
 	const entryData: ComponentProps<typeof DataBox> | undefined = $derived.by(() => {
-		if (!monitor || !monitorsManager.meta) return;
+		if (!monitor || !meta || !panel?.pollutant || !reading) return;
 
-		const entryType = monitorsManager.meta.entryType(monitor.latest.entry_type);
+		const entryType = meta.entryType(panel.pollutant);
 		const level: SJVAirEntryLevel | undefined = getCurrentLevel(
-			monitor.latest.value,
+			reading.value,
 			entryType.asIter.levels!
 		);
 
-		const updateDuration = monitorsManager.meta.monitorType(monitor.type).expected_interval;
+		const updateDuration = meta.monitorType(monitor.type).expected_interval;
 
 		return {
 			color: level?.color ?? "",
 			header: entryType.label,
 			subheading: `(${updateDuration} avg)`,
-			value: Math.round(parseInt(monitor.latest.value, 10)).toString()
+			value: Math.round(parseInt(reading.value, 10)).toString()
 		};
 	});
 
@@ -104,24 +153,37 @@
 				{@render badge("location-on", monitor.county)}
 				{@render badge("location-searching", monitor.location)}
 			</div>
+			{#if pollutantNote}
+				<p class="text-center text-sm text-gray-600">{pollutantNote}</p>
+			{:else if panel && !panel.hasReading}
+				<p class="text-center text-sm text-gray-600">This monitor has no current readings.</p>
+			{/if}
 		{/if}
 	</div>
 
 	<div class="tall:overflow-y-auto flex flex-col items-center gap-12 p-5 pt-10">
-		{#if monitor}
-			<div class="flex w-full justify-around">
-				{#if tempData}
-					<DataBox color={tempData.color} header="Temperature" value={tempData.value} />
-				{/if}
-				{#if entryData}
-					<DataBox
-						color={entryData.color}
-						header={entryData.header}
-						subheading={entryData.subheading}
-						value={entryData.value}
-					/>
-				{/if}
-			</div>
+		{#if details.status === "not-found"}
+			<p class="text-gray-700" role="alert">Monitor not found.</p>
+		{:else if details.status === "failed"}
+			<LoadError message="Couldn't load this monitor." onretry={() => details.retry()} />
+		{:else if !monitor || !panel}
+			<p class="text-sm text-gray-500">Loading…</p>
+		{:else}
+			{#if tempData || entryData}
+				<div class="flex w-full justify-around">
+					{#if tempData}
+						<DataBox color={tempData.color} header="Temperature" value={tempData.value} />
+					{/if}
+					{#if entryData}
+						<DataBox
+							color={entryData.color}
+							header={entryData.header}
+							subheading={entryData.subheading}
+							value={entryData.value}
+						/>
+					{/if}
+				</div>
+			{/if}
 
 			<div class="tall:block hidden">
 				<MonitorWidgetModal monitorId={monitor.id} />
@@ -131,9 +193,11 @@
 				<MonitorSubscriptionManager monitorId={monitor.id} />
 			{/if}
 
-			<div class="w-full">
-				<DataChart {monitor} pollutant={monitorsManager.pollutant ?? "pm25"} />
-			</div>
+			{#if panel.pollutant}
+				<div class="w-full">
+					<DataChart {monitor} pollutant={panel.pollutant} {refreshTick} />
+				</div>
+			{/if}
 
 			<div class="w-full">
 				<h3 class="font-semibold">Data Provided Courtesy Of:</h3>

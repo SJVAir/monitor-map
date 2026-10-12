@@ -5,7 +5,9 @@ export type PanelPollutant = (typeof PANEL_POLLUTANTS)[number];
 /** The slice of the SDK's `MonitorDetails` this module reads. */
 export interface PanelMonitor {
 	type: string;
-	latest: Record<string, { value?: string } | undefined>;
+	// Only the panel pollutants are read; the SDK's `latest` has more entry types, without an
+	// index signature.
+	latest: Partial<Record<PanelPollutant, { value?: string }>>;
 }
 
 /** The slice of the SDK's `MonitorsMeta` this module reads. */

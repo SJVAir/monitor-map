@@ -44,7 +44,8 @@
 			format(parseISO(chartManager.dateRange.end), "MMM d, yyyy")
 	);
 
-	const noChartData = $derived(!chartManager.chartData.length);
+	// A request with no entries still resolves to [[], []], so test the x axis, not the tuple.
+	const noChartData = $derived(!chartManager.chartData[0]?.length);
 	const message = $derived(
 		chartManager.loading
 			? "Loading Data"
@@ -59,9 +60,13 @@
 	);
 
 	// Reload for another monitor or pollutant, not for a new object describing the same one.
+	// Both go through a $derived: the owner recomputes what it passes on every refresh, and a
+	// prop read directly would re-run this effect even when the value is unchanged.
+	const monitorId = $derived(monitor.id);
+	const chartPollutant = $derived(pollutant);
 	$effect(() => {
-		void monitor.id;
-		void pollutant;
+		void monitorId;
+		void chartPollutant;
 		untrack(() => loadChartData());
 	});
 

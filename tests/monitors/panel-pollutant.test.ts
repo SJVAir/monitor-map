@@ -32,11 +32,9 @@ describe("readingPollutants", () => {
 	});
 
 	it("ignores missing, empty and non-numeric values and other entry types", () => {
-		expect(
-			readingPollutants({
-				latest: { pm25: reading(""), o3: reading("n/a"), temperature: reading("79.6") }
-			})
-		).toEqual([]);
+		// A real monitor's readings carry other entry types too.
+		const latest = { pm25: reading(""), o3: reading("n/a"), temperature: reading("79.6") };
+		expect(readingPollutants({ latest })).toEqual([]);
 		expect(readingPollutants({ latest: {} })).toEqual([]);
 	});
 });
