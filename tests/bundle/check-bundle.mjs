@@ -1,9 +1,9 @@
 // Proves the light entries stay light: bundles each one from dist/lib the way a host app
-// would and fails if maplibre is reachable without a dynamic import. Run through
+// would and fails if the map or chart dependencies are reachable without a dynamic import. Run through
 // `npm run test:bundle`, which builds dist/lib first.
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { build } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { enhancedImages } from "@sveltejs/enhanced-img";
@@ -11,9 +11,12 @@ import { enhancedImages } from "@sveltejs/enhanced-img";
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
 
-const HEAVY = /maplibre/i;
+// The map and chart dependencies: @maptiler/sdk (which bundles maplibre), @maptiler/weather, uplot.
+const HEAVY = /maplibre|maptiler|uplot/i;
 // The shape sv-router's isLazyImport() looks for; it must survive minification.
 const LAZY_IMPORT = /\(\)\s?=>\s?import\(/g;
+// sv-router 0.19's own isLazyImport() test (src/helpers/utils.js), applied per route below.
+const SV_ROUTER_LAZY = /\(\)\s?=>\s?(import|__vite_ssr_dynamic_import__)\(.*\)/;
 const FIXTURE = "virtual:bundle-check";
 
 const failures = [];
@@ -82,11 +85,22 @@ const kb = (bytes) => `${(bytes / 1024).toFixed(0)} KB`;
 const core = entryFile("./core");
 const routes = entryFile("./routes");
 
+if (routes) {
+	// Each route must itself be a literal `() => import(...)`. A helper wrapper would leave the
+	// literals in the bundle but hand sv-router a function it does not recognise as lazy.
+	const { monitorMapRoutes } = await import(pathToFileURL(routes).href);
+	for (const [key, component] of Object.entries(monitorMapRoutes)) {
+		if (typeof component !== "function" || !SV_ROUTER_LAZY.test(String(component))) {
+			failures.push(`"./routes" entry "${key}" is not a literal \`() => import(...)\``);
+		}
+	}
+}
+
 if (core) {
 	const { eager } = await bundle([core]);
 	console.log(`./core            eager ${kb(size(eager))}`);
 	if (eager.some((chunk) => HEAVY.test(chunk.code))) {
-		failures.push('"./core" pulls maplibre into the startup bundle');
+		failures.push('"./core" pulls a map or chart dependency into the startup bundle');
 	}
 }
 
@@ -94,11 +108,11 @@ if (core && routes) {
 	const { eager, lazy } = await bundle([core, routes]);
 	console.log(`./core + ./routes eager ${kb(size(eager))}, lazy ${kb(size(lazy))}`);
 	if (eager.some((chunk) => HEAVY.test(chunk.code))) {
-		failures.push('"./core" + "./routes" pull maplibre into the startup bundle');
+		failures.push('"./core" + "./routes" pull a map or chart dependency into the startup bundle');
 	}
-	// Guards the check itself: if maplibre is in no chunk at all, HEAVY is matching nothing.
+	// Guards the check itself: if no chunk at all matches, HEAVY is matching nothing.
 	if (!lazy.some((chunk) => HEAVY.test(chunk.code))) {
-		failures.push("no lazy chunk contains maplibre, so this check cannot detect it");
+		failures.push("no lazy chunk matches the heavy-dependency pattern, so this check is blind");
 	}
 	const lazyImports = eager.flatMap((chunk) => chunk.code.match(LAZY_IMPORT) ?? []);
 	if (lazyImports.length < 3) {
