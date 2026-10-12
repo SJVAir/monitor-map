@@ -207,6 +207,36 @@ describe("monitorsManager.init", () => {
 		expect(manager.pollutant).toBe("pm25");
 		expect(start).toHaveBeenCalledTimes(1);
 	});
+
+	it("does not start polling when asked not to", async () => {
+		await manager.init(undefined, { autoUpdate: false });
+
+		expect(manager.initialized).toBe(true);
+		expect(start).not.toHaveBeenCalled();
+		expect(manager.autoUpdate.isActive).toBe(false);
+	});
+
+	it.each([
+		["first", [{ autoUpdate: false }, undefined]],
+		["second", [undefined, { autoUpdate: false }]]
+	] as const)(
+		"starts polling when only the %s of two overlapping calls opts out",
+		async (_which, [a, b]) => {
+			await Promise.all([manager.init(undefined, a), manager.init(undefined, b)]);
+
+			expect(start).toHaveBeenCalledTimes(1);
+			expect(manager.autoUpdate.isActive).toBe(true);
+		}
+	);
+
+	it("does not carry a failed run's polling request into the retry", async () => {
+		sdk.getMonitorsList.mockRejectedValueOnce(new Error("offline"));
+
+		await expect(manager.init()).rejects.toThrow("offline");
+		await manager.init(undefined, { autoUpdate: false });
+
+		expect(start).not.toHaveBeenCalled();
+	});
 });
 describe("monitorsManager.resumeAutoUpdate", () => {
 	it("does nothing before initialization", () => {
@@ -228,6 +258,19 @@ describe("monitorsManager.resumeAutoUpdate", () => {
 		expect(sdk.getMonitorsList).not.toHaveBeenCalled();
 		expect(sdk.getMonitors).not.toHaveBeenCalled();
 		expect(start).toHaveBeenCalledTimes(1);
+	});
+
+	it("refreshes once and starts polling after an init that opted out", async () => {
+		await manager.init(undefined, { autoUpdate: false });
+		sdk.getMonitorsList.mockClear();
+		sdk.getMonitors.mockClear();
+
+		manager.resumeAutoUpdate();
+		await flush();
+
+		expect(sdk.getMonitorsList).toHaveBeenCalledTimes(1);
+		expect(sdk.getMonitors.mock.calls).toEqual([["pm25"]]);
+		expect(manager.autoUpdate.isActive).toBe(true);
 	});
 
 	it("refreshes once and restarts polling after it was stopped", async () => {

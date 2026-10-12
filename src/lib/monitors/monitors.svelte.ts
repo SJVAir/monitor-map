@@ -12,6 +12,14 @@ import { Interval } from "@tstk/utils";
 import { untrack } from "svelte";
 import type { MonitorsDataSource, MonitorsPollutant } from "./types";
 
+export interface MonitorsInitOptions {
+	/**
+	 * Start the 2-minute polling once the initial load finishes. Defaults to true; pass false to
+	 * load the data without showing a map (`resumeAutoUpdate()` starts polling later).
+	 */
+	autoUpdate?: boolean;
+}
+
 class MonitorsManager implements MonitorsDataSource {
 	autoUpdate: Interval = new Interval(async () => await this.update(), 2 * 60 * 1000);
 	initialized: boolean = $state(false);
@@ -29,6 +37,7 @@ class MonitorsManager implements MonitorsDataSource {
 
 	#initPromise: Promise<void> | null = null;
 	#requestedPollutant: MonitorsPollutant | null = null;
+	#requestedAutoUpdate = false;
 
 	constructor() {
 		// Refetch monitors when the pollutant changes after the initial load, wherever the change
@@ -54,10 +63,14 @@ class MonitorsManager implements MonitorsDataSource {
 	/**
 	 * Safe to call from several places: overlapping calls share one run, and a failed run can
 	 * be retried. An explicit "pm25"/"o3" wins over a call without one, whichever came first;
-	 * between two explicit values the most recent wins.
+	 * between two explicit values the most recent wins. Polling starts when the run finishes
+	 * unless every call sharing it passed `autoUpdate: false`. A no-op once initialized, so it
+	 * never restarts polling either: that is `resumeAutoUpdate()`.
 	 */
-	init(urlPollutant?: string | number | boolean): Promise<void> {
+	init(urlPollutant?: string | number | boolean, options: MonitorsInitOptions = {}): Promise<void> {
 		if (this.initialized) return Promise.resolve();
+
+		if (options.autoUpdate !== false) this.#requestedAutoUpdate = true;
 
 		if (urlPollutant === "pm25" || urlPollutant === "o3") {
 			this.#requestedPollutant = urlPollutant;
@@ -66,6 +79,7 @@ class MonitorsManager implements MonitorsDataSource {
 		this.#initPromise ??= this.#runInit().finally(() => {
 			this.#initPromise = null;
 			this.#requestedPollutant = null;
+			this.#requestedAutoUpdate = false;
 		});
 
 		return this.#initPromise;
@@ -105,13 +119,14 @@ class MonitorsManager implements MonitorsDataSource {
 
 		this.pollutant = fetchedPollutant;
 		this.latest = latest;
-		this.autoUpdate.start();
+		if (this.#requestedAutoUpdate) this.autoUpdate.start();
 		this.initialized = true;
 	}
 
 	/**
-	 * Restarts polling after something stopped it (MonitorMapLayout stops it on destroy),
-	 * refreshing first since the data may be stale. A no-op before init or while polling.
+	 * Starts polling when it is not running: after something stopped it (MonitorMapLayout stops
+	 * it on destroy) or after an init that opted out of it. Refreshes first since the data may
+	 * be stale. A no-op before init or while polling.
 	 */
 	resumeAutoUpdate(): void {
 		if (!this.initialized || this.autoUpdate.isActive) return;
