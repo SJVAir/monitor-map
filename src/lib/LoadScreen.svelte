@@ -23,7 +23,15 @@
 </script>
 
 <script lang="ts">
+	import type { Snippet } from "svelte";
 	import type { Attachment } from "svelte/attachments";
+
+	interface Props {
+		/** Rendered under the logo while the load screen is up, e.g. a load failure and a retry */
+		error?: Snippet;
+	}
+
+	let { error }: Props = $props();
 
 	const animationTrigger: Attachment<HTMLDivElement> = () => {
 		loadScreenState.entered = true;
@@ -32,7 +40,7 @@
 
 {#if loadScreenState.enabled}
 	<div
-		class="absolute top-0 left-0 z-50 flex h-full w-full items-center justify-center overflow-hidden bg-white"
+		class="absolute top-0 left-0 z-50 flex h-full w-full flex-col items-center justify-center gap-6 overflow-hidden bg-white"
 		{@attach animationTrigger}
 	>
 		<div class="flex justify-around gap-4">
@@ -64,5 +72,6 @@
 				class:opacity-0={!loadScreenState.entered}
 			/>
 		</div>
+		{@render error?.()}
 	</div>
 {/if}

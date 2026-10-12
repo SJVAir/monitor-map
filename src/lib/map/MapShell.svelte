@@ -11,6 +11,11 @@
 		 * is true.
 		 */
 		ready: boolean;
+		/**
+		 * Rendered on the load screen, under the logo, for as long as the load screen is up.
+		 * Render it only when the caller's initial load failed (e.g. a message and a retry).
+		 */
+		loadError?: Snippet;
 		/** True when the routed detail panel (`children`) should be visible */
 		panelOpen: boolean;
 		/**
@@ -59,6 +64,7 @@
 	let {
 		integrations,
 		ready,
+		loadError,
 		panelOpen,
 		knownRoutes = [],
 		menu,
@@ -123,7 +129,7 @@
 </script>
 
 <div class="relative flex h-full w-full flex-col md:flex-row">
-	<LoadScreen />
+	<LoadScreen error={loadError} />
 	<div class="relative flex-1 overflow-hidden">
 		<Map {integrations} />
 		{@render overlays?.()}
