@@ -23,6 +23,11 @@
  *
  * <Router />
  * ```
+ *
+ * A host that must stay light at startup imports from the subpath entries instead:
+ * `provideMonitorMapRouter`/`monitorsManager` from "@sjvair/monitor-map/core" (no map), and
+ * `monitorMapRoutes` from "@sjvair/monitor-map/routes" (same tree, lazy layout and routes).
+ * `monitorMapRoutes` from this entry stays eager.
  */
 export { monitorMapRoutes } from "./routes";
 export {
