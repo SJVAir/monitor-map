@@ -148,8 +148,12 @@ Changes:
   `chart-utils.ts` and `tooltip.ts` stop importing `monitorsManager`.
 - Loading is driven by an effect on `monitor.id` and `pollutant`, not on the monitor
   object's identity.
-- An effect on `refreshTick`: when `includesToday(dateRange)`, set the range to
-  `extendToNow(dateRange)` and reload. Otherwise do nothing.
+- The chart remembers whether its range was live when chosen (`includesToday` at creation
+  and on each calendar selection). An effect on `refreshTick` does nothing unless it was;
+  otherwise it sets the range to `extendToNow(dateRange)` and reloads without hiding the
+  current chart. Remembering, not re-testing each tick, keeps a panel left open past
+  midnight following the present.
+- A response for a superseded chart request is dropped.
 - The calendar selection is not moved by `extendToNow`; only the request window is.
 
 ### Unchanged
