@@ -3,7 +3,7 @@
 // `npm run test:bundle`, which builds dist/lib first.
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { build } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { enhancedImages } from "@sveltejs/enhanced-img";
@@ -13,10 +13,8 @@ const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
 
 // The map and chart dependencies: @maptiler/sdk (which bundles maplibre), @maptiler/weather, uplot.
 const HEAVY = /maplibre|maptiler|uplot/i;
-// The shape sv-router's isLazyImport() looks for; it must survive minification.
+// The on-demand loads of the map layout and the monitor panel (src/lib/lazy-chunks.ts).
 const LAZY_IMPORT = /\(\)\s?=>\s?import\(/g;
-// sv-router 0.19's own isLazyImport() test (src/helpers/utils.js), applied per route below.
-const SV_ROUTER_LAZY = /\(\)\s?=>\s?(import|__vite_ssr_dynamic_import__)\(.*\)/;
 const FIXTURE = "virtual:bundle-check";
 
 const failures = [];
@@ -85,17 +83,6 @@ const kb = (bytes) => `${(bytes / 1024).toFixed(0)} KB`;
 const core = entryFile("./core");
 const routes = entryFile("./routes");
 
-if (routes) {
-	// Each route must itself be a literal `() => import(...)`. A helper wrapper would leave the
-	// literals in the bundle but hand sv-router a function it does not recognise as lazy.
-	const { monitorMapRoutes } = await import(pathToFileURL(routes).href);
-	for (const [key, component] of Object.entries(monitorMapRoutes)) {
-		if (typeof component !== "function" || !SV_ROUTER_LAZY.test(String(component))) {
-			failures.push(`"./routes" entry "${key}" is not a literal \`() => import(...)\``);
-		}
-	}
-}
-
 if (core) {
 	const { eager } = await bundle([core]);
 	console.log(`./core            eager ${kb(size(eager))}`);
@@ -115,10 +102,10 @@ if (core && routes) {
 		failures.push("no lazy chunk matches the heavy-dependency pattern, so this check is blind");
 	}
 	const lazyImports = eager.flatMap((chunk) => chunk.code.match(LAZY_IMPORT) ?? []);
-	if (lazyImports.length < 3) {
+	if (lazyImports.length < 2) {
 		failures.push(
-			`expected the layout and both routes to stay \`() => import(...)\` in the startup ` +
-				`bundle, found ${lazyImports.length}`
+			`expected the map layout and the monitor panel to stay behind \`() => import(...)\` ` +
+				`in the startup bundle, found ${lazyImports.length}`
 		);
 	}
 }

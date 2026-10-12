@@ -162,16 +162,22 @@ VITE_OPENWEATHERMAP_KEY=
   eager. The widget build uses this.
 - `./core` (`src/lib/core.ts`) — router context and `monitorsManager` only. Nothing it
   imports may reach `@maptiler/sdk`, `@maptiler/weather` or `uplot` at runtime.
-- `./routes` (`src/lib/lazy-routes.ts`) — `monitorMapRoutes` with a lazy layout and lazy
-  routes. Each must stay a literal `() => import("./X.svelte")`: sv-router detects lazy
-  components by regex on the function source.
+- `./routes` (`src/lib/lazy-routes.ts`) — `monitorMapRoutes` whose layout and monitor panel
+  load on demand. Its components are light eager wrappers (`LazyMapLayout`,
+  `LazyMonitorDetailPanel`) that load the real ones through `src/lib/lazy-chunks.ts` and show
+  the load screen (or "Loading…" in the panel, or a retry on failure) meanwhile. They are not
+  `() => import(...)` routes because sv-router renders nothing for a route until every lazy
+  component on it has loaded. The dynamic imports must stay in `lazy-chunks.ts`, never in a
+  wrapper: sv-router detects lazy components by regex on the function source, and a compiled
+  component containing `() => import(...)` would be called as one
+  (`tests/client/lazy-routes.test.ts` guards this).
 
-`core.ts` and `lazy-routes.ts` are pure re-exports/route tables of the modules `.` uses, so
-the singletons stay single across entries. `npm run test:bundle`
+`core.ts` re-exports, and the lazy wrappers load, the same modules `.` uses, so the
+singletons stay single across entries. `npm run test:bundle`
 (`tests/bundle/check-bundle.mjs`) bundles both entries from `dist/lib` and fails if maplibre,
 maptiler or uplot is reachable without a dynamic import, if an `exports` target is missing,
-or if a lazy route is not a literal `() => import(...)`; the release workflow runs it before
-publishing.
+or if the two on-demand imports are gone from the startup bundle; the release workflow runs
+it before publishing.
 
 ### `monitorsManager.init()` rules
 
@@ -225,11 +231,7 @@ Always stop and ask first, and wait for an explicit yes.
 
 ## Known issues
 
-- **Blank outlet on a cold deep link with the lazy routes entry:** with
-  `@sjvair/monitor-map/routes`, the router outlet is empty until the layout
-  chunk loads, because `LoadScreen` lives inside that chunk. Fix, if it ever
-  shows: have the host warm the chunk with a dynamic import, or give hosts a
-  light placeholder to render while it loads.
+None currently.
 
 ## Code Style
 
