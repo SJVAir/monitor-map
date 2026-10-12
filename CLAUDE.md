@@ -252,6 +252,15 @@ Always stop and ask first, and wait for an explicit yes.
   chunk loads, because `LoadScreen` lives inside that chunk. Fix, if it ever
   shows: have the host warm the chunk with a dynamic import, or give hosts a
   light placeholder to render while it loads.
+- **`monitorsManager`'s refetch effect is untested:** specs compile rune modules in
+  server mode, so the constructor `$effect` that refetches when `pollutant` changes
+  after init never runs in `tests/monitors/monitors-manager.test.ts`. Its dependence
+  on `#runInit` assigning `pollutant` and `latest` before setting `initialized` last
+  (otherwise init triggers a redundant refetch and blanks the map) is verified by
+  reading only. Test-only gap; the shipped code is correct. Fix: run that spec
+  client-compiled (a second Vitest project or per-file config with the browser
+  resolve condition, tests wrapped in `$effect.root` + `flushSync`) and add two
+  cases: init does not refetch, and a pollutant change after init refetches once.
 
 ## Code Style
 
