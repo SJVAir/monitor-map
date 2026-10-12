@@ -232,7 +232,34 @@ Always stop and ask first, and wait for an explicit yes.
 
 ## Known issues
 
-None currently.
+All minor, deferred from the review of the detail panel's own-data change (PR #122):
+
+- **The chart is rebuilt on every monitor refresh:** `DataChart`'s rebuild effect calls
+  `rebuild` synchronously, so it tracks `monitor` (via `monitor.type`), `colors` and
+  `pollutantLabel`. Each `details.refresh()` destroys and recreates uPlot even when no chart
+  data changed. That incidental tracking is also the only thing that redraws on a color or
+  label change. Fix: read `monitor.type` through a `$derived` and list `colors` and
+  `pollutantLabel` in the effect explicitly.
+- **The data box parses readings with `parseInt`:** `readingPollutants` accepts anything
+  `Number()` finds finite, but `MonitorDetailPanel` renders `Math.round(parseInt(value, 10))`.
+  A value like `".5"` would show `NaN` and `"1e3"` would show `1`; the API's `"0.00"`-style
+  decimals are unaffected. `parseInt` also truncates, so `4.93` shows `4`. Fix:
+  `Math.round(Number(reading.value))`, if rounding is the intended display.
+- **A reading with no matching level crashes the data box:** when `getCurrentLevel` finds no
+  level (e.g. a negative value) the panel passes `color: ""`, and `DataBox`'s `darken("")`
+  throws. Predates PR #122; not known to occur with real data. Fix: fall back to a neutral
+  color.
+- **The chart's title and axis label are hardcoded:** `DataChart` uses "PM 2.5" / "Ozone"
+  rather than `meta.entryType(pollutant).label`, which the panel's note and data box use
+  ("PM2.5"). Fix: take the label from the metadata.
+- **A monitor with no current readings still shows the widget link, the subscription manager
+  and a temperature box:** the spec listed only name, badges, the no-readings line, chart and
+  data providers for that state. Decide whether those belong there; the widget itself errors
+  for an inactive monitor (a backend widget bug).
+- **The chart's refresh logic and the panel's effects are untested:** `DataChart`'s request
+  guard, background (`silent`) refresh and `live` flag, and `MonitorDetailPanel`'s load,
+  refresh and temperature effects, were verified in a browser only. Fix: component specs in
+  the `client` Vitest project, which would need a DOM environment.
 
 ## Code Style
 
