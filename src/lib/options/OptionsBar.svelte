@@ -42,7 +42,12 @@
 	function onkeydown(e: KeyboardEvent) {
 		if (e.key !== "Escape") return;
 		panelOpen = false;
-		if (isWideLayout()) menus.closeAll();
+		if (!isWideLayout()) return;
+		menus.closeAll();
+		// A toolbar dropdown also shows while something in its menu has keyboard focus (see
+		// OptionsMenu), so it only closes once that focus is gone.
+		const focused = document.activeElement;
+		if (focused instanceof HTMLElement && focused.closest("[data-options-menu]")) focused.blur();
 	}
 </script>
 

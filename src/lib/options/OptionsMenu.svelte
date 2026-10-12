@@ -33,6 +33,7 @@
 
 <div
 	role="presentation"
+	data-options-menu
 	class="group/menu relative md:first:[&>button]:rounded-l-md md:last:[&>button]:rounded-r-md"
 	onmouseenter={() => {
 		if (isWideLayout()) menus.closeOthers(id);
