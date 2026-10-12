@@ -93,6 +93,11 @@ instance whichever entry it is imported from.
 preload and the map layout): overlapping calls share one set of requests, a failed call can
 be retried, and an explicit `"pm25"`/`"o3"` argument wins over a call without one.
 
+`init()` starts the 2-minute polling when it finishes. A background preload that shows no
+map should pass `{ autoUpdate: false }` (`monitorsManager.init(undefined, { autoUpdate: false })`);
+the map layout starts polling when it mounts. If any call sharing a run wants polling, it
+starts.
+
 ### Embedding `MapShell` directly, with a reduced integration set
 
 `MonitorMapLayout` is an opinionated wrapper around the lower-level `MapShell`

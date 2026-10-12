@@ -17,7 +17,7 @@ npm test             # Vitest (specs in tests/**)
 npm run test:bundle  # build:lib, then check the light entries keep maplibre off the eager path
 ```
 
-Vitest covers the pure modules (`legend-data`, `group-state`, `pollutant-param`, `basemap`, `map-option-defaults`, `monitor-groups`) and `monitorsManager` (`tests/monitors/monitors-manager.test.ts`, with `@sjvair/sdk` mocked and the module re-imported per test); specs live in top-level `tests/` so they never ship in the package. `vitest.config.ts` loads the Svelte plugin so rune modules compile; they compile in server mode there, so `$effect`s do not run in specs.
+Vitest covers the pure modules (`legend-data`, `group-state`, `pollutant-param`, `basemap`, `map-option-defaults`, `monitor-groups`) and `monitorsManager` (`tests/monitors/monitors-manager.test.ts`, with `@sjvair/sdk` mocked and the module re-imported per test), plus `mapStyleState` and `MapIconLayerIntegration` against a fake map (`tests/map/`); specs live in top-level `tests/` so they never ship in the package. `vitest.config.ts` loads the Svelte plugin so rune modules compile, and defines two projects. `server` (everything outside `tests/client/`) compiles them in server mode, so `$effect`s do not run in those specs. `client` (`tests/client/**`) uses the custom environment in `tests/client/environment.ts` to compile them for the client with Svelte's browser build, so `$effect`s run; it has no DOM, so it is for rune modules, not components. Svelte is inlined there, so after `vi.resetModules()` a spec must take `flushSync` from a fresh `await import("svelte")`.
 
 ## Architecture Overview
 
@@ -51,6 +51,14 @@ leaves the effect with no dependencies and it never runs again. Integrations mus
 style (add/remove sources or layers, register clicks — including inside `icons.loadIcons().then(...)`)
 while `mapManager.styleLoading` is true: a basemap change is in flight, and the
 `integrationsManager.refresh()` on `style.load` applies/removes every integration afterwards.
+A `MapIconLayerIntegration` subclass schedules work that waits on icons with
+`this.whenIconsLoad(...)`, never a bare `icons.loadIcons().then(...)`: it skips the callback
+when a later `apply()`/`remove()` superseded it or a basemap change is in flight. An `apply()`
+branch that does not call `super.apply()` calls `this.supersedePending()` first.
+A basemap whose style document fails to load leaves the map with no style, so `mapStyleState`
+falls back to the last variant that loaded (reverting the Settings selection) and refreshes
+once that arrives. Only when the fallback fails too does `styleLoading` stay set, until a
+later selection loads.
 
 ### Modularization: `MapShell` vs `MonitorMapLayout`
 
@@ -71,7 +79,11 @@ only the monitors integration, no EV stations/wind/HMS) should compose
 reference example of how to wire a manager, an integration list, and menu/
 overlay content into it.
 
-`MapShell`'s `menu` snippet renders inside `OptionsBar` — compose `OptionsGroup`/`OptionsMenu`/row components there; its `search` snippet is placed in the toolbar. The toolbar vs. full-screen panel switch is pure CSS at Tailwind `md`; only `isWideLayout()` (`src/lib/options/layout.ts`) is read at click time.
+`MapShell`'s optional `loadError` snippet renders on the load screen under the logo;
+`MonitorMapLayout` uses it to show a failed `monitorsManager.init()` with a **Try again**
+button (a later `init()` call starts a fresh run).
+
+`MapShell`'s `menu` snippet renders inside `OptionsBar` — compose `OptionsGroup`/`OptionsMenu`/row components there; its `search` snippet is placed in the toolbar. The toolbar vs. full-screen panel switch is pure CSS at Tailwind `md`; only `isWideLayout()` (`src/lib/options/layout.ts`) is read at click time. Toolbar dropdowns open on hover or on a click/Enter/Space on the trigger, never on focus alone (a focus-opened dropdown hides as focus moves into it); focus leaving a menu closes it, and Escape returns focus to the trigger.
 
 The five exported menus (`PollutantMenu`, `MonitorsMenu`, `LayersMenu`, `OverlaysMenu`, `SettingsMenu`) are bound to the singleton managers/integrations; a host with a custom `MonitorsDataSource` composes `OptionsMenu` with the row components (`CheckboxRow`, `RadioRow`, `SubmenuRow`, `GroupRow`) instead.
 
@@ -169,9 +181,12 @@ without one regardless of order, and the most recent of two explicit values wins
 arrives mid-run the run refetches the latest readings before setting `initialized`. The
 latest readings are requested in parallel with the list (chained off meta when no pollutant
 was given). Once initialized, `init()` is a no-op and `MonitorMapLayout`'s URL effect
-applies pollutant changes. `MonitorMapLayout` stops polling on destroy and calls
-`monitorsManager.resumeAutoUpdate()` on mount, which refreshes once and restarts polling
-only if it was stopped.
+applies pollutant changes. `init(pollutant, { autoUpdate: false })` loads without starting
+the poll (for a host preloading data with no map shown); polling starts if any call sharing
+the run wanted it, and an `init()` after initialization never starts it. `MonitorMapLayout`
+stops polling on destroy and calls `monitorsManager.resumeAutoUpdate()` on mount, which
+refreshes once and starts polling only if it is not running (stopped, or never started by a
+data-only init).
 
 ## Library Packaging (`build:lib`)
 
@@ -210,47 +225,11 @@ Always stop and ask first, and wait for an explicit yes.
 
 ## Known issues
 
-- **Stale cluster layers when toggling clustering during startup:** if Marker
-  Clusters is toggled while the first `icons.loadIcons()` is still pending, the
-  pending clustered `renderer.apply` in `MonitorsMapIntegration` /
-  `EvStationsMapIntegration` still fires afterwards, leaving cluster layers next
-  to the unclustered layer until the next toggle. Fix: re-check `this.clustered`
-  and `this.enabled` (or a generation token) inside the `loadIcons().then(...)`.
-- **`mapManager.styleLoading` has no recovery path:** it's set before
-  `setStyle()` in `mapStyleState` and only cleared on `style.load`. If a basemap
-  fails to load, every integration's base effect stays inert (layer toggles do
-  nothing) until a later style change succeeds. Fix: also clear it on the map's
-  `error` event (and/or a timeout), then call `integrationsManager.refresh()`.
-- **Escape doesn't close a keyboard-opened dropdown:** toolbar dropdowns also
-  open via `md:group-has-[:focus-visible]/menu:block` in `OptionsMenu.svelte`,
-  but Escape only clears the click-open state, so the dropdown stays visible
-  while its trigger keeps focus. Fix: blur the focused element inside the menu
-  on Escape (in `OptionsBar`'s keydown handler).
-- **A data-only `monitorsManager.init()` starts polling:** `init()` always calls
-  `autoUpdate.start()`, so a host that initializes the manager in the background
-  without showing the map (sjvair-mobile, after My Air's first load) refetches
-  the ~1 MB monitor list every 2 minutes until the map has been opened and
-  closed once. Fix: an opt-out (e.g. `init(pollutant, { autoUpdate: false })`),
-  with `MonitorMapLayout` starting the poll itself.
-- **A rejected `monitorsManager.init()` leaves the load screen up:**
-  `MonitorMapLayout` calls `init()` without handling a rejection, so a failed
-  monitors request is an unhandled rejection and `ready` never becomes true.
-  Fix: catch it in the layout, show an error state with a retry (a later
-  `init()` call starts a fresh run).
 - **Blank outlet on a cold deep link with the lazy routes entry:** with
   `@sjvair/monitor-map/routes`, the router outlet is empty until the layout
   chunk loads, because `LoadScreen` lives inside that chunk. Fix, if it ever
   shows: have the host warm the chunk with a dynamic import, or give hosts a
   light placeholder to render while it loads.
-- **`monitorsManager`'s refetch effect is untested:** specs compile rune modules in
-  server mode, so the constructor `$effect` that refetches when `pollutant` changes
-  after init never runs in `tests/monitors/monitors-manager.test.ts`. Its dependence
-  on `#runInit` assigning `pollutant` and `latest` before setting `initialized` last
-  (otherwise init triggers a redundant refetch and blanks the map) is verified by
-  reading only. Test-only gap; the shipped code is correct. Fix: run that spec
-  client-compiled (a second Vitest project or per-file config with the browser
-  resolve condition, tests wrapped in `$effect.root` + `flushSync`) and add two
-  cases: init does not refetch, and a pollutant change after init refetches once.
 
 ## Code Style
 
