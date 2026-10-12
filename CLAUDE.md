@@ -163,9 +163,6 @@ Consequences for any consuming app:
   plugin — hence it's a `peerDependency`, not just a `devDependency` here.
 - The app's Tailwind must scan this package for classes (e.g. sjvair-mobile's
   `@source "../node_modules/@sjvair/monitor-map/dist/lib";`).
-- Until the macOS name collision below is fixed, a consumer building on macOS
-  needs a resolver workaround (sjvair-mobile's `monitorMapCaseFix()` in its
-  `vite.config.ts`).
 
 If you touch `vite.config.lib.ts` — it no longer exists; don't recreate it.
 
@@ -181,13 +178,6 @@ Always stop and ask first, and wait for an explicit yes.
 
 ## Known issues
 
-- **Case-insensitive name collision in `src/lib/map/`:** `Map.svelte` and
-  `map.svelte.ts` (→ `dist/lib/map/map.svelte.js`). ~19 files import the module
-  as `"./map.svelte"`, which on macOS resolves to the `Map.svelte` component and
-  fails with `MISSING_EXPORT mapManager`. Breaks any consumer building on a Mac
-  (sjvair-mobile's iOS CI works around it with a Vite plugin). Fix: rename the
-  module (e.g. `map-manager.svelte.ts`) and update its imports, then publish and
-  have sjvair-mobile drop its workaround.
 - **Stale cluster layers when toggling clustering during startup:** if Marker
   Clusters is toggled while the first `icons.loadIcons()` is still pending, the
   pending clustered `renderer.apply` in `MonitorsMapIntegration` /
