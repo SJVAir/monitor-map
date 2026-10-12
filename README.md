@@ -50,6 +50,48 @@ export const { route, navigate, p, isActive, Router } = createRouter({
 This is what the sjvair.com widget and `sjvair-mobile` use today, via `MonitorMapLayout`
 (the thin wrapper `monitorMapRoutes` points to).
 
+### Keeping the map off a host app's startup path
+
+The package root re-exports everything, and its `monitorMapRoutes` imports the map layout
+eagerly, so referencing it in a router puts maplibre (about 2 MB) in the startup bundle. A
+host whose first screen is not the map uses the two subpath entries instead:
+
+```ts
+// router.ts
+import { createRouter } from "sv-router";
+import { monitorMapRoutes } from "@sjvair/monitor-map/routes";
+
+export const { route, navigate, p, isActive, Router } = createRouter({
+	"/my-map": monitorMapRoutes
+});
+```
+
+```svelte
+<!-- app root -->
+<script>
+	import { provideMonitorMapRouter } from "@sjvair/monitor-map/core";
+	import { route, navigate, p, isActive, Router } from "./router";
+
+	provideMonitorMapRouter({ route, navigate, p, isActive, basePath: "/my-map" });
+</script>
+
+<Router />
+```
+
+- `@sjvair/monitor-map/core` exports the router context (`provideMonitorMapRouter`,
+  `useMonitorMapRouter`, `ROUTER_KEY`, `MonitorMapRouterApi`) and `monitorsManager`, with
+  no map code behind them.
+- `@sjvair/monitor-map/routes` exports a `monitorMapRoutes` with the same route tree, whose
+  layout and routes load on demand. On a cold deep link into the map, the router outlet is
+  empty until that chunk arrives.
+
+Both entries share their modules with the package root, so `monitorsManager` is the same
+instance whichever entry it is imported from.
+
+`monitorsManager.init()` may be called from several places (for example, a background
+preload and the map layout): overlapping calls share one set of requests, a failed call can
+be retried, and an explicit `"pm25"`/`"o3"` argument wins over a call without one.
+
 ### Embedding `MapShell` directly, with a reduced integration set
 
 `MonitorMapLayout` is an opinionated wrapper around the lower-level `MapShell`
