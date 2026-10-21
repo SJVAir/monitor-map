@@ -239,6 +239,133 @@ describe("monitorsManager.init", () => {
 
 		expect(start).not.toHaveBeenCalled();
 	});
+
+	describe("with a signal", () => {
+		let consoleError: MockInstance;
+		beforeEach(() => {
+			consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+		});
+		afterEach(() => {
+			expect(consoleError).not.toHaveBeenCalled();
+			consoleError.mockRestore();
+		});
+
+		const metaSignal = (): AbortSignal => sdk.getMonitorsMeta.mock.calls[0][0].signal;
+
+		it("one caller aborting leaves a signal-less caller's run intact", async () => {
+			const meta = deferred<typeof META>();
+			sdk.getMonitorsMeta.mockReturnValueOnce(meta.promise);
+			const controller = new AbortController();
+
+			const first = manager.init(undefined, { signal: controller.signal });
+			const second = manager.init();
+			const reason = new Error("gone");
+			controller.abort(reason);
+
+			await expect(first).rejects.toBe(reason);
+			expect(metaSignal().aborted).toBe(false);
+			expect(sdk.getMonitorsList.mock.calls[0][0].signal.aborted).toBe(false);
+
+			meta.resolve(META);
+			await second;
+
+			expect(sdk.getMonitors.mock.calls[0][2].signal.aborted).toBe(false);
+			expect(manager.initialized).toBe(true);
+			expect(start).toHaveBeenCalledTimes(1);
+		});
+
+		it("aborts the run when every waiting caller aborts", async () => {
+			const meta = deferred<typeof META>();
+			sdk.getMonitorsMeta.mockImplementationOnce(({ signal }: { signal: AbortSignal }) => {
+				signal.addEventListener("abort", () => meta.reject(signal.reason));
+				return meta.promise;
+			});
+			const a = new AbortController();
+			const b = new AbortController();
+
+			const first = manager.init(undefined, { signal: a.signal });
+			const second = manager.init("o3", { signal: b.signal });
+			const reasonA = new Error("a gone");
+			const reasonB = new Error("b gone");
+			a.abort(reasonA);
+			expect(metaSignal().aborted).toBe(false);
+			b.abort(reasonB);
+
+			expect(metaSignal().aborted).toBe(true);
+			await expect(first).rejects.toBe(reasonA);
+			await expect(second).rejects.toBe(reasonB);
+			await flush();
+			expect(manager.initialized).toBe(false);
+			expect(start).not.toHaveBeenCalled();
+
+			await manager.init();
+			expect(manager.initialized).toBe(true);
+			expect(manager.pollutant).toBe("pm25");
+			expect(start).toHaveBeenCalledTimes(1);
+		});
+
+		it("keeps an aborted caller's pollutant", async () => {
+			const meta = deferred<typeof META>();
+			sdk.getMonitorsMeta.mockReturnValueOnce(meta.promise);
+			const controller = new AbortController();
+
+			const first = manager.init("o3", { signal: controller.signal });
+			const second = manager.init(undefined, { autoUpdate: false });
+			controller.abort(new Error("gone"));
+			await expect(first).rejects.toThrow("gone");
+
+			meta.resolve(META);
+			await second;
+
+			expect(manager.pollutant).toBe("o3");
+			// Its polling request stays recorded too.
+			expect(start).toHaveBeenCalledTimes(1);
+		});
+
+		it("starts a fresh run for a call right after every caller aborted", async () => {
+			const meta = deferred<typeof META>();
+			sdk.getMonitorsMeta.mockReturnValueOnce(meta.promise);
+			const controller = new AbortController();
+
+			const first = manager.init("o3", { signal: controller.signal });
+			controller.abort(new Error("gone"));
+			const second = manager.init();
+			await expect(first).rejects.toThrow("gone");
+			await second;
+
+			expect(sdk.getMonitorsMeta).toHaveBeenCalledTimes(2);
+			expect(manager.initialized).toBe(true);
+			expect(manager.pollutant).toBe("pm25");
+			expect(start).toHaveBeenCalledTimes(1);
+
+			// The aborted run never lands, even if its request resolves late.
+			meta.resolve(META);
+			await flush();
+			expect(manager.pollutant).toBe("pm25");
+			expect(start).toHaveBeenCalledTimes(1);
+		});
+
+		it("rejects an already-aborted signal without starting a run", async () => {
+			const reason = new Error("gone");
+
+			await expect(manager.init(undefined, { signal: AbortSignal.abort(reason) })).rejects.toBe(
+				reason
+			);
+
+			expect(sdk.getMonitorsList).not.toHaveBeenCalled();
+			expect(sdk.getMonitorsMeta).not.toHaveBeenCalled();
+			expect(sdk.getMonitors).not.toHaveBeenCalled();
+			expect(manager.initialized).toBe(false);
+		});
+
+		it("resolves once initialized, even with an aborted signal", async () => {
+			await manager.init();
+
+			await expect(
+				manager.init(undefined, { signal: AbortSignal.abort(new Error("gone")) })
+			).resolves.toBeUndefined();
+		});
+	});
 });
 describe("monitorsManager.resumeAutoUpdate", () => {
 	it("does nothing before initialization", () => {
