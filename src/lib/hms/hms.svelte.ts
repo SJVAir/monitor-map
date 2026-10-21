@@ -4,7 +4,7 @@ import {
 	type HMSFireGeoJSON,
 	type HMSSmokeGeoJSON
 } from "@sjvair/sdk/hms";
-import type { SignalOptions } from "$lib/abort.js";
+import type { SignalOptions } from "$lib/abort";
 import clustersDbscan from "@turf/clusters-dbscan";
 import { featureCollection, point } from "@turf/helpers";
 

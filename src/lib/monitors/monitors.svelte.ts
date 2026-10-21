@@ -10,7 +10,7 @@ import {
 import { XMap } from "@tstk/builtin-extensions";
 import { Interval } from "@tstk/utils";
 import { untrack } from "svelte";
-import { anySignal, untilAborted, type SignalOptions } from "../abort";
+import { anySignal, untilAborted, type SignalOptions } from "$lib/abort";
 import type { MonitorsDataSource, MonitorsPollutant } from "./types";
 
 export interface MonitorsInitOptions {
@@ -130,8 +130,6 @@ class MonitorsManager implements MonitorsDataSource {
 			aborted: 0,
 			unsignalled: false
 		};
-		// Every caller may have stopped waiting, leaving the run's rejection with no one to handle it.
-		run.promise.catch(() => {});
 		return run;
 	}
 
@@ -233,6 +231,9 @@ class MonitorsManager implements MonitorsDataSource {
 			return signal.reason;
 		};
 
+		// Set once callerAborted has run, so the catch below does not run it a second time.
+		let abortedError: unknown;
+
 		try {
 			const pollutant = this.pollutant;
 			const [list, latest] = await Promise.all([
@@ -241,7 +242,7 @@ class MonitorsManager implements MonitorsDataSource {
 			]);
 
 			// Superseded or cancelled while the requests were settling.
-			if (options.signal?.aborted) throw callerAborted(options.signal);
+			if (options.signal?.aborted) throw (abortedError = callerAborted(options.signal));
 			if (controller.signal.aborted) return;
 
 			// The pollutant changed while this was in flight: these readings belong to the previous
@@ -252,7 +253,8 @@ class MonitorsManager implements MonitorsDataSource {
 			this.latest = latest;
 		} catch (error) {
 			// The caller's own abort rejects with its reason. A superseded update resolves quietly.
-			if (options.signal?.aborted) throw callerAborted(options.signal);
+			if (options.signal?.aborted)
+				throw error === abortedError ? error : callerAborted(options.signal);
 			if (controller.signal.aborted) return;
 			throw error;
 		} finally {

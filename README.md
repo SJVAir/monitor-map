@@ -111,7 +111,8 @@ note that it has no current readings; an unknown id gets "Monitor not found."
 `monitorsManager.init()` and `update()`, `collocationSitesManager.init()` and `update()`,
 `hmsManager.init()`, `loadSmoke()` and `loadFire()`, and `evStationsManager.loadLvl2Stations()`
 and `loadLvl3Stations()` take `{ signal }` (an `AbortSignal`). Aborting rejects that call with
-the signal's reason. The panel, chart and subscription status cancel their own superseded
+the signal's reason (a call that is a no-op, such as `update()` before init or `init()` once
+initialized, resolves as before). The panel, chart and subscription status cancel their own superseded
 requests when the selection changes; that work resolves quietly. A `monitorsManager.init()`
 run is shared: aborting your signal stops only your wait, and the run itself is cancelled only
 when every caller waiting on it has aborted.

@@ -183,7 +183,7 @@ it before publishing.
 
 ### Cancelling requests (`src/lib/abort.ts`)
 
-`SignalOptions` (`{ signal? }`), `anySignal` (combine signals, with `dispose()`) and `untilAborted` (reject a wait when a signal aborts) are the building blocks. Work the library starts itself (detail panel, chart, subscription status via `monitors/subscriptions.ts`, `monitorsManager.update()` superseding the previous update) is cancelled through its own `AbortController`, and a superseded call **resolves quietly**. A **caller's** signal that aborts **rejects** with its reason. An already-aborted signal rejects without sending a request. `init()` is shared: a caller's signal cancels only that caller's wait, and the run aborts only when every waiting caller has aborted and none passed no signal.
+`SignalOptions` (`{ signal? }`), `anySignal` (combine signals, with `dispose()`) and `untilAborted` (reject a wait when a signal aborts) are the building blocks. Work the library starts itself (detail panel, chart, subscription status via `monitors/subscriptions.ts`, `monitorsManager.update()` superseding the previous update) is cancelled through its own `AbortController`, and a superseded call **resolves quietly**. A **caller's** signal that aborts **rejects** with its reason. An already-aborted signal rejects without sending a request (a call that is a no-op, such as `update()` before init or `init()` once initialized, resolves as before). `init()` is shared: a caller's signal cancels only that caller's wait, and the run aborts only when every waiting caller has aborted and every caller passed a signal.
 
 ### `monitorsManager.init()` rules
 

@@ -1,5 +1,5 @@
 import { getCollocationSites, type CollocationSite } from "@sjvair/sdk";
-import type { SignalOptions } from "$lib/abort.js";
+import type { SignalOptions } from "$lib/abort";
 
 class CollocationSitesManager {
 	initialized: boolean = $state(false);

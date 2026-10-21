@@ -2,7 +2,7 @@ import { getMonitorEntries, type MonitorDetails, type MonitorEntry } from "@sjva
 import { getUnixTime, parseISO, differenceInMinutes, addMinutes } from "date-fns";
 import type { PanelPollutant } from "../monitors/panel-pollutant";
 import type { DateRange } from "./DateRange";
-import type { SignalOptions } from "../abort";
+import type { SignalOptions } from "$lib/abort";
 
 /** The monitor fields the chart reads. */
 export type ChartMonitor = Pick<MonitorDetails, "id" | "name" | "type" | "data_source">;

@@ -5,7 +5,7 @@ import {
 	evNetworkTypes,
 	facilityTypes
 } from "./data-maps";
-import type { SignalOptions } from "$lib/abort.js";
+import type { SignalOptions } from "$lib/abort";
 import type { EvStation } from "./types";
 import * as ZipCodes from "./zip-codes";
 
