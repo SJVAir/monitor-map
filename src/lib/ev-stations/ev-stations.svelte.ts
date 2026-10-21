@@ -5,6 +5,7 @@ import {
 	evNetworkTypes,
 	facilityTypes
 } from "./data-maps";
+import type { SignalOptions } from "$lib/abort.js";
 import type { EvStation } from "./types";
 import * as ZipCodes from "./zip-codes";
 
@@ -12,12 +13,12 @@ class EvStationsManager {
 	lvl2Stations: Array<EvStation> | undefined = $state();
 	lvl3Stations: Array<EvStation> | undefined = $state();
 
-	async loadLvl3Stations(): Promise<void> {
-		this.lvl3Stations = await fetchEvStations("dc_fast");
+	async loadLvl3Stations({ signal }: SignalOptions = {}): Promise<void> {
+		this.lvl3Stations = await fetchEvStations("dc_fast", signal);
 	}
 
-	async loadLvl2Stations(): Promise<void> {
-		this.lvl2Stations = await fetchEvStations("2");
+	async loadLvl2Stations({ signal }: SignalOptions = {}): Promise<void> {
+		this.lvl2Stations = await fetchEvStations("2", signal);
 	}
 }
 
@@ -25,7 +26,11 @@ const zipCodes = Object.values(ZipCodes)
 	.reduce((prev, curr) => prev.concat(curr))
 	.join(",");
 
-async function fetchEvStations(chargingLevel: "2" | "dc_fast"): Promise<Array<EvStation>> {
+async function fetchEvStations(
+	chargingLevel: "2" | "dc_fast",
+	signal?: AbortSignal
+): Promise<Array<EvStation>> {
+	if (signal?.aborted) throw signal.reason;
 	const url = new URL(`https://developer.nlr.gov/api/alt-fuel-stations/v1.json`);
 	url.searchParams.set("fuel_type", "ELEC");
 	url.searchParams.set("state", "CA");
@@ -35,7 +40,7 @@ async function fetchEvStations(chargingLevel: "2" | "dc_fast"): Promise<Array<Ev
 	url.searchParams.set("zip", zipCodes);
 	url.searchParams.set("api_key", import.meta.env.VITE_NREL_KEY);
 
-	return await fetch(url)
+	return await fetch(url, { signal })
 		.then(async (res) => await res.json())
 		.then((data) => {
 			const fuelStations: Array<EvStation> = data.fuel_stations!;
