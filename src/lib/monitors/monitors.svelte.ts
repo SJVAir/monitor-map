@@ -145,10 +145,23 @@ class MonitorsManager implements MonitorsDataSource {
 	async update(options: SignalOptions = {}): Promise<void> {
 		if (!this.initialized) return;
 
+		// Nothing has started yet, so an in-flight update is left alone.
+		if (options.signal?.aborted) throw options.signal.reason;
+
+		const supersededInFlight = this.#updateController !== null;
 		this.#updateController?.abort();
 		const controller = new AbortController();
 		this.#updateController = controller;
 		const combined = anySignal(controller.signal, options.signal);
+
+		// The caller cancelled this update. If it is still the latest and it cut off an update that
+		// was in flight, that update's data is lost too, so refresh again without a signal.
+		const callerAborted = (signal: AbortSignal) => {
+			if (supersededInFlight && this.#updateController === controller) {
+				this.update().catch(console.error);
+			}
+			return signal.reason;
+		};
 
 		try {
 			const pollutant = this.pollutant;
@@ -158,7 +171,7 @@ class MonitorsManager implements MonitorsDataSource {
 			]);
 
 			// Superseded or cancelled while the requests were settling.
-			if (options.signal?.aborted) throw options.signal.reason;
+			if (options.signal?.aborted) throw callerAborted(options.signal);
 			if (controller.signal.aborted) return;
 
 			// The pollutant changed while this was in flight: these readings belong to the previous
@@ -169,7 +182,7 @@ class MonitorsManager implements MonitorsDataSource {
 			this.latest = latest;
 		} catch (error) {
 			// The caller's own abort rejects with its reason. A superseded update resolves quietly.
-			if (options.signal?.aborted) throw options.signal.reason;
+			if (options.signal?.aborted) throw callerAborted(options.signal);
 			if (controller.signal.aborted) return;
 			throw error;
 		} finally {

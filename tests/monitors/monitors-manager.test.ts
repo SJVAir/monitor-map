@@ -387,6 +387,99 @@ describe("monitorsManager.update", () => {
 
 		await expect(manager.update({ signal: controller.signal })).rejects.toBe(reason);
 		for (const call of sdk.getMonitors.mock.calls) expect(call[2].signal.aborted).toBe(true);
+		expect(pollutantsRequested()).toEqual([]);
+	});
+
+	it("does not abort an in-flight update when given an already-aborted signal", async () => {
+		await manager.init();
+		const inFlight = deferred<Array<{ id: string; n: number }>>();
+		sdk.getMonitors.mockReturnValueOnce(inFlight.promise);
+		const first = manager.update();
+		const reason = new Error("already gone");
+		const aborted = new AbortController();
+		aborted.abort(reason);
+
+		await expect(manager.update({ signal: aborted.signal })).rejects.toBe(reason);
+		inFlight.resolve([{ id: "a", n: 1 }]);
+		await first;
+
+		expect(manager.latest?.get("a")).toEqual({ id: "a", n: 1 });
+	});
+
+	describe("when the caller aborts", () => {
+		let consoleError: MockInstance;
+		beforeEach(() => {
+			consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+		});
+		afterEach(() => consoleError.mockRestore());
+
+		it("refreshes again if it cut off an in-flight update", async () => {
+			await manager.init();
+			sdk.getMonitors.mockClear();
+			const signalless = deferred<ReturnType<typeof readings>>();
+			const callers = deferred<ReturnType<typeof readings>>();
+			const replacement = deferred<Array<{ id: string; n: number }>>();
+			sdk.getMonitors
+				.mockReturnValueOnce(signalless.promise)
+				.mockReturnValueOnce(callers.promise)
+				.mockReturnValueOnce(replacement.promise);
+			const controller = new AbortController();
+
+			const first = manager.update();
+			const second = manager.update({ signal: controller.signal });
+			const reason = new Error("gone");
+			controller.abort(reason);
+			signalless.resolve(readings("pm25"));
+			callers.reject(reason);
+
+			await expect(second).rejects.toBe(reason);
+			await first;
+			expect(pollutantsRequested()).toEqual(["pm25", "pm25", "pm25"]);
+
+			replacement.resolve([{ id: "a", n: 9 }]);
+			await flush();
+			expect(manager.latest?.get("a")).toEqual({ id: "a", n: 9 });
+			expect(consoleError).not.toHaveBeenCalled();
+		});
+
+		it("does not refresh again when nothing was cut off", async () => {
+			await manager.init();
+			sdk.getMonitors.mockClear();
+			const pending = deferred<ReturnType<typeof readings>>();
+			sdk.getMonitors.mockReturnValueOnce(pending.promise);
+			const controller = new AbortController();
+
+			const update = manager.update({ signal: controller.signal });
+			const reason = new Error("gone");
+			controller.abort(reason);
+			pending.reject(reason);
+
+			await expect(update).rejects.toBe(reason);
+			await flush();
+			expect(pollutantsRequested()).toEqual(["pm25"]);
+		});
+
+		it("does not refresh again when a newer update already started", async () => {
+			await manager.init();
+			sdk.getMonitors.mockClear();
+			const signalless = deferred<ReturnType<typeof readings>>();
+			const callers = deferred<ReturnType<typeof readings>>();
+			sdk.getMonitors.mockReturnValueOnce(signalless.promise).mockReturnValueOnce(callers.promise);
+			const controller = new AbortController();
+
+			const first = manager.update();
+			const second = manager.update({ signal: controller.signal });
+			const third = manager.update();
+			const reason = new Error("gone");
+			controller.abort(reason);
+			callers.reject(reason);
+			signalless.resolve(readings("pm25"));
+
+			await expect(second).rejects.toBe(reason);
+			await Promise.all([first, third]);
+			expect(pollutantsRequested()).toEqual(["pm25", "pm25", "pm25"]);
+			expect(manager.latest?.get("a")).toEqual({ id: "a", pollutant: "pm25" });
+		});
 	});
 
 	it("still rejects an ordinary failure when a live signal is passed", async () => {
