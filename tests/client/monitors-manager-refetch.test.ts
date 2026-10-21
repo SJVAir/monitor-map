@@ -13,6 +13,8 @@ const META = { default_pollutant: "pm25" };
 const readings = (pollutant: string) => [{ id: "a", pollutant }];
 
 // Lets every already-resolved promise chain run before the next assertion.
+const pollutantsRequested = () => sdk.getMonitors.mock.calls.map((call) => call[0]);
+
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 let manager: MonitorsManager;
@@ -44,7 +46,7 @@ describe("monitorsManager's refetch effect", () => {
 		await flush();
 
 		expect(sdk.getMonitorsList).toHaveBeenCalledTimes(1);
-		expect(sdk.getMonitors.mock.calls).toEqual([["o3"]]);
+		expect(pollutantsRequested()).toEqual(["o3"]);
 		expect(manager.list).toEqual(LIST);
 		expect(manager.latest?.get("a")).toEqual({ id: "a", pollutant: "o3" });
 	});
@@ -60,7 +62,7 @@ describe("monitorsManager's refetch effect", () => {
 		await flush();
 
 		expect(sdk.getMonitorsList).toHaveBeenCalledTimes(1);
-		expect(sdk.getMonitors.mock.calls).toEqual([["o3"]]);
+		expect(pollutantsRequested()).toEqual(["o3"]);
 		expect(manager.list).toEqual(LIST);
 	});
 
@@ -82,7 +84,7 @@ describe("monitorsManager's refetch effect", () => {
 		await flush();
 
 		expect(sdk.getMonitorsList).toHaveBeenCalledTimes(1);
-		expect(sdk.getMonitors.mock.calls).toEqual([["o3"]]);
+		expect(pollutantsRequested()).toEqual(["o3"]);
 		expect(manager.list).toEqual(LIST);
 		expect(manager.latest?.get("a")).toEqual({ id: "a", pollutant: "o3" });
 	});

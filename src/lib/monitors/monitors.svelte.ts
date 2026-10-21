@@ -10,6 +10,7 @@ import {
 import { XMap } from "@tstk/builtin-extensions";
 import { Interval } from "@tstk/utils";
 import { untrack } from "svelte";
+import { anySignal, type SignalOptions } from "../abort";
 import type { MonitorsDataSource, MonitorsPollutant } from "./types";
 
 export interface MonitorsInitOptions {
@@ -38,6 +39,7 @@ class MonitorsManager implements MonitorsDataSource {
 	#initPromise: Promise<void> | null = null;
 	#requestedPollutant: MonitorsPollutant | null = null;
 	#requestedAutoUpdate = false;
+	#updateController: AbortController | null = null;
 
 	constructor() {
 		// Refetch monitors when the pollutant changes after the initial load, wherever the change
@@ -135,28 +137,53 @@ class MonitorsManager implements MonitorsDataSource {
 		this.autoUpdate.start();
 	}
 
-	async update(): Promise<void> {
+	/**
+	 * Refreshes the list and the latest readings. Starting an update aborts the previous
+	 * in-flight one, which then resolves without touching state. Pass `signal` to cancel from the
+	 * outside: that rejects with the signal's reason.
+	 */
+	async update(options: SignalOptions = {}): Promise<void> {
 		if (!this.initialized) return;
 
-		const pollutant = this.pollutant;
-		const [list, latest] = await Promise.all([
-			getMonitorsList(),
-			getMonitorsLatestMap(pollutant || this.meta?.default_pollutant || "pm25")
-		]);
+		this.#updateController?.abort();
+		const controller = new AbortController();
+		this.#updateController = controller;
+		const combined = anySignal(controller.signal, options.signal);
 
-		// The pollutant changed while this was in flight: these readings belong to the previous
-		// one, and the change has already started its own update.
-		if (this.pollutant !== pollutant) return;
+		try {
+			const pollutant = this.pollutant;
+			const [list, latest] = await Promise.all([
+				getMonitorsList({ signal: combined.signal }),
+				getMonitorsLatestMap(pollutant || this.meta?.default_pollutant || "pm25", combined.signal)
+			]);
 
-		this.list = list;
-		this.latest = latest;
+			// Superseded or cancelled while the requests were settling.
+			if (options.signal?.aborted) throw options.signal.reason;
+			if (controller.signal.aborted) return;
+
+			// The pollutant changed while this was in flight: these readings belong to the previous
+			// one, and the change has already started its own update.
+			if (this.pollutant !== pollutant) return;
+
+			this.list = list;
+			this.latest = latest;
+		} catch (error) {
+			// The caller's own abort rejects with its reason. A superseded update resolves quietly.
+			if (options.signal?.aborted) throw options.signal.reason;
+			if (controller.signal.aborted) return;
+			throw error;
+		} finally {
+			combined.dispose();
+			if (this.#updateController === controller) this.#updateController = null;
+		}
 	}
 }
 
 async function getMonitorsLatestMap(
-	pollutant: "pm25" | "o3"
+	pollutant: "pm25" | "o3",
+	signal?: AbortSignal
 ): Promise<XMap<string, MonitorLatestType<"pm25" | "o3">>> {
-	const monitors = await getMonitors(pollutant);
+	const monitors = await getMonitors(pollutant, undefined, { signal });
 	const latest = new XMap<string, MonitorLatestType<"pm25" | "o3">>();
 
 	for (const monitor of monitors) {
