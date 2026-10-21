@@ -13,15 +13,17 @@ export class MonitorDetailsState {
 	#id: string | null = null;
 	// Bumped per request; a response for anything but the latest request is dropped.
 	#request = 0;
+	#controller: AbortController | null = null;
 
 	async load(id: string): Promise<void> {
 		this.#id = id;
 		const request = ++this.#request;
+		const { signal } = this.#restart();
 		this.monitor = null;
 		this.status = "loading";
 
 		try {
-			const monitor = await getMonitorDetails(id);
+			const monitor = await getMonitorDetails(id, { signal });
 			if (request !== this.#request) return;
 			this.monitor = monitor;
 			this.status = "ready";
@@ -40,14 +42,21 @@ export class MonitorDetailsState {
 	async refresh(): Promise<void> {
 		if (this.status !== "ready" || this.#id === null) return;
 		const request = ++this.#request;
+		const { signal } = this.#restart();
 
 		try {
-			const monitor = await getMonitorDetails(this.#id);
+			const monitor = await getMonitorDetails(this.#id, { signal });
 			if (request !== this.#request) return;
 			this.monitor = monitor;
 		} catch (error) {
-			if (request === this.#request) console.error(error);
+			if (!signal.aborted && request === this.#request) console.error(error);
 		}
+	}
+
+	/** Aborts whatever request is in flight and starts a new controller for the next one. */
+	#restart(): AbortController {
+		this.#controller?.abort();
+		return (this.#controller = new AbortController());
 	}
 
 	retry(): Promise<void> {
