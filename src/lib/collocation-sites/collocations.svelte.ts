@@ -1,22 +1,25 @@
 import { getCollocationSites, type CollocationSite } from "@sjvair/sdk";
+import type { SignalOptions } from "$lib/abort";
 
 class CollocationSitesManager {
 	initialized: boolean = $state(false);
 
 	collocationSites: Array<CollocationSite> | null = $state(null);
 
-	async init(): Promise<void> {
+	async init({ signal }: SignalOptions = {}): Promise<void> {
 		if (this.initialized) return;
+		if (signal?.aborted) throw signal.reason;
 
-		this.collocationSites = await getCollocationSites();
+		this.collocationSites = await getCollocationSites({ signal });
 
 		this.initialized = true;
 	}
 
-	async update(): Promise<void> {
+	async update({ signal }: SignalOptions = {}): Promise<void> {
 		if (!this.initialized) return;
+		if (signal?.aborted) throw signal.reason;
 
-		this.collocationSites = await getCollocationSites();
+		this.collocationSites = await getCollocationSites({ signal });
 	}
 }
 

@@ -4,6 +4,7 @@ import {
 	type HMSFireGeoJSON,
 	type HMSSmokeGeoJSON
 } from "@sjvair/sdk/hms";
+import type { SignalOptions } from "$lib/abort";
 import clustersDbscan from "@turf/clusters-dbscan";
 import { featureCollection, point } from "@turf/helpers";
 
@@ -22,22 +23,27 @@ class HmsManager {
 	fire: Array<HMSFireGeoJSON & { frp: number }> | undefined = $state();
 	fireGroups: Array<HMSFireGroup> | undefined = $state();
 
-	async init() {
-		await Promise.allSettled([this.loadSmoke(), this.loadFire()]);
+	async init({ signal }: SignalOptions = {}) {
+		if (signal?.aborted) throw signal.reason;
+		await Promise.allSettled([this.loadSmoke({ signal }), this.loadFire({ signal })]);
+		if (signal?.aborted) throw signal.reason;
 	}
 
-	async loadSmoke() {
-		this.smoke = await getHMSSmoke();
+	async loadSmoke({ signal }: SignalOptions = {}) {
+		if (signal?.aborted) throw signal.reason;
+		this.smoke = await getHMSSmoke({ signal });
 	}
 
-	async loadFire() {
+	async loadFire({ signal }: SignalOptions = {}) {
 		try {
-			const raw = await getHMSFire();
+			if (signal?.aborted) throw signal.reason;
+			const raw = await getHMSFire({ signal });
 			const filtered = raw.filter((d): d is HMSFireGeoJSON & { frp: number } => d.frp !== null);
 			const deduped = deduplicateByCoordinates(filtered);
 			this.fire = deduped;
 			this.fireGroups = computeFireGroups(deduped);
 		} catch (err) {
+			if (signal?.aborted) throw err;
 			console.error("HMS fire load failed:", err);
 		}
 	}

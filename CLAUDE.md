@@ -17,7 +17,7 @@ npm test             # Vitest (specs in tests/**)
 npm run test:bundle  # build:lib, then check the light entries keep maplibre off the eager path
 ```
 
-Vitest covers the pure modules (`legend-data`, `group-state`, `pollutant-param`, `basemap`, `map-option-defaults`, `monitor-groups`, `panel-pollutant`, `level-colors`, the `DateRange` helpers) and `monitorsManager` (`tests/monitors/monitors-manager.test.ts`, with `@sjvair/sdk` mocked and the module re-imported per test), `MonitorDetailsState` (`tests/monitors/monitor-details.test.ts`), plus `mapStyleState` and `MapIconLayerIntegration` against a fake map (`tests/map/`); specs live in top-level `tests/` so they never ship in the package. `vitest.config.ts` loads the Svelte plugin so rune modules compile, and defines two projects. `server` (everything outside `tests/client/`) compiles them in server mode, so `$effect`s do not run in those specs. `client` (`tests/client/**`) uses the custom environment in `tests/client/environment.ts` to compile them for the client with Svelte's browser build, so `$effect`s run; it has no DOM, so it is for rune modules, not components. Svelte is inlined there, so after `vi.resetModules()` a spec must take `flushSync` from a fresh `await import("svelte")`.
+Vitest covers the pure modules (`legend-data`, `group-state`, `pollutant-param`, `basemap`, `map-option-defaults`, `monitor-groups`, `panel-pollutant`, `level-colors`, the `DateRange` helpers) and `monitorsManager` (`tests/monitors/monitors-manager.test.ts`, with `@sjvair/sdk` mocked and the module re-imported per test), `MonitorDetailsState` (`tests/monitors/monitor-details.test.ts`), the request-cancelling pieces (`tests/abort.test.ts`, `tests/data-chart/requests.test.ts`, `tests/monitors/subscriptions.test.ts`, `tests/managers-signal.test.ts`, plus the abort cases in `monitors-manager.test.ts`, `monitor-details.test.ts` and `tests/client/monitors-manager-refetch.test.ts`), plus `mapStyleState` and `MapIconLayerIntegration` against a fake map (`tests/map/`); specs live in top-level `tests/` so they never ship in the package. `vitest.config.ts` loads the Svelte plugin so rune modules compile, and defines two projects. `server` (everything outside `tests/client/`) compiles them in server mode, so `$effect`s do not run in those specs. `client` (`tests/client/**`) uses the custom environment in `tests/client/environment.ts` to compile them for the client with Svelte's browser build, so `$effect`s run; it has no DOM, so it is for rune modules, not components. Svelte is inlined there, so after `vi.resetModules()` a spec must take `flushSync` from a fresh `await import("svelte")`.
 
 ## Architecture Overview
 
@@ -180,6 +180,10 @@ singletons stay single across entries. `npm run test:bundle`
 maptiler or uplot is reachable without a dynamic import, if an `exports` target is missing,
 or if the two on-demand imports are gone from the startup bundle; the release workflow runs
 it before publishing.
+
+### Cancelling requests (`src/lib/abort.ts`)
+
+`SignalOptions` (`{ signal? }`), `anySignal` (combine signals, with `dispose()`) and `untilAborted` (reject a wait when a signal aborts) are the building blocks. Work the library starts itself (detail panel, chart, subscription status via `monitors/subscriptions.ts`, `monitorsManager.update()` superseding the previous update) is cancelled through its own `AbortController`, and a superseded call **resolves quietly**. A **caller's** signal that aborts **rejects** with its reason. An already-aborted signal rejects without sending a request (a call that is a no-op, such as `update()` before init or `init()` once initialized, resolves as before). `init()` is shared: a caller's signal cancels only that caller's wait, and the run aborts only when every waiting caller has aborted and every caller passed a signal.
 
 ### `monitorsManager.init()` rules
 

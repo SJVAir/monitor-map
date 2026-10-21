@@ -106,6 +106,20 @@ parameter: the panel shows the map's pollutant when the monitor reports it and o
 one it does report, saying so. An inactive monitor gets a panel with its past data and a
 note that it has no current readings; an unknown id gets "Monitor not found."
 
+### Cancelling requests
+
+`monitorsManager.init()` and `update()`, `collocationSitesManager.init()` and `update()`,
+`hmsManager.init()`, `loadSmoke()` and `loadFire()`, and `evStationsManager.loadLvl2Stations()`
+and `loadLvl3Stations()` take `{ signal }` (an `AbortSignal`). Aborting rejects that call with
+the signal's reason (a call that is a no-op, such as `update()` before init or `init()` once
+initialized, resolves as before). The panel, chart and subscription status cancel their own superseded
+requests when the selection changes; that work resolves quietly. A `monitorsManager.init()`
+run is shared: aborting your signal stops only your wait, and the run itself is cancelled only
+when every caller waiting on it has aborted.
+
+A host that depends on `@sjvair/sdk` directly must use `^4.7.0`, so npm installs one copy. A
+nested copy ignores the host's `setOrigin`.
+
 ### Embedding `MapShell` directly, with a reduced integration set
 
 `MonitorMapLayout` is an opinionated wrapper around the lower-level `MapShell`

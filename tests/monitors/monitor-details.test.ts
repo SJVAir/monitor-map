@@ -48,7 +48,7 @@ describe("MonitorDetailsState", () => {
 
 		await details.load("a");
 
-		expect(sdk.getMonitorDetails).toHaveBeenCalledWith("a");
+		expect(sdk.getMonitorDetails).toHaveBeenCalledWith("a", { signal: expect.any(AbortSignal) });
 		expect(details.status).toBe("ready");
 		expect(details.monitor).toEqual(monitor("a"));
 	});
@@ -187,5 +187,59 @@ describe("MonitorDetailsState", () => {
 		await refreshing;
 
 		expect(details.monitor).toEqual(monitor("b"));
+	});
+
+	it("aborts the previous load when another starts", async () => {
+		const slow = deferred<ReturnType<typeof monitor>>();
+		sdk.getMonitorDetails.mockReturnValueOnce(slow.promise);
+		const next = deferred<ReturnType<typeof monitor>>();
+		sdk.getMonitorDetails.mockReturnValueOnce(next.promise);
+
+		const first = details.load("a");
+		const second = details.load("b");
+		const signal: AbortSignal = sdk.getMonitorDetails.mock.calls[0][1].signal;
+
+		expect(signal.aborted).toBe(true);
+		slow.reject(signal.reason);
+		await first;
+		expect(details.status).toBe("loading");
+		expect(logged).not.toHaveBeenCalled();
+		next.resolve(monitor("b"));
+		await second;
+		expect(details.status).toBe("ready");
+		expect(details.monitor).toEqual(monitor("b"));
+		expect(logged).not.toHaveBeenCalled();
+	});
+
+	it("aborts a pending refresh when a load starts", async () => {
+		sdk.getMonitorDetails.mockResolvedValueOnce(monitor("a"));
+		await details.load("a");
+		const slow = deferred<ReturnType<typeof monitor>>();
+		sdk.getMonitorDetails.mockReturnValueOnce(slow.promise);
+		const next = deferred<ReturnType<typeof monitor>>();
+		sdk.getMonitorDetails.mockReturnValueOnce(next.promise);
+
+		const refreshing = details.refresh();
+		const loading = details.load("b");
+		const signal: AbortSignal = sdk.getMonitorDetails.mock.calls[1][1].signal;
+
+		expect(signal.aborted).toBe(true);
+		slow.reject(signal.reason);
+		await refreshing;
+		expect(details.status).toBe("loading");
+		expect(details.monitor).toBeNull();
+		expect(logged).not.toHaveBeenCalled();
+		next.resolve(monitor("b"));
+		await loading;
+		expect(details.monitor).toEqual(monitor("b"));
+	});
+
+	it("still reports a failure that is not a cancel", async () => {
+		sdk.getMonitorDetails.mockRejectedValueOnce(httpError(500));
+
+		await details.load("a");
+
+		expect(details.status).toBe("failed");
+		expect(logged).toHaveBeenCalledTimes(1);
 	});
 });
