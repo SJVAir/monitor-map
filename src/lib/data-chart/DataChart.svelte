@@ -143,12 +143,27 @@
 	};
 
 	let chartRequest = 0;
+	let chartController: AbortController | undefined;
+
+	// A closed panel cancels its in-flight fetch.
+	$effect(() => () => chartController?.abort());
 
 	// `silent` keeps the current chart on screen while a timed refresh loads.
 	async function loadChartData({ silent = false } = {}) {
 		const request = ++chartRequest;
+		chartController?.abort();
+		const controller = (chartController = new AbortController());
 		if (!silent) chartManager.loading = true;
-		const data = await fetchChartData(monitor, chartManager.dateRange, pollutant);
+		let data: Awaited<ReturnType<typeof fetchChartData>>;
+		try {
+			data = await fetchChartData(monitor, chartManager.dateRange, pollutant, {
+				signal: controller.signal
+			});
+		} catch (err) {
+			// Superseded or closed: the newer call owns `loading` and the chart, so leave both.
+			if (controller.signal.aborted) return;
+			throw err;
+		}
 		// A newer request (another range, monitor, pollutant or refresh) owns the chart now.
 		if (request !== chartRequest) return;
 		// A failed request resolves to [] (an empty range is [[], []]); a background refresh
