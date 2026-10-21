@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { BellCheckIcon, BellOffIcon, ChevronDownIcon } from "@lucide/svelte";
-	import { getSubscriptions, subscribe, unsubscribe } from "@sjvair/sdk/account";
+	import { subscribe, unsubscribe } from "@sjvair/sdk/account";
 	import { monitorsManager } from "$lib";
+	import { getApiToken, loadSubscriptionLevel } from "$lib/monitors/subscriptions";
 
 	interface MonitorSubscriptionManagerProps {
 		monitorId: string;
@@ -35,24 +36,24 @@
 	});
 
 	$effect(() => {
-		void monitorId;
+		const id = monitorId;
 		open = false;
 		subscribedLevel = null;
-		loadSubscription();
-	});
-
-	async function loadSubscription() {
-		const id = monitorId;
+		const controller = new AbortController();
+		const { signal } = controller;
 		loading = true;
-		try {
-			const subscriptions = await getSubscriptions(getApiToken());
-			if (id !== monitorId) return;
-			const match = subscriptions.find((s) => s.monitor === id);
-			subscribedLevel = match?.level ?? null;
-		} finally {
-			if (id === monitorId) loading = false;
-		}
-	}
+		loadSubscriptionLevel(id, { signal })
+			.then((level) => {
+				if (!signal.aborted) subscribedLevel = level;
+			})
+			.catch((error) => {
+				if (!signal.aborted) throw error;
+			})
+			.finally(() => {
+				if (!signal.aborted) loading = false;
+			});
+		return () => controller.abort();
+	});
 
 	async function handleLevelClick(level: string | null) {
 		if (saving || !level) return;
@@ -74,12 +75,6 @@
 			saving = false;
 		}
 		open = false;
-	}
-
-	function getApiToken(): string {
-		return (
-			(globalThis as unknown as Record<string, Record<string, string>>)["USER"]?.api_token ?? ""
-		);
 	}
 </script>
 
