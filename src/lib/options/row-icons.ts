@@ -1,4 +1,4 @@
-import { circle, COLLOCATION_CROSSHAIR_COLOR, triangle, withCrosshair } from "@sjvair/map-sdk";
+import { circle, triangle } from "@sjvair/map-sdk";
 import { EV_STATION_LEVELS, evStationIcon } from "../ev-stations/ev-station-icons";
 
 // The menu rows' marker icons (SVG markup), drawn with the map's own shapes as in 4.x.
@@ -12,7 +12,6 @@ export const ROW_ICONS = {
 	lowCost: circle(DISPLAY_COLOR, BORDER_WIDTH),
 	inactive: circle(INACTIVE_COLOR, BORDER_WIDTH),
 	inside: circle(DISPLAY_COLOR, BORDER_WIDTH, INSIDE_OUTLINE),
-	collocationSites: withCrosshair(circle(DISPLAY_COLOR, BORDER_WIDTH), COLLOCATION_CROSSHAIR_COLOR),
 	evLevel2: evStationIcon(EV_STATION_LEVELS.lvl2.bg, EV_STATION_LEVELS.lvl2.border),
 	evLevel3: evStationIcon(EV_STATION_LEVELS.lvl3.bg, EV_STATION_LEVELS.lvl3.border)
 } as const;

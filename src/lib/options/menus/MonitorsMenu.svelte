@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { RadioTowerIcon } from "@lucide/svelte";
+	import { CrosshairIcon, RadioTowerIcon } from "@lucide/svelte";
 	import OptionsMenu from "../OptionsMenu.svelte";
 	import CheckboxRow from "../rows/CheckboxRow.svelte";
 	import GroupRow from "../rows/GroupRow.svelte";
@@ -77,7 +77,7 @@
 	{#if monitorsManager.pollutant === "pm25"}
 		<CheckboxRow label="Collocation Sites" bind:checked={mapOptions.collocationSites}>
 			{#snippet icon()}
-				<MarkerIcon svg={ROW_ICONS.collocationSites} class="w-5" />
+				<CrosshairIcon size={16} color="#4A5FC6" />
 			{/snippet}
 		</CheckboxRow>
 	{/if}
