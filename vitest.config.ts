@@ -1,5 +1,6 @@
 import { defineConfig } from "vitest/config";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { playwright } from "@vitest/browser-playwright";
 import { fileURLToPath, URL } from "node:url";
 
 const alias = {
@@ -18,7 +19,7 @@ export default defineConfig({
 				test: {
 					name: "server",
 					include: ["tests/**/*.test.ts"],
-					exclude: ["tests/client/**"],
+					exclude: ["tests/client/**", "tests/browser/**"],
 					environment: "node"
 				}
 			},
@@ -34,6 +35,21 @@ export default defineConfig({
 					// Inlined so Vite resolves it with the "browser" condition; left external, Node
 					// would load Svelte's server build, whose effects and flushSync do nothing.
 					server: { deps: { inline: ["svelte", "esm-env"] } }
+				}
+			},
+			{
+				// Real Chromium, Svelte compiled for the client: for component specs.
+				plugins: [svelte()],
+				resolve: { alias, conditions: ["browser"] },
+				test: {
+					name: "browser",
+					include: ["tests/browser/**/*.test.ts"],
+					browser: {
+						enabled: true,
+						headless: true,
+						provider: playwright(),
+						instances: [{ browser: "chromium" }]
+					}
 				}
 			}
 		]
