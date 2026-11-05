@@ -2,12 +2,16 @@
 	import { onDestroy } from "svelte";
 	import { Marker } from "@maptiler/sdk";
 	import { MapPinIcon, SearchIcon } from "@lucide/svelte";
+	import { maptilerMap, type MapContext } from "@sjvair/map-sdk";
 	import { useMonitorMapRouter } from "../router-context";
-	import { mapManager } from "$lib/map/map-manager.svelte.js";
 	import { debounce } from "$lib/utils";
 	import { monitorSearch, geocode, type SearchResult } from "./service";
-	import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte";
 
+	interface SearchProps {
+		map: MapContext;
+	}
+
+	const { map }: SearchProps = $props();
 	const { navigate, basePath } = useMonitorMapRouter();
 
 	let collapsed = $state(true);
@@ -75,31 +79,22 @@
 		results = [];
 		marker?.remove();
 		marker = null;
-		if (mapManager.map && result.monitor.position) {
+		if (result.monitor.position) {
 			const { coordinates } = result.monitor.position;
-			const center: [number, number] = [coordinates[0], coordinates[1]];
-			mapManager.map.flyTo({
-				center,
-				zoom: 12
-			});
+			map.flyTo({ center: [coordinates[0], coordinates[1]], zoom: 12 });
 		}
 		await navigate(`${basePath}/monitor/:id`, { params: { id: result.monitor.id } });
-		monitorsMapIntegration.selectedMonitorId = result.monitor.id;
 	}
 
 	function selectGeocode(result: Extract<SearchResult, { type: "geocode" }>) {
 		const { feature } = result;
 		marker?.remove();
 		marker = null;
-		if (mapManager.map) {
-			const center: [number, number] = [feature.center[0], feature.center[1]];
-			marker = new Marker().setLngLat(center).addTo(mapManager.map);
-			const isAddress = feature.place_type?.[0] === "address";
-			mapManager.map.flyTo({
-				center,
-				...(isAddress && { zoom: 16 })
-			});
-		}
+		const center: [number, number] = [feature.center[0], feature.center[1]];
+		const gl = maptilerMap(map);
+		if (gl) marker = new Marker().setLngLat(center).addTo(gl);
+		const isAddress = feature.place_type?.[0] === "address";
+		map.flyTo({ center, ...(isAddress && { zoom: 16 }) });
 		results = [];
 		collapsed = true;
 	}

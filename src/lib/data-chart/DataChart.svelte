@@ -55,9 +55,7 @@
 	);
 	const pollutantLabel = $derived(pollutant === "pm25" ? "PM 2.5" : "Ozone");
 	// Level definitions are shared metadata, not the map's current selection.
-	const colors = $derived(
-		levelColors(monitorsManager.meta?.entryType(pollutant).asIter.levels ?? [])
-	);
+	const colors = $derived(levelColors(monitorsManager.meta?.entryType(pollutant).scale ?? null));
 
 	// Reload for another monitor or pollutant, not for a new object describing the same one.
 	// Both go through a $derived: the owner recomputes what it passes on every refresh, and a

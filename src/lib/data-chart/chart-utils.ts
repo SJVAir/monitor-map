@@ -118,6 +118,10 @@ function getSeriesConfigs(monitorType: MonitorType, stops: LevelColors) {
 		case "airgradient":
 		case "purpleair":
 			return [baseXSeriesConfig, pm25SeriesConfig(stops)];
+
+		// Types without a real-time series of their own (CIMIS weather stations, from SDK 5.0).
+		default:
+			return [baseXSeriesConfig, singleSeriesConfig];
 	}
 }
 

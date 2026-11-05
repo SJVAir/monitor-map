@@ -1,13 +1,13 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
-	import type { SomeMapIntegration } from "$lib/map/integrations/types";
+	import type { MapContext } from "@sjvair/map-sdk";
 
 	export interface MapShellProps {
-		/** Map integrations to register, e.g. [monitorsMapIntegration] */
-		integrations: Array<SomeMapIntegration>;
+		/** The map to show, from `createMap()` (the monitor map uses `createLiveMap()`). */
+		map: MapContext;
 		/**
 		 * True once the caller's own data managers have finished their initial
-		 * load. The shell hides the load screen once the map is idle AND this
+		 * load. The shell hides the load screen once the map is ready AND this
 		 * is true.
 		 */
 		ready: boolean;
@@ -56,13 +56,12 @@
 
 <script lang="ts">
 	import LoadScreen, { disable as disableLoadScreen } from "$lib/LoadScreen.svelte";
-	import Map from "$lib/map/Map.svelte";
+	import { MapView } from "@sjvair/map-sdk";
 	import OptionsBar from "$lib/options/OptionsBar.svelte";
-	import { mapManager } from "$lib/map/map-manager.svelte.js";
 	import { useMonitorMapRouter } from "$lib/router-context";
 
 	let {
-		integrations,
+		map,
 		ready,
 		loadError,
 		panelOpen,
@@ -76,25 +75,11 @@
 	}: MapShellProps = $props();
 
 	const basePath = providedBasePath ?? (routerEscapeHatch ? useMonitorMapRouter().basePath : "");
-	const TRANSITION_MS = 300;
 
 	$effect(() => {
-		// mapManager.map is only ever assigned once its own initial "load" has
-		// already fired (see initializeMap in map-manager.svelte.ts), so by the time this
-		// effect sees a non-null map, it's already safe to reveal — waiting for a
-		// further "idle" event here is unreliable since one may never fire again.
-		if (mapManager.map && ready) {
+		// `map.ready` is map-sdk's signal that the style loaded and the map went idle.
+		if (map.ready && ready) {
 			disableLoadScreen();
-		}
-	});
-
-	$effect(() => {
-		if (panelOpen) {
-			// Container width snapped to open; resize after layout settles
-			requestAnimationFrame(() => mapManager.map?.resize());
-		} else {
-			// Container width snaps back after the transform transition ends
-			setTimeout(() => mapManager.map?.resize(), TRANSITION_MS);
 		}
 	});
 
@@ -131,7 +116,14 @@
 <div class="relative flex h-full w-full flex-col md:flex-row">
 	<LoadScreen error={loadError} />
 	<div class="relative flex-1 overflow-hidden">
-		<Map {integrations} />
+		<MapView
+			{map}
+			label="Air quality monitor map"
+			controls="engine"
+			selectionBar={false}
+			tooltip="pointer"
+			class="h-full w-full"
+		/>
 		{@render overlays?.()}
 		{#if menu || search}
 			<OptionsBar {search}>{@render menu?.()}</OptionsBar>

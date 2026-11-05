@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { BellCheckIcon, BellOffIcon, ChevronDownIcon } from "@lucide/svelte";
 	import { subscribe, unsubscribe } from "@sjvair/sdk/account";
-	import { monitorsManager } from "$lib";
+	import { monitorsManager } from "$lib/monitors/monitors.svelte.js";
 	import { getApiToken, loadSubscriptionLevel } from "$lib/monitors/subscriptions";
 
 	interface MonitorSubscriptionManagerProps {
@@ -22,17 +22,10 @@
 	let saving = $state(false);
 	let subscribedLevel: string | null = $state(null);
 
+	// The alert rows, in this order, from the PM2.5 scale; a key the scale lacks is skipped.
 	const alertLevels = $derived.by(() => {
-		if (!monitorsManager.meta) return [];
-		try {
-			return monitorsManager.meta
-				.entryType("pm25")
-				.asIter.levels!.filter((level) =>
-					ALERT_LEVEL_NAMES.includes(level.name as (typeof ALERT_LEVEL_NAMES)[number])
-				);
-		} catch {
-			return [];
-		}
+		const levels = monitorsManager.meta?.entryType("pm25").scale?.levels ?? [];
+		return ALERT_LEVEL_NAMES.flatMap((key) => levels.find((level) => level.key === key) ?? []);
 	});
 
 	$effect(() => {
@@ -108,8 +101,8 @@
 					<BellOffIcon size={14} />
 				</button>
 			{/if}
-			{#each alertLevels as level (level.name)}
-				{@const isSubscribed = level.name === subscribedLevel}
+			{#each alertLevels as level (level.key)}
+				{@const isSubscribed = level.key === subscribedLevel}
 				<button
 					class={[
 						"flex w-full items-center justify-between px-4 py-2 text-sm text-white last:rounded-b",
@@ -117,7 +110,7 @@
 					]}
 					style="background-color: {level.color}"
 					disabled={saving}
-					onclick={!isSubscribed ? () => handleLevelClick(level.name) : null}
+					onclick={!isSubscribed ? () => handleLevelClick(level.key) : null}
 				>
 					<span>{level.label}</span>
 					{#if isSubscribed}
