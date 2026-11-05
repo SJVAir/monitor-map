@@ -16,6 +16,7 @@
 	import { createLiveMap } from "$lib/map/live-map.svelte.js";
 	import { syncPlugins } from "$lib/map/sync-plugins.svelte.js";
 	import LoadError from "$lib/LoadError.svelte";
+	import { retryMonitorsLoad } from "$lib/monitors/retry-load.js";
 	import { monitorsManager } from "$lib/monitors/monitors.svelte.js";
 	import { filteredMonitors } from "$lib/monitors/filtered-source.svelte.js";
 	import Legend from "$lib/legend/Legend.svelte";
@@ -59,15 +60,11 @@
 	}
 
 	// The load screen stays up until the monitors load, so a failure has to be shown on it.
-	let loadFailed = $state(false);
+	const loadFailed = $derived(monitorsStore.dataSource.status.state === "error");
 
 	function loadMonitors() {
-		loadFailed = false;
 		// A rejected init() can be retried: a later call starts a fresh run.
-		monitorsManager.init(route.search.pollutant).catch((error) => {
-			console.error(error);
-			loadFailed = true;
-		});
+		monitorsManager.init(route.search.pollutant).catch((error) => console.error(error));
 	}
 
 	loadMonitors();
@@ -214,7 +211,10 @@
 >
 	{#snippet loadError()}
 		{#if loadFailed}
-			<LoadError message="Couldn't load air monitors." onretry={loadMonitors} />
+			<LoadError
+				message="Couldn't load air monitors."
+				onretry={() => retryMonitorsLoad(monitorsStore, loadMonitors)}
+			/>
 		{/if}
 	{/snippet}
 	{#snippet menu()}
