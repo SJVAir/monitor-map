@@ -153,7 +153,6 @@ The codebase uses Svelte 5 runes exclusively:
 ```
 VITE_MAPTILER_KEY=
 VITE_NREL_KEY=
-VITE_OPENWEATHERMAP_KEY=
 ```
 
 ### Package entries
