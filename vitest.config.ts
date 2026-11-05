@@ -28,7 +28,7 @@ export default defineConfig({
 				// Rune modules compile for the client here (see tests/client/environment.ts), so
 				// their $effects do run. Still no DOM: for rune modules, not components.
 				plugins: [svelte()],
-				resolve: { alias, conditions: ["browser"] },
+				resolve: { alias, conditions: ["browser"], dedupe: ["svelte"] },
 				test: {
 					name: "client",
 					include: ["tests/client/**/*.test.ts"],
@@ -42,7 +42,7 @@ export default defineConfig({
 				// Real Chromium, Svelte compiled for the client: for component specs. Tailwind so a
 				// spec importing app.css gets the responsive variants (e.g. `tall:`).
 				plugins: [tailwindcss(), svelte()],
-				resolve: { alias, conditions: ["browser"] },
+				resolve: { alias, conditions: ["browser"], dedupe: ["svelte"] },
 				test: {
 					name: "browser",
 					include: ["tests/browser/**/*.test.ts"],

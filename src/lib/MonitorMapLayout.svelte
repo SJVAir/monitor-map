@@ -2,14 +2,25 @@
 	import type { Snippet } from "svelte";
 	import { onDestroy, onMount, untrack } from "svelte";
 	import { searchParams } from "sv-router";
-	import { monitorsPlugin } from "@sjvair/map-sdk";
+	import {
+		collocationSitesPlugin,
+		hmsFirePlugin,
+		hmsSmokePlugin,
+		monitorsPlugin
+	} from "@sjvair/map-sdk";
 	import MapShell from "$lib/map/MapShell.svelte";
 	import { createLiveMap } from "$lib/map/live-map.svelte.js";
 	import { syncPlugins } from "$lib/map/sync-plugins.svelte.js";
 	import LoadError from "$lib/LoadError.svelte";
 	import { monitorsManager } from "$lib/monitors/monitors.svelte.js";
 	import { filteredMonitors } from "$lib/monitors/filtered-source.svelte.js";
-	import { monitorsStore } from "$lib/stores.svelte.js";
+	import Legend from "$lib/legend/Legend.svelte";
+	import {
+		collocationSitesStore,
+		hmsFireStore,
+		hmsSmokeStore,
+		monitorsStore
+	} from "$lib/stores.svelte.js";
 	import OptionsGroup from "$lib/options/OptionsGroup.svelte";
 	import PollutantMenu from "$lib/options/menus/PollutantMenu.svelte";
 	import MonitorsMenu from "$lib/options/menus/MonitorsMenu.svelte";
@@ -88,6 +99,32 @@
 		() => mapOptions.clustered
 	);
 
+	// Fire & Smoke and collocation sites take no build-time option, so they sit in their own call
+	// without `deps`: a Marker Clusters change rebuilds only the monitors above. DRAW_ORDER still
+	// holds across the two calls because `syncPlugins` reads `map.plugins` (every plugin on the
+	// map, whichever call added it) to find the plugin to add before.
+	syncPlugins(map, () => wantedPlugins(mapOptions, monitorsManager.pollutant), {
+		"hms-smoke": () =>
+			hmsSmokePlugin({
+				id: "hms-smoke",
+				source: hmsSmokeStore.dataSource,
+				layerLabel: "Smoke"
+			}),
+		"hms-fire": () =>
+			hmsFirePlugin({
+				id: "hms-fire",
+				source: hmsFireStore.groups,
+				hotspots: hmsFireStore.hotspots,
+				layerLabel: "Fires"
+			}),
+		"collocation-sites": () =>
+			collocationSitesPlugin({
+				id: "collocation-sites",
+				source: collocationSitesStore.dataSource,
+				layerLabel: "Collocation sites"
+			})
+	});
+
 	// Keep the Pollutant menu's selection (pm25 / o3 / none) and the "pollutant" URL param in
 	// sync, both directions. init() only seeds the pollutant on the store's first-ever
 	// initialization; this effect applies a later "?pollutant=" change (e.g. navigating in from
@@ -114,6 +151,10 @@
 	});
 
 	onMount(() => {
+		// A failed load leaves its layer empty (map-sdk's legend shows the status); log it once.
+		for (const store of [hmsSmokeStore, hmsFireStore, collocationSitesStore]) {
+			store.init().catch(console.error);
+		}
 		// A previous instance of this layout paused polling in onDestroy; init() is a no-op by now.
 		monitorsManager.resumeAutoUpdate();
 		return map.on("featureclick", ({ pluginId, ref, lngLat }) => {
@@ -157,6 +198,11 @@
 			<OverlaysMenu />
 			<SettingsMenu {map} />
 		</OptionsGroup>
+	{/snippet}
+	{#snippet overlays()}
+		<div class="pointer-events-none absolute bottom-4 left-4 z-10">
+			<Legend {map} />
+		</div>
 	{/snippet}
 	{#snippet search()}
 		<Search {map} />
