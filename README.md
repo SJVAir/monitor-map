@@ -1,27 +1,39 @@
 # @sjvair/monitor-map
 
-SJVAir's interactive air quality monitor map, built with Svelte 5, Vite, and MapTiler
-SDK. It ships two ways:
+SJVAir's interactive air quality monitor map, built with Svelte 5, Vite and
+`@sjvair/map-sdk`. It ships two ways:
 
 - **A code-split widget** (`npm run build`), embedded via a `<div id="SJVAirMonitorMap">`
   in a Django template on sjvair.com.
 - **A component library** (`npm run build:lib`, published to npm as
-  `@sjvair/monitor-map`), imported by the `sjvair-mobile` Capacitor app and by other SJVAir
-  projects (e.g. `data-dashboard`) that want to embed the map or reuse its map-display
-  logic against their own data.
+  `@sjvair/monitor-map`), imported by the `sjvair-mobile` Capacitor app.
 
 ## Installation
 
 ```bash
-npm install @sjvair/monitor-map
+npm install @sjvair/monitor-map @sjvair/sdk
+```
+
+`@sjvair/sdk` (5.x) is a peer dependency, so the host and the map share one copy and the host's
+`setOrigin` covers both. `@sjvair/map-sdk` and `@maptiler/sdk` are ordinary dependencies.
+
+## Keys
+
+The library reads no keys. Call `configureMonitorMap` once at startup, before the map or the EV
+layer is used:
+
+```ts
+import { configureMonitorMap } from "@sjvair/monitor-map/core";
+
+configureMonitorMap({ maptilerKey: "...", nrelKey: "..." });
 ```
 
 ## Usage
 
 ### Full-page map, via `sv-router`
 
-The default integration path mounts a complete map (all integrations: monitors,
-collocation sites, wind, HMS smoke/fire, EV stations) as a route in a host app that
+The default integration path mounts a complete map (monitors, collocation sites,
+wind, HMS smoke/fire, EV stations) as a route in a host app that
 uses `sv-router`:
 
 ```ts
@@ -108,135 +120,32 @@ note that it has no current readings; an unknown id gets "Monitor not found."
 
 ### Cancelling requests
 
-`monitorsManager.init()` and `update()`, `collocationSitesManager.init()` and `update()`,
-`hmsManager.init()`, `loadSmoke()` and `loadFire()`, and `evStationsManager.loadLvl2Stations()`
-and `loadLvl3Stations()` take `{ signal }` (an `AbortSignal`). Aborting rejects that call with
-the signal's reason (a call that is a no-op, such as `update()` before init or `init()` once
-initialized, resolves as before). The panel, chart and subscription status cancel their own superseded
-requests when the selection changes; that work resolves quietly. A `monitorsManager.init()`
-run is shared: aborting your signal stops only your wait, and the run itself is cancelled only
-when every caller waiting on it has aborted.
+`monitorsManager.init()` takes `{ signal }` (an `AbortSignal`). Aborting rejects that call with
+the signal's reason. The run is shared: aborting your signal stops only your wait, and the run
+itself is cancelled only when every caller waiting on it has aborted. The panel, chart and
+subscription status cancel their own superseded requests; that work resolves quietly.
 
-A host that depends on `@sjvair/sdk` directly must use `^4.7.0`, so npm installs one copy. A
-nested copy ignores the host's `setOrigin`.
+## Migrating from 4.x
 
-### Embedding `MapShell` directly, with a reduced integration set
-
-`MonitorMapLayout` is an opinionated wrapper around the lower-level `MapShell`
-component: it wires up every integration, every manager, and the full options toolbar and
-legend. A host that only wants some of that — say, just the monitors integration, with no
-EV stations/wind/HMS — should compose `MapShell` directly instead:
-
-```svelte
-<script>
-	import {
-		MapShell,
-		MonitorsMenu,
-		OptionsGroup,
-		PollutantMenu,
-		monitorsMapIntegration,
-		monitorsManager
-	} from "@sjvair/monitor-map";
-
-	let failed = $state(false);
-	function load() {
-		failed = false;
-		monitorsManager.init().catch(() => (failed = true));
-	}
-	load();
-</script>
-
-<MapShell
-	integrations={[monitorsMapIntegration]}
-	ready={monitorsManager.initialized}
-	panelOpen={false}
-	routerEscapeHatch={false}
->
-	{#snippet menu()}
-		<OptionsGroup>
-			<PollutantMenu />
-			<MonitorsMenu />
-		</OptionsGroup>
-	{/snippet}
-	{#snippet loadError()}
-		{#if failed}
-			<button onclick={load}>Couldn't load air monitors. Try again</button>
-		{/if}
-	{/snippet}
-</MapShell>
-```
-
-The `menu` snippet renders inside the options toolbar; compose `OptionsGroup` with the
-exported menus (`PollutantMenu`, `MonitorsMenu`, `LayersMenu`, `OverlaysMenu`,
-`SettingsMenu`), or `OptionsMenu` with the row components for a custom data source. The
-optional `loadError` snippet renders on the load screen, under the logo, which stays up
-until `ready` is true; use it to show a failed initial load with a retry.
-
-See `src/lib/MonitorMapLayout.svelte` for the reference example of wiring a manager, an
-integration list, and menu/overlay content into `MapShell`.
-
-**`routerEscapeHatch`**: `MapShell` defaults to `routerEscapeHatch={true}`, which
-intercepts clicks and forces full-page navigation for links outside the map's own
-routes — correct for a full-page map, wrong for a map embedded alongside a host app's
-own navigation. A host with its own routing (like `data-dashboard`) **must** pass
-`routerEscapeHatch={false}`, which also skips `useMonitorMapRouter()` entirely, so no
-`provideMonitorMapRouter(...)` ancestor is required. Pass `basePath` if you need the
-escape-hatch's "known route" prefix without going through `provideMonitorMapRouter`.
-
-Mount at most one `MapShell` per app instance — its underlying map/load-screen/
-integration-registration state is module-level singleton state shared across the whole
-page.
-
-## Extending
-
-### Adding a new map feature
-
-Map features are a plugin system built on a few abstract base classes, exported from the
-package root:
-
-- `MapIntegration` — base apply/remove lifecycle
-- `MapLayerIntegration` — adds MapTiler layer management
-- `MapGeoJSONIntegration` — adds GeoJSON data-source management, plus a
-  `MapIconManager` for sprite icons (this is `src/lib/map/integrations/
-map-geojson-integration.svelte.ts`'s `MapIconLayerIntegration`, exported under this
-  name)
-
-Extend one of these rather than manipulating the MapTiler map instance directly. Look
-at `src/lib/monitors/monitors-map-integration.svelte.ts` or `src/lib/wind/wind.svelte.ts`
-as reference implementations.
-
-### Reusing the monitors map display with different data (`MonitorsDataSource`)
-
-`MonitorsMapIntegration` (and the icon-generation base class behind
-`MonitorsIconManager`/`CollocationIconManager`) don't hardcode the live `monitorsManager`
-singleton — they accept a `MonitorsDataSource` via their constructor:
-
-```ts
-export interface MonitorsDataSource {
-	readonly meta: MonitorsMeta | null;
-	readonly pollutant: "pm25" | "o3" | null;
-	readonly latest: XMap<string, MonitorLatestType<"pm25" | "o3">> | null;
-	readonly levels: Array<SJVAirEntryLevel> | null;
-}
-```
-
-`monitorsManager` (auto-polling, always-current readings) is the default when no data
-source is given, so existing consumers are unaffected. A host app that wants the same
-clustering/icon-rendering/filtering/tooltip logic driven by different data — for
-example, `data-dashboard`'s Monitors tab, which colors monitors by the **average of
-historical summary data over a selected date range** rather than a live reading —
-implements its own `MonitorsDataSource` (no polling, populated from
-`getMonitorSummariesDaily`/etc.) and constructs its own instance:
-
-```ts
-import { MonitorsMapIntegration, type MonitorsDataSource } from "@sjvair/monitor-map";
-
-const myDataSource: MonitorsDataSource = /* ... */;
-const monitorsMapIntegration = new MonitorsMapIntegration(myDataSource);
-```
-
-This reuses all of the existing map-rendering work instead of forking it — see
-`CLAUDE.md`'s "Monitor Data Flow" section for more detail.
+- **Keys:** pass the MapTiler and NREL keys with `configureMonitorMap({ maptilerKey, nrelKey })`
+  (from `@sjvair/monitor-map` or `/core`). The library no longer reads them from the build
+  environment.
+- **`@sjvair/sdk` is a peer dependency** (`^5.0.0-beta.3` for the betas): install it in the host.
+  `@sjvair/map-sdk` and `@maptiler/sdk` are ordinary dependencies; add neither.
+- **`meta` is SDK 5.0's:** `meta.levels` is gone; read `meta.scale`.
+- **`/routes`** is unchanged: `monitorMapRoutes` with the map at `/` and a monitor at
+  `/monitor/:id`, lazy as before.
+- **`/core`** keeps `provideMonitorMapRouter`, `useMonitorMapRouter`, `ROUTER_KEY`,
+  `MonitorMapRouterApi` and `monitorsManager` (`init(pollutant?, { autoUpdate?, signal? })`,
+  `initialized`, `meta`, `list`), and adds `configureMonitorMap` and `monitorMapConfig`.
+- **Tailwind:** add `@source "../node_modules/@sjvair/map-sdk/dist";` and
+  `@import "@sjvair/map-sdk/theme.css";` beside the existing monitor-map `@source`. The host
+  defines the theme tokens map-sdk needs (`--background` to `--radius`, plus `--popover` and
+  `--accent`).
+- **Removed exports:** everything from `.` except `monitorMapRoutes`, the router context,
+  `monitorsManager`, `configureMonitorMap` and `monitorMapConfig` (and their types). That includes
+  `MapShell`, the options menus, the integration classes, `MonitorsDataSource` and the other
+  managers.
 
 ## Development
 
