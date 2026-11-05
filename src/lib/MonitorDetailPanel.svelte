@@ -11,7 +11,7 @@
 	import { useMonitorMapRouter } from "./router-context";
 	import { fetchTempByCoords } from "$lib/weather";
 	import { Colors, valueToColor } from "$lib/colors";
-	import { NEUTRAL_LEVEL_COLOR, readingLevel } from "$lib/levels";
+	import { NEUTRAL_LEVEL_COLOR, readingDisplay, readingLevel } from "$lib/levels";
 
 	type TempDataBox = Pick<ComponentProps<typeof DataBox>, "color" | "value">;
 
@@ -92,7 +92,7 @@
 			color: level?.color ?? NEUTRAL_LEVEL_COLOR,
 			header: entryType.label,
 			subheading: `(${updateDuration} avg)`,
-			value: Math.round(parseInt(reading.value, 10)).toString()
+			value: readingDisplay(reading.value)
 		};
 	});
 
@@ -201,9 +201,12 @@
 				</div>
 			{/if}
 
-			<div class="tall:block hidden">
-				<MonitorWidgetModal monitorId={monitor.id} />
-			</div>
+			<!-- The widget shows current readings, and errors for an inactive monitor. -->
+			{#if panel.hasReading}
+				<div class="tall:block hidden">
+					<MonitorWidgetModal monitorId={monitor.id} />
+				</div>
+			{/if}
 			<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 			{#if (globalThis as any).USER?.is_authenticated}
 				<MonitorSubscriptionManager monitorId={monitor.id} />

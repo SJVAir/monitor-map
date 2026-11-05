@@ -31,3 +31,6 @@ vite.config.ts.timestamp-*
 
 # map-sdk tarballs
 vendor/
+
+# Vitest browser failure screenshots
+.vitest/

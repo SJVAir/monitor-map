@@ -7,12 +7,17 @@
 	import uPlot from "uplot";
 	import "uplot/dist/uPlot.min.css";
 	import { getMonitorEntriesCSVUrl } from "@sjvair/sdk/monitors";
-	import { format, parseISO } from "date-fns";
 	import { RangeCalendar } from "$lib/components/ui/range-calendar";
 	import type { PanelPollutant } from "../monitors/panel-pollutant";
 	import { monitorsManager } from "../monitors/monitors.svelte";
 	import { DataChartManager } from "./data-chart.svelte";
-	import { createDateRange, extendToNow, includesToday } from "./DateRange";
+	import {
+		createDateRange,
+		dateRangeLabel as formatDateRange,
+		extendToNow,
+		fileDay,
+		includesToday
+	} from "./DateRange";
 	import { fetchChartData, type ChartMonitor } from "./requests";
 	import { getChartConfig } from "./chart-utils";
 	import { levelColors } from "./level-colors";
@@ -38,11 +43,7 @@
 	let dateRangeContainer: HTMLElement | undefined = $state();
 	let triggerRebuild: (() => void) | undefined = $state();
 
-	const dateRangeLabel = $derived(
-		format(parseISO(chartManager.dateRange.start), "MMM d") +
-			" – " +
-			format(parseISO(chartManager.dateRange.end), "MMM d, yyyy")
-	);
+	const dateRangeLabel = $derived(formatDateRange(chartManager.dateRange));
 
 	// A request with no entries still resolves to [[], []], so test the x axis, not the tuple.
 	const noChartData = $derived(!chartManager.chartData[0]?.length);
@@ -53,15 +54,18 @@
 				? "No Data Available For Selected Date Range"
 				: ""
 	);
-	const pollutantLabel = $derived(pollutant === "pm25" ? "PM 2.5" : "Ozone");
-	// Level definitions are shared metadata, not the map's current selection.
-	const colors = $derived(levelColors(monitorsManager.meta?.entryType(pollutant).scale ?? null));
+	// Props are read through a $derived: the owner recomputes what it passes on every refresh,
+	// and a prop read directly would re-run an effect even when the value is unchanged.
+	const monitorId = $derived(monitor.id);
+	const monitorType = $derived(monitor.type);
+	const chartPollutant = $derived(pollutant);
+
+	// Level definitions and labels are shared metadata, not the map's current selection.
+	const entryType = $derived(monitorsManager.meta?.entryType(chartPollutant));
+	const pollutantLabel = $derived(entryType?.label ?? "");
+	const colors = $derived(levelColors(entryType?.scale ?? null));
 
 	// Reload for another monitor or pollutant, not for a new object describing the same one.
-	// Both go through a $derived: the owner recomputes what it passes on every refresh, and a
-	// prop read directly would re-run this effect even when the value is unchanged.
-	const monitorId = $derived(monitor.id);
-	const chartPollutant = $derived(pollutant);
 	$effect(() => {
 		void monitorId;
 		void chartPollutant;
@@ -99,9 +103,15 @@
 		return () => document.removeEventListener("click", handleDocClick);
 	});
 
+	// Rebuild for new data or anything the chart draws with, and nothing else: `rebuild` runs
+	// untracked, so a refreshed copy of the same monitor does not recreate the chart.
 	$effect(() => {
-		void chartManager.chartData; // re-run whenever chart data updates
-		triggerRebuild?.();
+		void chartManager.chartData;
+		void monitorType;
+		void colors;
+		void pollutantLabel;
+		const rebuild = triggerRebuild;
+		untrack(() => rebuild?.());
 	});
 
 	const chartAttachment: Attachment<HTMLElement> = (el) => {
@@ -119,7 +129,7 @@
 			instance?.destroy?.();
 			el.innerHTML = "";
 			const maxDiff = Math.max(...flatData) - Math.min(...flatData);
-			const opts = getChartConfig(monitor.type, maxDiff, width, height, colors, pollutantLabel);
+			const opts = getChartConfig(monitorType, maxDiff, width, height, colors, pollutantLabel);
 			instance = new uPlot(opts, chartManager.chartData, el);
 		};
 
@@ -151,7 +161,10 @@
 		const request = ++chartRequest;
 		chartController?.abort();
 		const controller = (chartController = new AbortController());
-		if (!silent) chartManager.loading = true;
+		// A refresh that supersedes a load still in flight takes over its loading flag: the
+		// superseded load will never clear it.
+		const ownsLoading = !silent || chartManager.loading;
+		chartManager.loading = ownsLoading;
 		let data: Awaited<ReturnType<typeof fetchChartData>>;
 		try {
 			data = await fetchChartData(monitor, chartManager.dateRange, pollutant, {
@@ -159,14 +172,15 @@
 			});
 		} catch (err) {
 			// Superseded or closed: the newer call owns `loading` and the chart, so leave both.
-			if (controller.signal.aborted) return;
-			throw err;
+			if (controller.signal.aborted || request !== chartRequest) return;
+			console.error("Failed to load chart data: ", err);
+			data = [];
 		}
 		// A newer request (another range, monitor, pollutant or refresh) owns the chart now.
 		if (request !== chartRequest) return;
 		// A failed request resolves to [] (an empty range is [[], []]); a background refresh
 		// that failed keeps the chart already on screen.
-		if (silent && data.length === 0) return;
+		if (!ownsLoading && data.length === 0) return;
 		chartManager.chartData = data;
 		chartManager.loading = false;
 	}
@@ -199,8 +213,8 @@
 		if (!canvas) return;
 		const link = document.createElement("a");
 		const monitorName = monitor.name.split(" ").join("-");
-		const start = format(parseISO(chartManager.dateRange.start), "dd.MMM.yyyy");
-		const end = format(parseISO(chartManager.dateRange.end), "dd.MMM.yyyy");
+		const start = fileDay(chartManager.dateRange.start);
+		const end = fileDay(chartManager.dateRange.end);
 		link.download = `${monitorName}_${start}-${end}.png`;
 		link.href = canvas.toDataURL();
 		link.click();

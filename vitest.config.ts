@@ -1,6 +1,7 @@
 import { defineConfig } from "vitest/config";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { playwright } from "@vitest/browser-playwright";
+import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 
 const alias = {
@@ -38,8 +39,9 @@ export default defineConfig({
 				}
 			},
 			{
-				// Real Chromium, Svelte compiled for the client: for component specs.
-				plugins: [svelte()],
+				// Real Chromium, Svelte compiled for the client: for component specs. Tailwind so a
+				// spec importing app.css gets the responsive variants (e.g. `tall:`).
+				plugins: [tailwindcss(), svelte()],
 				resolve: { alias, conditions: ["browser"] },
 				test: {
 					name: "browser",

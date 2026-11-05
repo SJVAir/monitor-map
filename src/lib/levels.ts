@@ -12,3 +12,13 @@ export function readingLevel(
 	const level = levelFor(value, scale);
 	return level === NO_LEVEL ? null : level;
 }
+
+/** A reading as the panel shows it: cut off to a whole number, or "–" when not a number. */
+export function readingDisplay(value: string | number | null | undefined): string {
+	// Number("") and Number(null) are 0, not a reading.
+	if (value === null || value === undefined || (typeof value === "string" && !value.trim())) {
+		return "–";
+	}
+	const number = Math.trunc(Number(value));
+	return Number.isFinite(number) ? number.toString() : "–";
+}
