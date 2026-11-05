@@ -9,6 +9,9 @@
 		monitorsPlugin
 	} from "@sjvair/map-sdk";
 	import { windPlugin } from "$lib/wind/wind-plugin.js";
+	import { evPlugin } from "$lib/ev-stations/ev-plugin.svelte.js";
+	import { createEvStore } from "$lib/ev-stations/ev-store.svelte.js";
+	import { stationPopups } from "$lib/ev-stations/station-popup.svelte.js";
 	import MapShell from "$lib/map/MapShell.svelte";
 	import { createLiveMap } from "$lib/map/live-map.svelte.js";
 	import { syncPlugins } from "$lib/map/sync-plugins.svelte.js";
@@ -75,6 +78,20 @@
 	// The monitors the Monitors menu's filters let through; clusters are built from these.
 	const monitorsSource = filteredMonitors(monitorsStore.dataSource, mapOptions);
 
+	// EV chargers: each level is fetched the first time it is wanted. A failure shows in the legend
+	// with a retry.
+	const evStore = createEvStore();
+	const evPopups = stationPopups(map);
+	$effect(() => {
+		const wanted = wantedPlugins(mapOptions, monitorsManager.pollutant);
+		for (const [key, level] of [
+			["ev-l2", "lvl2"],
+			["ev-l3", "lvl3"]
+		] as const) {
+			if (wanted.has(key)) untrack(() => evStore.load(level)).catch(console.error);
+		}
+	});
+
 	// The options decide which plugins are on the map, in DRAW_ORDER. `clustered` is fixed when a
 	// plugin is built, so a change rebuilds it.
 	syncPlugins(
@@ -95,7 +112,11 @@
 					selectionMode: "single",
 					selection: selectedId ? { kind: "monitors", ids: [selectedId] } : null
 				}
-			})
+			}),
+			"ev-l2": () =>
+				evPlugin("lvl2", evStore.dataSource("lvl2"), { clustered: mapOptions.clustered }),
+			"ev-l3": () =>
+				evPlugin("lvl3", evStore.dataSource("lvl3"), { clustered: mapOptions.clustered })
 		},
 		() => mapOptions.clustered
 	);
@@ -160,6 +181,12 @@
 		// A previous instance of this layout paused polling in onDestroy; init() is a no-op by now.
 		monitorsManager.resumeAutoUpdate();
 		return map.on("featureclick", ({ pluginId, ref, lngLat }) => {
+			// A station clicked on the map or picked from the list: its popup.
+			if ((pluginId === "ev-l2" || pluginId === "ev-l3") && ref.kind === "feature") {
+				const station = evStore.station(ref.id);
+				if (station) evPopups.open(pluginId, station, lngLat);
+				return;
+			}
 			if (pluginId !== "monitors" || ref.kind !== "monitor") return;
 			navigate(`${basePath}/monitor/:id`, { params: { id: ref.id } }).catch(console.error);
 			map.easeTo({ center: lngLat, minZoom: 12 });

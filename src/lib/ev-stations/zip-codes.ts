@@ -48,7 +48,6 @@ export const SanJoaquin = [
 export const Stanislaus = [
 	"95355",
 	"95350",
-	"94550",
 	"95351",
 	"95307",
 	"95380",
@@ -80,7 +79,6 @@ export const Stanislaus = [
 ];
 
 export const Merced = [
-	"95023",
 	"95380",
 	"93635",
 	"95301",
@@ -101,13 +99,11 @@ export const Merced = [
 	"95369",
 	"95303",
 	"95317",
-	"95325",
 	"93665",
 	"95342",
 	"95344",
 	"95343",
 	"93661",
-	"09534",
 	"95312"
 ];
 
@@ -141,7 +137,6 @@ export const Fresno = [
 	"93706",
 	"93711",
 	"93705",
-	"93245",
 	"93612",
 	"93657",
 	"93710",
@@ -189,7 +184,6 @@ export const Fresno = [
 	"93652",
 	"93627",
 	"93606",
-	"93665",
 	"93628",
 	"93605",
 	"93607",
@@ -235,8 +229,7 @@ export const Fresno = [
 	"93888",
 	"93844",
 	"93784",
-	"93780",
-	"93633"
+	"93780"
 ];
 
 export const Kings = [
@@ -247,7 +240,6 @@ export const Kings = [
 	"93204",
 	"93656",
 	"93242",
-	"93249",
 	"93266",
 	"93201",
 	"93202",
@@ -288,12 +280,9 @@ export const Tulare = [
 	"93238",
 	"93261",
 	"93641",
-	"93255",
 	"93603",
 	"93244",
 	"93262",
-	"93549",
-	"93628",
 	"93208",
 	"93227",
 	"93237",
@@ -412,7 +401,6 @@ export const Calaveras = [
 export const Tuolumne = [
 	"95370",
 	"95327",
-	"95247",
 	"95383",
 	"95321",
 	"95379",
@@ -423,8 +411,6 @@ export const Tuolumne = [
 	"95310",
 	"95346",
 	"95364",
-	"95224",
-	"93541",
 	"95305",
 	"95335",
 	"95314",
@@ -438,7 +424,6 @@ export const Mono = ["93514", "93546", "93517", "96107", "93529", "96133", "9354
 
 export const Mariposa = [
 	"95338",
-	"95333",
 	"93601",
 	"95311",
 	"95329",
@@ -468,3 +453,26 @@ export const Inyo = [
 	"93522",
 	"93530"
 ];
+
+/**
+ * Every county's ZIPs once, sorted: the EV charger query's `zip` list. A ZIP that spans two
+ * counties is in both lists above; `scripts/check-ev-zips.mjs` checks the lists against the
+ * Census ZCTA-to-county file.
+ */
+export const EV_ZIP_CODES: readonly string[] = [
+	...new Set([
+		...SanJoaquin,
+		...Stanislaus,
+		...Merced,
+		...Madera,
+		...Fresno,
+		...Kings,
+		...Tulare,
+		...Kern,
+		...Calaveras,
+		...Tuolumne,
+		...Mono,
+		...Mariposa,
+		...Inyo
+	])
+].sort();

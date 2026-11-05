@@ -1,18 +1,19 @@
 <script lang="ts">
 	import CreditCard from "@lucide/svelte/icons/credit-card";
 	import Zap from "@lucide/svelte/icons/zap";
-	import type { EvStationMapFeature } from "../types";
+	import type { EvStation } from "./types";
 
 	interface Props {
-		feature: EvStationMapFeature;
+		station: EvStation;
 	}
 
-	const { feature }: Props = $props();
+	const { station }: Props = $props();
 
+	// 4.x's station popup, from the station NREL returned (codes already turned into labels).
 	const computed = $derived.by(() => {
-		const p = feature.properties;
+		const p = station;
 
-		const connectors: string[] = JSON.parse(p.ev_connector_types || "[]");
+		const connectors: string[] = (p.ev_connector_types ?? []).filter(Boolean);
 
 		const cards: string[] = p.cards_accepted
 			? p.cards_accepted.split(",").map((c) => c.trim())
