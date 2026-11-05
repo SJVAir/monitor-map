@@ -30,6 +30,7 @@
  * `monitorMapRoutes` from this entry stays eager.
  */
 export { monitorMapRoutes } from "./routes";
+export { configureMonitorMap, monitorMapConfig, type MonitorMapConfig } from "./config.svelte.js";
 export {
 	ROUTER_KEY,
 	provideMonitorMapRouter,

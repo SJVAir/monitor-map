@@ -177,14 +177,14 @@ describe("hmsManager", () => {
 });
 
 describe("evStationsManager", () => {
-	const load = async () =>
-		(await import("$lib/ev-stations/ev-stations.svelte.js")).evStationsManager;
 	const okFetch = () =>
 		vi.fn().mockResolvedValue({ json: async () => ({ fuel_stations: [{ id: 1 }] }) });
 
-	beforeEach(() => {
-		vi.stubEnv("VITE_NREL_KEY", "test-key");
-	});
+	const load = async () => {
+		const { configureMonitorMap } = await import("$lib/config.svelte.js");
+		configureMonitorMap({ maptilerKey: "", nrelKey: "test-key" });
+		return (await import("$lib/ev-stations/ev-stations.svelte.js")).evStationsManager;
+	};
 
 	it("passes the signal to fetch for both levels", async () => {
 		const fetchMock = okFetch();

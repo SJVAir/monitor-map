@@ -6,6 +6,7 @@
  * main entry uses, so `monitorsManager` and the router context stay single instances
  * whichever entries a host mixes.
  */
+export { configureMonitorMap, monitorMapConfig, type MonitorMapConfig } from "./config.svelte.js";
 export {
 	ROUTER_KEY,
 	provideMonitorMapRouter,

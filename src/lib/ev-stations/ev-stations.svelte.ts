@@ -6,6 +6,7 @@ import {
 	facilityTypes
 } from "./data-maps";
 import type { SignalOptions } from "$lib/abort";
+import { monitorMapConfig } from "../config.svelte.js";
 import type { EvStation } from "./types";
 import * as ZipCodes from "./zip-codes";
 
@@ -38,7 +39,7 @@ async function fetchEvStations(
 	url.searchParams.set("access", "public");
 	url.searchParams.set("ev_charging_level", chargingLevel);
 	url.searchParams.set("zip", zipCodes);
-	url.searchParams.set("api_key", import.meta.env.VITE_NREL_KEY);
+	url.searchParams.set("api_key", monitorMapConfig().nrelKey);
 
 	return await fetch(url, { signal })
 		.then(async (res) => await res.json())
