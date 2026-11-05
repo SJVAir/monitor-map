@@ -1,6 +1,6 @@
 # monitor-map 5.0: rebuilt on map-sdk
 
-Date: 2026-11-05. Status: **draft, awaiting the user's approval.**
+Date: 2026-11-05. Status: **approved by the user 2026-11-05.**
 Release 1, step 5, part 2 (data-dashboard `ROADMAP.md` item 5, `TODO.md` → "Release 1, step 5").
 Builds on map-sdk milestone 2 (`../map-sdk/docs/superpowers/specs/2026-11-04-map-sdk-milestone-2-design.md`,
 merged as map-sdk #4, `main` at a897dbc). That spec's "What monitor-map builds on top" is the
