@@ -155,7 +155,7 @@
 		<OptionsGroup>
 			<LayersMenu />
 			<OverlaysMenu />
-			<SettingsMenu />
+			<SettingsMenu {map} />
 		</OptionsGroup>
 	{/snippet}
 	{#snippet search()}
