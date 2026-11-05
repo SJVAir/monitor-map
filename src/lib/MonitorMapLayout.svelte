@@ -8,6 +8,7 @@
 		hmsSmokePlugin,
 		monitorsPlugin
 	} from "@sjvair/map-sdk";
+	import { windPlugin } from "$lib/wind/wind-plugin.js";
 	import MapShell from "$lib/map/MapShell.svelte";
 	import { createLiveMap } from "$lib/map/live-map.svelte.js";
 	import { syncPlugins } from "$lib/map/sync-plugins.svelte.js";
@@ -99,11 +100,12 @@
 		() => mapOptions.clustered
 	);
 
-	// Fire & Smoke and collocation sites take no build-time option, so they sit in their own call
+	// Wind, Fire & Smoke and collocation sites take no build-time option, so they sit in their own call
 	// without `deps`: a Marker Clusters change rebuilds only the monitors above. DRAW_ORDER still
 	// holds across the two calls because `syncPlugins` reads `map.plugins` (every plugin on the
 	// map, whichever call added it) to find the plugin to add before.
 	syncPlugins(map, () => wantedPlugins(mapOptions, monitorsManager.pollutant), {
+		wind: () => windPlugin(),
 		"hms-smoke": () =>
 			hmsSmokePlugin({
 				id: "hms-smoke",
