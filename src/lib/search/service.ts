@@ -67,31 +67,43 @@ function resolveProximity(): Promise<[number, number]> {
 	});
 }
 
-export async function monitorSearch(query: string): Promise<SearchResult[]> {
+/** Monitors whose name matches `query`: exact, then prefix, then substring; at most 4. */
+export function searchMonitors(
+	query: string,
+	monitors: Iterable<MonitorData>,
+	latest: ReadonlyMap<string, { value: number | null }>
+): MonitorData[] {
 	const normalized = query.toLowerCase();
 	const exact: MonitorData[] = [];
 	const prefix: MonitorData[] = [];
 	const substr: MonitorData[] = [];
 
 	// Only monitors with a reading for the current pollutant, as the map shows them.
-	for (const monitor of monitorsStore.monitors.values()) {
-		if (monitorsStore.latest.get(monitor.id)?.value == null) continue;
+	for (const monitor of monitors) {
+		if (latest.get(monitor.id)?.value == null) continue;
 		const name = monitor.name.toLowerCase();
 		if (name === normalized) exact.push(monitor);
 		else if (name.startsWith(normalized)) prefix.push(monitor);
 		else if (name.includes(normalized)) substr.push(monitor);
 	}
 
-	return [...exact, ...prefix, ...substr]
-		.slice(0, 4)
-		.map((monitor) => ({ type: "monitor" as const, monitor, logo: getMonitorLogo(monitor) }));
+	return [...exact, ...prefix, ...substr].slice(0, 4);
 }
 
-export async function geocode(query: string): Promise<SearchResult[]> {
-	const proximity = await getProximity();
+export async function monitorSearch(query: string): Promise<SearchResult[]> {
+	return searchMonitors(query, monitorsStore.monitors.values(), monitorsStore.latest).map(
+		(monitor) => ({ type: "monitor" as const, monitor, logo: getMonitorLogo(monitor) })
+	);
+}
+
+export async function geocodeQuery(
+	query: string,
+	proximity: [number, number],
+	key: string
+): Promise<SearchResult[]> {
 	try {
 		const result = await geocoding.forward(query, {
-			apiKey: monitorMapConfig().maptilerKey,
+			apiKey: key,
 			country: ["us"],
 			fuzzyMatch: true,
 			limit: 4,
@@ -101,4 +113,8 @@ export async function geocode(query: string): Promise<SearchResult[]> {
 	} catch {
 		return [];
 	}
+}
+
+export async function geocode(query: string): Promise<SearchResult[]> {
+	return geocodeQuery(query, await getProximity(), monitorMapConfig().maptilerKey);
 }

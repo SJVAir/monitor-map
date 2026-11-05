@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
-	import { Marker } from "@maptiler/sdk";
 	import { MapPinIcon, SearchIcon } from "@lucide/svelte";
-	import { maptilerMap, type MapContext } from "@sjvair/map-sdk";
+	import type { MapContext } from "@sjvair/map-sdk";
 	import { useMonitorMapRouter } from "../router-context";
 	import { debounce } from "$lib/utils";
+	import { searchPin } from "./search-pin.svelte.js";
 	import { monitorSearch, geocode, type SearchResult } from "./service";
 
 	interface SearchProps {
@@ -17,7 +16,9 @@
 	let collapsed = $state(true);
 	let searchText = $state("");
 	let results: SearchResult[] = $state([]);
-	let marker: Marker | null = $state.raw(null);
+	// The layout passes one MapContext for the widget's lifetime.
+	// svelte-ignore state_referenced_locally
+	const pin = searchPin(map);
 	let inputEl: HTMLInputElement | null = $state(null);
 
 	function clickOutside(node: HTMLElement) {
@@ -46,16 +47,14 @@
 	function clearSearch() {
 		searchText = "";
 		results = [];
-		marker?.remove();
-		marker = null;
+		pin.clear();
 	}
 
 	async function handleInput() {
 		const query = searchText;
 		if (!query) {
 			results = [];
-			marker?.remove();
-			marker = null;
+			pin.clear();
 			return;
 		}
 		const monitorResults = await monitorSearch(query);
@@ -77,8 +76,7 @@
 		collapsed = true;
 		searchText = "";
 		results = [];
-		marker?.remove();
-		marker = null;
+		pin.clear();
 		if (result.monitor.position) {
 			const { coordinates } = result.monitor.position;
 			map.flyTo({ center: [coordinates[0], coordinates[1]], zoom: 12 });
@@ -88,20 +86,14 @@
 
 	function selectGeocode(result: Extract<SearchResult, { type: "geocode" }>) {
 		const { feature } = result;
-		marker?.remove();
-		marker = null;
+		pin.clear();
 		const center: [number, number] = [feature.center[0], feature.center[1]];
-		const gl = maptilerMap(map);
-		if (gl) marker = new Marker().setLngLat(center).addTo(gl);
+		pin.place(center);
 		const isAddress = feature.place_type?.[0] === "address";
 		map.flyTo({ center, ...(isAddress && { zoom: 16 }) });
 		results = [];
 		collapsed = true;
 	}
-
-	onDestroy(() => {
-		marker?.remove();
-	});
 </script>
 
 <div
