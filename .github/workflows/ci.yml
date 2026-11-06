@@ -1,0 +1,23 @@
+name: CI
+on:
+  pull_request:
+    branches: [release/5.0.0, main]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26.x"
+          cache: npm
+      - run: npm ci
+      # The browser test project runs component specs in Chromium.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check
+      - run: npm run lint
+      # The specs mock the network, so no keys are needed.
+      - run: npm test
+      - run: npm run test:bundle

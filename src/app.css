@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn-svelte/tailwind.css";
 @import "@fontsource-variable/inter";
+@source "../node_modules/@sjvair/map-sdk/dist";
+@import "@sjvair/map-sdk/theme.css";
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant tall (@media (min-height: 600px) and (min-width: 500px));
@@ -110,6 +112,7 @@
 	--chart-4: oklch(0.371 0 0);
 	--chart-5: oklch(0.269 0 0);
 	--radius: 0.625rem;
+	--link: #485fc7;
 	--sidebar: oklch(0.985 0 0);
 	--sidebar-foreground: oklch(0.145 0 0);
 	--sidebar-primary: oklch(0.205 0 0);

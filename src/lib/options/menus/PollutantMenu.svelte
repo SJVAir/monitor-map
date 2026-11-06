@@ -9,8 +9,8 @@
 		currentSelection,
 		type PollutantSelection
 	} from "../pollutant-param";
-	import { monitorsManager } from "$lib/monitors/monitors.svelte";
-	import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte";
+	import { mapOptions } from "../map-options.svelte.js";
+	import { monitorsManager } from "$lib/monitors/monitors.svelte.js";
 	import pm25Icon from "$lib/assets/icons/pm25/pm25-02-particle-field.svg";
 	import ozoneIcon from "$lib/assets/icons/ozone/ozone-08-sunrise-haze.svg";
 
@@ -44,16 +44,11 @@
 	];
 
 	const menus = useOptionsMenus();
-	const selection = $derived(
-		currentSelection(monitorsManager.pollutant, monitorsMapIntegration.enabled)
-	);
+	const selection = $derived(currentSelection(monitorsManager.pollutant, mapOptions.monitorsOn));
 	const selected = $derived(options.find((o) => o.value === selection) ?? options[0]);
 
 	function select(value: PollutantSelection) {
-		applyPollutantSelection(value, {
-			manager: monitorsManager,
-			integration: monitorsMapIntegration
-		});
+		applyPollutantSelection(value, { manager: monitorsManager, options: mapOptions });
 		// Toolbar dropdown closes on pick; the panel section stays open.
 		if (isWideLayout()) menus.close("pollutant");
 	}

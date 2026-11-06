@@ -1,4 +1,4 @@
-import { format, fromUnixTime } from "date-fns";
+import { formatPacificTime } from "./pacific-time";
 import type { LevelColors } from "./level-colors";
 
 let cursLeft = -100;
@@ -153,7 +153,7 @@ export function tooltipsPlugin() {
 					let label = u.series[i].label as string;
 					label = label?.substring(label.indexOf("(") + 1, label.indexOf(")")) || label;
 
-					ttHeader.textContent = format(fromUnixTime(xVal), "MMM d, yyyy h:mm a");
+					ttHeader.textContent = formatPacificTime(xVal);
 					tt!.textContent = `${label}: ${yVal}`;
 				}
 			}

@@ -1,19 +1,24 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
-	import { Marker } from "@maptiler/sdk";
 	import { MapPinIcon, SearchIcon } from "@lucide/svelte";
+	import type { MapContext } from "@sjvair/map-sdk";
 	import { useMonitorMapRouter } from "../router-context";
-	import { mapManager } from "$lib/map/map-manager.svelte.js";
 	import { debounce } from "$lib/utils";
+	import { searchPin } from "./search-pin.svelte.js";
 	import { monitorSearch, geocode, type SearchResult } from "./service";
-	import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte";
 
+	interface SearchProps {
+		map: MapContext;
+	}
+
+	const { map }: SearchProps = $props();
 	const { navigate, basePath } = useMonitorMapRouter();
 
 	let collapsed = $state(true);
 	let searchText = $state("");
 	let results: SearchResult[] = $state([]);
-	let marker: Marker | null = $state.raw(null);
+	// The layout passes one MapContext for the widget's lifetime.
+	// svelte-ignore state_referenced_locally
+	const pin = searchPin(map);
 	let inputEl: HTMLInputElement | null = $state(null);
 
 	function clickOutside(node: HTMLElement) {
@@ -42,16 +47,14 @@
 	function clearSearch() {
 		searchText = "";
 		results = [];
-		marker?.remove();
-		marker = null;
+		pin.clear();
 	}
 
 	async function handleInput() {
 		const query = searchText;
 		if (!query) {
 			results = [];
-			marker?.remove();
-			marker = null;
+			pin.clear();
 			return;
 		}
 		const monitorResults = await monitorSearch(query);
@@ -73,40 +76,24 @@
 		collapsed = true;
 		searchText = "";
 		results = [];
-		marker?.remove();
-		marker = null;
-		if (mapManager.map && result.monitor.position) {
+		pin.clear();
+		if (result.monitor.position) {
 			const { coordinates } = result.monitor.position;
-			const center: [number, number] = [coordinates[0], coordinates[1]];
-			mapManager.map.flyTo({
-				center,
-				zoom: 12
-			});
+			map.flyTo({ center: [coordinates[0], coordinates[1]], zoom: 12 });
 		}
 		await navigate(`${basePath}/monitor/:id`, { params: { id: result.monitor.id } });
-		monitorsMapIntegration.selectedMonitorId = result.monitor.id;
 	}
 
 	function selectGeocode(result: Extract<SearchResult, { type: "geocode" }>) {
 		const { feature } = result;
-		marker?.remove();
-		marker = null;
-		if (mapManager.map) {
-			const center: [number, number] = [feature.center[0], feature.center[1]];
-			marker = new Marker().setLngLat(center).addTo(mapManager.map);
-			const isAddress = feature.place_type?.[0] === "address";
-			mapManager.map.flyTo({
-				center,
-				...(isAddress && { zoom: 16 })
-			});
-		}
+		pin.clear();
+		const center: [number, number] = [feature.center[0], feature.center[1]];
+		pin.place(center);
+		const isAddress = feature.place_type?.[0] === "address";
+		map.flyTo({ center, ...(isAddress && { zoom: 16 }) });
 		results = [];
 		collapsed = true;
 	}
-
-	onDestroy(() => {
-		marker?.remove();
-	});
 </script>
 
 <div

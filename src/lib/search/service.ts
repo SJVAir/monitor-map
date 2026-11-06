@@ -1,6 +1,7 @@
 import { geocoding, type GeocodingFeature } from "@maptiler/sdk";
-import type { MonitorLatestType } from "@sjvair/sdk";
-import { monitorsManager } from "$lib/monitors/monitors.svelte";
+import type { MonitorData } from "@sjvair/sdk";
+import { monitorMapConfig } from "$lib/config.svelte.js";
+import { monitorsStore } from "$lib/stores.svelte.js";
 import AirGradientLogo from "../assets/logos/airgradient-blue.svg";
 import AirNowLogo from "../assets/logos/airnow-compact.jpg";
 import CarbLogo from "../assets/logos/carb-compact.jpg";
@@ -9,7 +10,7 @@ import SJVAirLogo from "../assets/logos/sjvair.svg";
 
 export type MonitorResult = {
 	type: "monitor";
-	monitor: MonitorLatestType<"pm25" | "o3">;
+	monitor: MonitorData;
 	logo: { url: string; alt: string };
 };
 
@@ -22,7 +23,7 @@ export type SearchResult = MonitorResult | GeocodeResult;
 
 const SJV_CENTER: [number, number] = [-119.8, 36.76];
 
-function getMonitorLogo(monitor: MonitorLatestType<"pm25" | "o3">): { url: string; alt: string } {
+function getMonitorLogo(monitor: MonitorData): { url: string; alt: string } {
 	switch (monitor.data_source.name) {
 		case "AQview":
 			return { url: CarbLogo, alt: "AQview" };
@@ -66,29 +67,43 @@ function resolveProximity(): Promise<[number, number]> {
 	});
 }
 
-export async function monitorSearch(query: string): Promise<SearchResult[]> {
-	if (!monitorsManager.latest) return [];
+/** Monitors whose name matches `query`: exact, then prefix, then substring; at most 4. */
+export function searchMonitors(
+	query: string,
+	monitors: Iterable<MonitorData>,
+	latest: ReadonlyMap<string, { value: number | null }>
+): MonitorData[] {
 	const normalized = query.toLowerCase();
-	const exact: MonitorLatestType<"pm25" | "o3">[] = [];
-	const prefix: MonitorLatestType<"pm25" | "o3">[] = [];
-	const substr: MonitorLatestType<"pm25" | "o3">[] = [];
+	const exact: MonitorData[] = [];
+	const prefix: MonitorData[] = [];
+	const substr: MonitorData[] = [];
 
-	for (const monitor of monitorsManager.latest.values()) {
+	// Only monitors with a reading for the current pollutant, as the map shows them.
+	for (const monitor of monitors) {
+		if (latest.get(monitor.id)?.value == null) continue;
 		const name = monitor.name.toLowerCase();
 		if (name === normalized) exact.push(monitor);
 		else if (name.startsWith(normalized)) prefix.push(monitor);
 		else if (name.includes(normalized)) substr.push(monitor);
 	}
 
-	return [...exact, ...prefix, ...substr]
-		.slice(0, 4)
-		.map((monitor) => ({ type: "monitor" as const, monitor, logo: getMonitorLogo(monitor) }));
+	return [...exact, ...prefix, ...substr].slice(0, 4);
 }
 
-export async function geocode(query: string): Promise<SearchResult[]> {
-	const proximity = await getProximity();
+export async function monitorSearch(query: string): Promise<SearchResult[]> {
+	return searchMonitors(query, monitorsStore.monitors.values(), monitorsStore.latest).map(
+		(monitor) => ({ type: "monitor" as const, monitor, logo: getMonitorLogo(monitor) })
+	);
+}
+
+export async function geocodeQuery(
+	query: string,
+	proximity: [number, number],
+	key: string
+): Promise<SearchResult[]> {
 	try {
 		const result = await geocoding.forward(query, {
+			apiKey: key,
 			country: ["us"],
 			fuzzyMatch: true,
 			limit: 4,
@@ -98,4 +113,8 @@ export async function geocode(query: string): Promise<SearchResult[]> {
 	} catch {
 		return [];
 	}
+}
+
+export async function geocode(query: string): Promise<SearchResult[]> {
+	return geocodeQuery(query, await getProximity(), monitorMapConfig().maptilerKey);
 }

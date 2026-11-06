@@ -6,199 +6,159 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run dev          # Start development server
-npm run build        # Widget build (vite build, code-split ES modules)
-npm run build:lib    # Library build for Capacitor app workspace import
+npm run build        # Widget build (PROD_MODE=production vite build, code-split ES modules)
+npm run build:lib    # Library build (svelte-package into dist/lib)
 npm run preview      # Preview widget build
 npm run check        # Type-check Svelte components
 npm run check:watch  # Type-check in watch mode
 npm run lint         # Prettier check + ESLint
 npm run format       # Auto-format with Prettier
 npm test             # Vitest (specs in tests/**)
-npm run test:bundle  # build:lib, then check the light entries keep maplibre off the eager path
+npm run test:bundle  # build:lib, then check the light entries keep the map engine off the eager path
+npm run map-sdk:pack # Optional: pack ../map-sdk into vendor/ (see map-sdk below)
 ```
 
-Vitest covers the pure modules (`legend-data`, `group-state`, `pollutant-param`, `basemap`, `map-option-defaults`, `monitor-groups`, `panel-pollutant`, `level-colors`, the `DateRange` helpers) and `monitorsManager` (`tests/monitors/monitors-manager.test.ts`, with `@sjvair/sdk` mocked and the module re-imported per test), `MonitorDetailsState` (`tests/monitors/monitor-details.test.ts`), the request-cancelling pieces (`tests/abort.test.ts`, `tests/data-chart/requests.test.ts`, `tests/monitors/subscriptions.test.ts`, `tests/managers-signal.test.ts`, plus the abort cases in `monitors-manager.test.ts`, `monitor-details.test.ts` and `tests/client/monitors-manager-refetch.test.ts`), plus `mapStyleState` and `MapIconLayerIntegration` against a fake map (`tests/map/`); specs live in top-level `tests/` so they never ship in the package. `vitest.config.ts` loads the Svelte plugin so rune modules compile, and defines two projects. `server` (everything outside `tests/client/`) compiles them in server mode, so `$effect`s do not run in those specs. `client` (`tests/client/**`) uses the custom environment in `tests/client/environment.ts` to compile them for the client with Svelte's browser build, so `$effect`s run; it has no DOM, so it is for rune modules, not components. Svelte is inlined there, so after `vi.resetModules()` a spec must take `flushSync` from a fresh `await import("svelte")`.
+Vitest has three projects (`vitest.config.ts`). `server` (everything outside `tests/client/` and
+`tests/browser/`) compiles rune modules in server mode, so `$effect`s do not run. `client`
+(`tests/client/**`) compiles them for the browser (`tests/client/environment.ts`), so `$effect`s
+run, but there is no DOM: it is for rune modules, not components. Svelte is inlined there, so
+after `vi.resetModules()` a spec must take `flushSync` from a fresh `await import("svelte")`.
+`browser` (`tests/browser/**`) runs component specs in real Chromium through Playwright
+(`vitest-browser-svelte`). Specs live in top-level `tests/` so they never ship in the package.
 
 ## Architecture Overview
 
-This is a **Svelte 5 + Vite** app that visualizes real-time air quality monitor data on an interactive map powered by **MapTiler SDK**. It produces a code-split ES module widget (embedded in a Django HTML template via `<div id="SJVAirMonitorMap">`) and exports `src/lib/` as a component library for a Capacitor mobile app.
+A **Svelte 5 + Vite** app that shows real-time air quality monitor data on an interactive map
+built on **`@sjvair/map-sdk`** (which drives `@maptiler/sdk`) and **`@sjvair/sdk` 5.0** for the
+data. It produces a code-split ES module widget (embedded in a Django HTML template via
+`<div id="SJVAirMonitorMap">`) and exports `src/lib/` as a component library for the Capacitor
+mobile app (`../mobile`).
 
-### Entry & Routing
+### Entry, routing and keys
 
-- `src/main.ts` — mounts `App.svelte` into `#SJVAirMonitorMap`
-- `src/router.ts` — creates the sv-router instance (`createRouter(monitorMapRoutes)`); exports `{ p, navigate, isActive, route }`
-- `src/App.svelte` — the widget's root: calls `provideMonitorMapRouter(...)` with `basePath: ""` and renders `<Router />`. Everything else lives in `src/lib/` and is shared with host apps.
-- `src/lib/routes.ts` — the eager `monitorMapRoutes` the widget uses: `MonitorMapLayout` as the layout, `MainMapView` at `/`, and `MonitorDetailPanel` at `/monitor/:id` as a lazy `() => import(...)`. `src/lib/lazy-routes.ts` is the on-demand variant for hosts (see Package entries).
-- `src/lib/MonitorMapLayout.svelte` — the layout: wires managers, integrations, menus and legend into `MapShell`, which holds the map and slides the routed detail panel in from the right (desktop, 2/3 + 1/3) or up from the bottom (mobile, 50/50), calling `map.resize()` after the 300 ms transition.
-- `src/lib/MainMapView.svelte` — empty sentinel component for the `/` route (the map lives in the layout, not the outlet)
+- `src/main.ts` mounts `App.svelte` into `#SJVAirMonitorMap`. `App.svelte` calls
+  `configureMonitorMap({ maptilerKey, nrelKey })` with `import.meta.env.VITE_MAPTILER_KEY` /
+  `VITE_NREL_KEY`, then `provideMonitorMapRouter(...)` with `basePath: ""` and renders `<Router />`.
+- The library never reads `import.meta.env`. Keys come only from `configureMonitorMap`
+  (`src/lib/config.svelte.ts`; `monitorMapConfig()` throws before it is called). Never hardcode,
+  print or commit a key.
+- `src/router.ts` creates the sv-router instance; `src/lib/routes.ts` is the eager
+  `monitorMapRoutes` (layout `MonitorMapLayout`, `/` is `MainMapView`, `/monitor/:id` a lazy
+  `MonitorDetailPanel`). `src/lib/lazy-routes.ts` is the on-demand variant.
 
-### Integration Plugin System
+### The map
 
-The core architectural pattern is a plugin system for map features:
+- `MonitorMapLayout` (`src/lib/MonitorMapLayout.svelte`) builds the map per layout mount with
+  `createLiveMap()` (`src/lib/map/live-map.svelte.ts`: globe, Streets v4, the basemaps from
+  `src/lib/map/basemaps.ts`) and renders it in `MapShell` (`src/lib/map/MapShell.svelte`), which
+  owns the load screen, the panel slide (desktop 2/3 + 1/3, mobile 50/50) and the sv-router click
+  escape-hatch (`routerEscapeHatch`). Features are map-sdk **plugins**, not hand-managed layers.
+- App-wide data stores are created once in `src/lib/stores.svelte.ts` (map-sdk's monitors, HMS
+  smoke/fire and collocation-sites stores). It imports only `@sjvair/map-sdk/stores`, so `/core`
+  can reach it without the map engine. `monitorsManager` (`src/lib/monitors/monitors.svelte.ts`)
+  is a thin wrapper over the monitors store.
+- Option state is `mapOptions` (`src/lib/options/map-options.svelte.ts`, defaults in
+  `map-option-defaults.ts`). The pollutant is `monitorsManager.pollutant`; pollutant **None** is
+  not a value of it: it turns monitors off (URL `?pollutant=none`,
+  `src/lib/options/pollutant-param.ts`). The `?pollutant=` sync lives in `MonitorMapLayout`.
+- `src/lib/options/plugin-order.ts` holds `DRAW_ORDER` (bottom to top: `wind`, `hms-smoke`,
+  `hms-fire`, `collocation-sites`, `monitors`, `ev-l2`, `ev-l3`), `beforeId` and `wantedPlugins`
+  (which plugins the options want). `syncPlugins` (`src/lib/map/sync-plugins.svelte.ts`) adds and
+  removes plugins in that order. `MonitorMapLayout` makes two calls: one whose `deps` read
+  `clustered` (monitors and EV, which take it when built), one without (wind, HMS, collocation).
+- `filteredMonitors` (`src/lib/monitors/filtered-source.svelte.ts`) applies the monitor-group
+  options to the monitors the map plugin shows.
+- Wind: `src/lib/wind/wind-plugin.ts`, a map-sdk custom layer over `@maptiler/weather`. It sets
+  MapTiler's global `apiKey` for that package.
+- EV chargers: `src/lib/ev-stations/` (`ev-store`, `ev-plugin`, the station popup, `zip-codes.ts`
+  with `EV_ZIP_CODES`). `scripts/check-ev-zips.mjs` checks the ZIP list.
+- Search: `src/lib/search/` (`Search.svelte`, `service.ts`, `search-pin.svelte.ts`), moving the
+  map-sdk camera. The legend is `src/lib/legend/Legend.svelte`, a card around map-sdk's `Legend`.
+- The options toolbar/panel is `src/lib/options/` (`OptionsBar`, `OptionsGroup`, `OptionsMenu`,
+  the menus in `menus/`, row components in `rows/`). The toolbar vs. full-screen panel switch is
+  pure CSS at Tailwind `md`; only `isWideLayout()` is read at click time. Toolbar dropdowns open on
+  hover or on click/Enter/Space on the trigger, never on focus alone; focus leaving a menu closes
+  it, and Escape returns focus to the trigger.
+- `MonitorDetailPanel` owns a `MonitorDetailsState` (`monitors/monitor-details.svelte.ts`) that
+  fetches its monitor with `getMonitorDetails(id)`. `choosePanelPollutant`
+  (`monitors/panel-pollutant.ts`) picks the pollutant shown. Only an active monitor's readings
+  count as current: the API keeps returning an inactive monitor's last reading. The panel
+  re-fetches when the monitors store's latest readings are replaced; `DataChart` takes `pollutant`
+  and `refreshTick` props and reloads on a tick only while its date range is live.
 
-- `src/lib/map/integrations/` — Abstract base classes:
-  - `MapIntegration` — base (apply/remove lifecycle)
-  - `MapLayerIntegration` — adds MapTiler layer management
-  - `MapGeoJSONIntegration` — adds GeoJSON data source management
-- `IntegrationsManager` — `@Singleton` that registers and coordinates all integrations
-- Integrations are passed as props to `Map.svelte` and applied/removed based on their `enabled` state
+### Theming
 
-New map features should extend one of these base classes rather than manipulating the map directly.
+map-sdk's components use theme tokens. The widget defines them in `src/app.css` (white UI, light
+only) and imports `@sjvair/map-sdk/theme.css` with `@source "../node_modules/@sjvair/map-sdk/dist"`;
+the CSS scope plugin keeps them inside `#SJVAirMonitorMap`. `dist/lib` ships no token CSS: library
+hosts supply their own tokens.
 
-Integration effect pattern: an integration's own `$effect`s that guard on `enabled` read it
-via `untrack` (the base `MapLayerIntegration` effect already applies/removes on `enabled`
-changes) — and that guard must come **after** the effect's tracked reads, or an early return
-leaves the effect with no dependencies and it never runs again. Integrations must not touch the
-style (add/remove sources or layers, register clicks — including inside `icons.loadIcons().then(...)`)
-while `mapManager.styleLoading` is true: a basemap change is in flight, and the
-`integrationsManager.refresh()` on `style.load` applies/removes every integration afterwards.
-A `MapIconLayerIntegration` subclass schedules work that waits on icons with
-`this.whenIconsLoad(...)`, never a bare `icons.loadIcons().then(...)`: it skips the callback
-when a later `apply()`/`remove()` superseded it or a basemap change is in flight. An `apply()`
-branch that does not call `super.apply()` calls `this.supersedePending()` first.
-A basemap whose style document fails to load leaves the map with no style, so `mapStyleState`
-falls back to the last variant that loaded (reverting the Settings selection) and refreshes
-once that arrives. Only when the fallback fails too does `styleLoading` stay set, until a
-later selection loads.
+### map-sdk
 
-### Modularization: `MapShell` vs `MonitorMapLayout`
+`@sjvair/map-sdk` is the published npm version, pinned exactly (`0.1.0-beta.1`). To try an
+unreleased map-sdk locally, `npm run map-sdk:pack` packs `../map-sdk` into `vendor/` (git-ignored)
+and prints the tarball path to `npm install`; never commit that. `@maptiler/sdk` is pinned
+`~4.2.0` (map-sdk's pin); `npm ls @maptiler/sdk svelte @sjvair/sdk` must show one copy of each. A
+map-sdk gap is reported, not worked around with CSS overrides or map-sdk internals.
 
-`MonitorMapLayout` (used by `monitorMapRoutes`) is a **thin, opinionated
-wrapper** around `MapShell` that wires up every integration, every manager,
-and the options toolbar/panel (`src/lib/options/`) and legend (`src/lib/legend/`) — this is what the widget build and
-the `sjvair-mobile` Capacitor app (`../mobile`) use. 4.0.0 replaces the old display-options menu and legend components (and their
-exports) with these.
+### Svelte 5 runes
 
-`MapShell` is the **generic primitive** underneath it: it owns only layout
-concerns that don't know which integrations exist (load screen, panel
-resize/transition, the sv-router click escape-hatch) and takes
-`integrations`, `ready`, `panelOpen`, `knownRoutes`, and `menu`/`search`/`overlays`/
-`children` snippets as props. A host that wants a reduced feature set (e.g.
-only the monitors integration, no EV stations/wind/HMS) should compose
-`MapShell` directly instead of going through `monitorMapRoutes`/
-`MonitorMapLayout` — see `src/lib/MonitorMapLayout.svelte` itself as the
-reference example of how to wire a manager, an integration list, and menu/
-overlay content into it.
+The codebase uses runes exclusively (`$state`/`$state.raw`, `$derived`, `$effect`), plus the
+attachment API for DOM lifecycle. Inside `DataChart`, effects that should react to a prop's value
+read it through a `$derived`, because the panel recomputes what it passes on every refresh.
 
-`MapShell`'s optional `loadError` snippet renders on the load screen under the logo;
-`MonitorMapLayout` uses it to show a failed `monitorsManager.init()` with a **Try again**
-button (a later `init()` call starts a fresh run).
-
-`MapShell`'s `menu` snippet renders inside `OptionsBar` — compose `OptionsGroup`/`OptionsMenu`/row components there; its `search` snippet is placed in the toolbar. The toolbar vs. full-screen panel switch is pure CSS at Tailwind `md`; only `isWideLayout()` (`src/lib/options/layout.ts`) is read at click time. Toolbar dropdowns open on hover or on a click/Enter/Space on the trigger, never on focus alone (a focus-opened dropdown hides as focus moves into it); focus leaving a menu closes it, and Escape returns focus to the trigger.
-
-The five exported menus (`PollutantMenu`, `MonitorsMenu`, `LayersMenu`, `OverlaysMenu`, `SettingsMenu`) are bound to the singleton managers/integrations; a host with a custom `MonitorsDataSource` composes `OptionsMenu` with the row components (`CheckboxRow`, `RadioRow`, `SubmenuRow`, `GroupRow`) instead.
-
-`MapShell` only needs monitor-map's router context (`useMonitorMapRouter`)
-when `routerEscapeHatch` is enabled (the default) and no `basePath` prop is
-passed directly — pass `routerEscapeHatch={false}` (or a `basePath` prop) to
-use `MapShell` standalone without a `provideMonitorMapRouter(...)` ancestor.
-A host embedding `MapShell` inside its own app with its own routing (e.g. a
-dashboard with unrelated tabs/navigation) **must** pass
-`routerEscapeHatch={false}`, since the escape-hatch's click interception is
-designed for a full-page map, not one embedded alongside unrelated app
-navigation, and will otherwise force full-page reloads on the host's own
-links. Mount at most one `MapShell` per app instance — its underlying
-map/load-screen/integration-registration state is module-level singleton
-state shared across the whole page.
-
-### Monitor Data Flow
-
-1. **`MonitorMapLayout`** calls `monitorsManager.init()`, `collocationSitesManager.init()` and `hmsManager.init()` when it is created, which fetch metadata, monitor list, and latest readings from `@sjvair/sdk`
-2. **`monitorsManager`** (`src/lib/monitors/monitors.svelte.ts`) holds all reactive monitor state and runs a 2-minute auto-update interval
-3. **`MonitorsMapIntegration`** (`monitors-map-integration.svelte.ts`) is a `MapGeoJSONIntegration` subclass that derives GeoJSON features from its injected `MonitorsDataSource` (default: `monitorsManager`) via `$derived.by()`
-4. **`MonitorsIconManager`** generates and caches colored SVG icons (circle/square/triangle) keyed by color, also driven by an injected `MonitorsDataSource`'s `levels`
-5. **`MonitorDetailPanel`** does not read `monitorsManager.latest`: it owns a `MonitorDetailsState` (`monitors/monitor-details.svelte.ts`) that fetches its monitor with `getMonitorDetails(id)`, so it can show a monitor that has no reading for the map's pollutant, or is inactive. `choosePanelPollutant` (`monitors/panel-pollutant.ts`) picks what it shows: the map's pollutant when the monitor has it, otherwise the one it has. Only an active monitor's readings count as current: the API keeps returning an inactive monitor's last reading, however old. The panel re-fetches its monitor whenever `monitorsManager.latest` is replaced; `DataChart` takes `pollutant` and `refreshTick` props and reloads on a tick only while its date range is live (ended on the day it was chosen). Inside `DataChart`, effects that should react to a prop's value read it through a `$derived`, because the panel recomputes what it passes on every refresh.
-
-Pollutant **None** is not a `monitorsManager.pollutant` value: it disables `monitorsMapIntegration` (URL `?pollutant=none`); see `src/lib/options/pollutant-param.ts`. The pollutant↔URL (`?pollutant=`) sync lives in `MonitorMapLayout`; the refetch when the pollutant changes after the initial load lives in `monitorsManager` itself, so any host changing `monitorsManager.pollutant` gets it.
-
-### `MonitorsDataSource`: reusing the monitors map display with different data
-
-`MonitorsMapIntegration` and `MonitorShapeIconManager` (the base class behind
-`MonitorsIconManager` and `CollocationIconManager`) don't hardcode `monitorsManager` —
-they take a `MonitorsDataSource` (`{ meta, pollutant, latest, levels }`, exported from
-`./monitors/types`) via their constructor, defaulting to `monitorsManager` when omitted.
-`monitorsManager` is the **live** implementation (auto-polling current readings); a host
-app can supply its own implementation of the same shape — e.g. one backed by historical
-summaries averaged over a date range instead of live readings — and construct
-`new MonitorsMapIntegration(myDataSource)` to reuse all of the clustering, icon
-rendering, filtering, and tooltip/click-handling logic against that different data,
-without forking any of it. This mirrors the `MapShell` split above: extract the
-generic primitive, keep the existing singleton as the default/live convenience
-instance.
-
-### Svelte 5 Runes & State
-
-The codebase uses Svelte 5 runes exclusively:
-
-- `$state` / `$state.raw` for reactive state
-- `$derived` / `$derived.by()` for computed values
-- `$effect` for side effects (e.g., icon regeneration)
-- Svelte 5 **attachment API** used for DOM lifecycle (see `Menu.svelte`)
-
-### Key Libraries
-
-| Library                    | Purpose                                |
-| -------------------------- | -------------------------------------- |
-| `sv-router`                | Client-side routing                    |
-| `@maptiler/sdk`            | Map rendering                          |
-| `@maptiler/weather`        | Wind layer                             |
-| `@sjvair/sdk`              | Air quality data API                   |
-| `@tstk/builtin-extensions` | `XMap`, custom collections             |
-| `@tstk/decorators`         | `@Singleton` decorator                 |
-| `@tstk/utils`              | `Interval`, `cast` utilities           |
-| `color2k`                  | Color manipulation for icon generation |
-
-### Environment Variables
+### Environment variables
 
 ```
 VITE_MAPTILER_KEY=
 VITE_NREL_KEY=
-VITE_OPENWEATHERMAP_KEY=
 ```
 
 ### Package entries
 
 `package.json` `exports` has three entries, all built by `svelte-package` into `dist/lib`:
 
-- `.` (`src/lib/index.ts`) — everything; its `monitorMapRoutes` (`src/lib/routes.ts`) is
-  eager. The widget build uses this.
-- `./core` (`src/lib/core.ts`) — router context and `monitorsManager` only. Nothing it
-  imports may reach `@maptiler/sdk`, `@maptiler/weather` or `uplot` at runtime.
-- `./routes` (`src/lib/lazy-routes.ts`) — `monitorMapRoutes` whose layout and monitor panel
-  load on demand. Its components are light eager wrappers (`LazyMapLayout`,
-  `LazyMonitorDetailPanel`) that load the real ones through `src/lib/lazy-chunks.ts` and show
-  the load screen (or "Loading…" in the panel, or a retry on failure) meanwhile. They are not
-  `() => import(...)` routes because sv-router renders nothing for a route until every lazy
-  component on it has loaded. The dynamic imports must stay in `lazy-chunks.ts`, never in a
-  wrapper: sv-router detects lazy components by regex on the function source, and a compiled
-  component containing `() => import(...)` would be called as one
-  (`tests/client/lazy-routes.test.ts` guards this).
+- `.` (`src/lib/index.ts`): `monitorMapRoutes` (eager), `configureMonitorMap`,
+  `monitorMapConfig`, the router context and `monitorsManager`. Nothing else is exported.
+- `./core` (`src/lib/core.ts`): the router context, `monitorsManager`, `configureMonitorMap` and
+  `monitorMapConfig`, and nothing that reaches `@maptiler/sdk`, `@maptiler/weather`, maplibre or
+  `uplot` at runtime.
+- `./routes` (`src/lib/lazy-routes.ts`): `monitorMapRoutes` whose layout and monitor panel load
+  on demand. Its components are light eager wrappers (`LazyMapLayout`, `LazyMonitorDetailPanel`)
+  that load the real ones through `src/lib/lazy-chunks.ts` and show the load screen (or
+  "Loading..." in the panel, or a retry on failure) meanwhile. They are not `() => import(...)`
+  routes because sv-router renders nothing for a route until every lazy component on it has
+  loaded. The dynamic imports must stay in `lazy-chunks.ts`, never in a wrapper: sv-router detects
+  lazy components by regex on the function source, and a compiled component containing
+  `() => import(...)` would be called as one (`tests/client/lazy-routes.test.ts` guards this).
 
-`core.ts` re-exports, and the lazy wrappers load, the same modules `.` uses, so the
-singletons stay single across entries. `npm run test:bundle`
-(`tests/bundle/check-bundle.mjs`) bundles both entries from `dist/lib` and fails if maplibre,
-maptiler or uplot is reachable without a dynamic import, if an `exports` target is missing,
-or if the two on-demand imports are gone from the startup bundle; the release workflow runs
-it before publishing.
+`core.ts` re-exports, and the lazy wrappers load, the same modules `.` uses, so the singletons stay
+single across entries. `npm run test:bundle` (`tests/bundle/check-bundle.mjs`) bundles the entries
+from `dist/lib` and fails if maplibre, maptiler, `@maptiler/weather` or uplot is reachable without
+a dynamic import, if `./core` exports anything other than `ROUTER_KEY`, `configureMonitorMap`,
+`monitorMapConfig`, `monitorsManager`, `provideMonitorMapRouter` and `useMonitorMapRouter`, if an
+`exports` target is missing, or if the two on-demand imports are gone from the startup bundle; the
+release workflow runs it before publishing.
 
 ### Cancelling requests (`src/lib/abort.ts`)
 
-`SignalOptions` (`{ signal? }`), `anySignal` (combine signals, with `dispose()`) and `untilAborted` (reject a wait when a signal aborts) are the building blocks. Work the library starts itself (detail panel, chart, subscription status via `monitors/subscriptions.ts`, `monitorsManager.update()` superseding the previous update) is cancelled through its own `AbortController`, and a superseded call **resolves quietly**. A **caller's** signal that aborts **rejects** with its reason. An already-aborted signal rejects without sending a request (a call that is a no-op, such as `update()` before init or `init()` once initialized, resolves as before). `init()` is shared: a caller's signal cancels only that caller's wait, and the run aborts only when every waiting caller has aborted and every caller passed a signal.
+`SignalOptions` (`{ signal? }`), `anySignal` (combine signals, with `dispose()`) and `untilAborted`
+(reject a wait when a signal aborts) are the building blocks. Work the library starts itself
+(detail panel, chart, subscription status via `monitors/subscriptions.ts`) is cancelled through
+its own `AbortController`, and a superseded call **resolves quietly**. A **caller's** signal that
+aborts **rejects** with its reason. `monitorsManager.init()` is shared: a caller's signal cancels
+only that caller's wait, and the run aborts only when every waiting caller has aborted and every
+caller passed a signal.
 
 ### `monitorsManager.init()` rules
 
-`init()` is safe to call from several places. Overlapping calls share one promise; a
-rejection clears it so a later call retries. An explicit `"pm25"`/`"o3"` wins over a call
-without one regardless of order, and the most recent of two explicit values wins; if one
-arrives mid-run the run refetches the latest readings before setting `initialized`. The
-latest readings are requested in parallel with the list (chained off meta when no pollutant
-was given). Once initialized, `init()` is a no-op and `MonitorMapLayout`'s URL effect
-applies pollutant changes. `init(pollutant, { autoUpdate: false })` loads without starting
-the poll (for a host preloading data with no map shown); polling starts if any call sharing
-the run wanted it, and an `init()` after initialization never starts it. `MonitorMapLayout`
-stops polling on destroy and calls `monitorsManager.resumeAutoUpdate()` on mount, which
-refreshes once and starts polling only if it is not running (stopped, or never started by a
-data-only init).
+`init()` is safe to call from several places. Overlapping calls share one promise; a rejection
+clears it so a later call retries. An explicit `"pm25"`/`"o3"` wins over a call without one, and
+the most recent of two explicit values wins. Once initialized, `init()` is a no-op.
+`init(pollutant, { autoUpdate: false })` loads without starting the poll (for a host preloading
+data with no map shown); polling starts if any call sharing the run wanted it.
+`MonitorMapLayout` stops polling on destroy and calls `monitorsManager.resumeAutoUpdate()` on
+mount.
 
 ## Library Packaging (`build:lib`)
 
@@ -221,7 +181,9 @@ Consequences for any consuming app:
   host app's own Vite config runs `@sveltejs/enhanced-img`'s `enhancedImages()`
   plugin — hence it's a `peerDependency`, not just a `devDependency` here.
 - The app's Tailwind must scan this package for classes (e.g. sjvair-mobile's
-  `@source "../node_modules/@sjvair/monitor-map/dist/lib";`).
+  `@source "../node_modules/@sjvair/monitor-map/dist/lib";`), and map-sdk's too:
+  `@source "../node_modules/@sjvair/map-sdk/dist";` plus `@import "@sjvair/map-sdk/theme.css";`
+  (the host defines the theme tokens map-sdk needs).
 
 If you touch `vite.config.lib.ts` — it no longer exists; don't recreate it.
 
@@ -234,37 +196,6 @@ specific release — every single time. Approval for one release does not carry 
 to the next, even later in the same session or as the natural next step of a task
 already in progress (e.g. bumping a dependency and then "finishing" by releasing it).
 Always stop and ask first, and wait for an explicit yes.
-
-## Known issues
-
-All minor, deferred from the review of the detail panel's own-data change (PR #122):
-
-- **The chart is rebuilt on every monitor refresh:** `DataChart`'s rebuild effect calls
-  `rebuild` synchronously, so it tracks `monitor` (via `monitor.type`), `colors` and
-  `pollutantLabel`. Each `details.refresh()` destroys and recreates uPlot even when no chart
-  data changed. That incidental tracking is also the only thing that redraws on a color or
-  label change. Fix: read `monitor.type` through a `$derived` and list `colors` and
-  `pollutantLabel` in the effect explicitly.
-- **The data box parses readings with `parseInt`:** `readingPollutants` accepts anything
-  `Number()` finds finite, but `MonitorDetailPanel` renders `Math.round(parseInt(value, 10))`.
-  A value like `".5"` would show `NaN` and `"1e3"` would show `1`; the API's `"0.00"`-style
-  decimals are unaffected. `parseInt` also truncates, so `4.93` shows `4`. Fix:
-  `Math.round(Number(reading.value))`, if rounding is the intended display.
-- **A reading with no matching level crashes the data box:** when `getCurrentLevel` finds no
-  level (e.g. a negative value) the panel passes `color: ""`, and `DataBox`'s `darken("")`
-  throws. Predates PR #122; not known to occur with real data. Fix: fall back to a neutral
-  color.
-- **The chart's title and axis label are hardcoded:** `DataChart` uses "PM 2.5" / "Ozone"
-  rather than `meta.entryType(pollutant).label`, which the panel's note and data box use
-  ("PM2.5"). Fix: take the label from the metadata.
-- **A monitor with no current readings still shows the widget link, the subscription manager
-  and a temperature box:** the spec listed only name, badges, the no-readings line, chart and
-  data providers for that state. Decide whether those belong there; the widget itself errors
-  for an inactive monitor (a backend widget bug).
-- **The chart's refresh logic and the panel's effects are untested:** `DataChart`'s request
-  guard, background (`silent`) refresh and `live` flag, and `MonitorDetailPanel`'s load,
-  refresh and temperature effects, were verified in a browser only. Fix: component specs in
-  the `client` Vitest project, which would need a DOM environment.
 
 ## Code Style
 

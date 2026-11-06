@@ -12,7 +12,7 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
 
 // The map and chart dependencies: @maptiler/sdk (which bundles maplibre), @maptiler/weather, uplot.
-const HEAVY = /maplibre|maptiler|uplot/i;
+const HEAVY = /maplibre|maptiler|uplot|weather/i;
 // The on-demand loads of the map layout and the monitor panel (src/lib/lazy-chunks.ts).
 const LAZY_IMPORT = /\(\)\s?=>\s?import\(/g;
 const FIXTURE = "virtual:bundle-check";
@@ -80,8 +80,36 @@ async function bundle(files) {
 const size = (chunks) => chunks.reduce((total, chunk) => total + chunk.code.length, 0);
 const kb = (bytes) => `${(bytes / 1024).toFixed(0)} KB`;
 
+// What `./core` exports at runtime, exactly (types are erased).
+const CORE_EXPORTS = [
+	"ROUTER_KEY",
+	"configureMonitorMap",
+	"monitorMapConfig",
+	"monitorsManager",
+	"provideMonitorMapRouter",
+	"useMonitorMapRouter"
+];
+
 const core = entryFile("./core");
 const routes = entryFile("./routes");
+
+if (core) {
+	// The entry only re-exports, so its names are read from the compiled source (importing it in
+	// Node would need the Svelte compiler and extensionless resolution).
+	const names = [...readFileSync(core, "utf8").matchAll(/export\s*\{([^}]*)\}/g)]
+		.flatMap((match) => match[1].split(","))
+		.map((name) =>
+			name
+				.trim()
+				.split(/\s+as\s+/)
+				.pop()
+		)
+		.filter(Boolean)
+		.sort();
+	if (names.join() !== CORE_EXPORTS.join()) {
+		failures.push(`"./core" exports [${names}], expected [${CORE_EXPORTS}]`);
+	}
+}
 
 if (core) {
 	const { eager } = await bundle([core]);

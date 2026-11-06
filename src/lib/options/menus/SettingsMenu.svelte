@@ -1,29 +1,36 @@
 <script lang="ts">
+	import type { MapContext } from "@sjvair/map-sdk";
 	import { ContrastIcon, MapIcon, NetworkIcon, RotateCcwIcon, SettingsIcon } from "@lucide/svelte";
 	import OptionsMenu from "../OptionsMenu.svelte";
 	import CheckboxRow from "../rows/CheckboxRow.svelte";
 	import RadioRow from "../rows/RadioRow.svelte";
-	import { resetMapOptions } from "../reset-map-options";
-	import { MAP_STYLE_OPTIONS } from "$lib/map/utils";
-	import { mapStyleState } from "$lib/map/map-style-state.svelte.js";
-	import { monitorsMapIntegration } from "$lib/monitors/monitors-map-integration.svelte";
-	import { evStationsMapIntegration } from "$lib/ev-stations/ev-stations-map-integration.svelte";
+	import { mapOptions, resetMapOptions } from "../map-options.svelte.js";
+	import { asPollutant } from "../pollutant-param";
+	import { basemapChoices, choiceForId, defaultBasemapId, switchBasemap } from "$lib/map/basemaps";
+	import { monitorsManager } from "$lib/monitors/monitors.svelte.js";
+
+	interface Props {
+		map: MapContext;
+	}
+
+	let { map }: Props = $props();
+
+	const choices = basemapChoices();
+	// Reads map-sdk's selection, so a basemap that fails to load shows as reverted.
+	const current = $derived(choiceForId(map.basemap.current));
+
+	function reset() {
+		resetMapOptions(asPollutant(monitorsManager.meta?.default_pollutant));
+		map.basemap.select(defaultBasemapId());
+	}
 </script>
 
 <OptionsMenu id="settings" label="Settings" iconOnly alignRight>
 	{#snippet icon()}
 		<SettingsIcon size={20} color="#696969" />
 	{/snippet}
-	<CheckboxRow
-		label="Marker Clusters"
-		bind:checked={
-			() => monitorsMapIntegration.clustered && evStationsMapIntegration.clustered,
-			(value) => {
-				monitorsMapIntegration.clustered = value;
-				evStationsMapIntegration.clustered = value;
-			}
-		}
-	>
+	<!-- Monitors' and EV chargers' clustering together. -->
+	<CheckboxRow label="Marker Clusters" bind:checked={mapOptions.clustered}>
 		{#snippet icon()}
 			<NetworkIcon size={18} color="#1e90ff" />
 		{/snippet}
@@ -37,12 +44,12 @@
 		<select
 			id="monitor-map-basemap"
 			class="w-full rounded-md border border-gray-300 bg-white p-1.5"
-			bind:value={
-				() => mapStyleState.referenceStyle, (style) => mapStyleState.selectReferenceStyle(style)
-			}
+			value={current?.name}
+			onchange={(event) =>
+				map.basemap.select(switchBasemap(map.basemap.current, event.currentTarget.value))}
 		>
-			{#each MAP_STYLE_OPTIONS as style (style.getId())}
-				<option value={style}>{style.getName()}</option>
+			{#each choices as choice (choice.name)}
+				<option value={choice.name}>{choice.name}</option>
 			{/each}
 		</select>
 	</div>
@@ -51,12 +58,12 @@
 		<ContrastIcon size={18} color="#708090" />
 		Theme
 	</p>
-	{#each mapStyleState.referenceStyle.getVariants() as variant (variant.getId())}
+	{#each current?.variants ?? [] as variant (variant.id)}
 		<RadioRow
 			name="monitor-map-theme"
-			label={variant.getName()}
-			checked={variant === mapStyleState.variant}
-			onselect={() => mapStyleState.selectVariant(variant)}
+			label={variant.name}
+			checked={variant.id === map.basemap.current}
+			onselect={() => map.basemap.select(variant.id)}
 		/>
 	{/each}
 	<hr class="my-1 border-gray-200" />
@@ -64,7 +71,7 @@
 		<button
 			type="button"
 			class="flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100"
-			onclick={resetMapOptions}
+			onclick={reset}
 		>
 			<RotateCcwIcon size={16} />
 			Reset Map Options

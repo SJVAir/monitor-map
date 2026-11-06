@@ -1,18 +1,17 @@
 <script lang="ts">
 	import { untrack, type ComponentProps } from "svelte";
-	import type { SJVAirEntryLevel } from "@sjvair/sdk";
 	import DataBox from "$lib/components/DataBox.svelte";
 	import LoadError from "$lib/LoadError.svelte";
 	import MonitorWidgetModal from "$lib/monitors/components/MonitorWidgetModal.svelte";
 	import MonitorSubscriptionManager from "$lib/monitors/components/MonitorSubscriptionManager.svelte";
 	import DataChart from "$lib/data-chart/DataChart.svelte";
-	import { monitorsManager } from "$lib";
+	import { monitorsManager } from "$lib/monitors/monitors.svelte.js";
 	import { MonitorDetailsState } from "$lib/monitors/monitor-details.svelte";
-	import { choosePanelPollutant } from "$lib/monitors/panel-pollutant";
+	import { choosePanelPollutant, PANEL_POLLUTANTS } from "$lib/monitors/panel-pollutant";
 	import { useMonitorMapRouter } from "./router-context";
 	import { fetchTempByCoords } from "$lib/weather";
 	import { Colors, valueToColor } from "$lib/colors";
-	import { getCurrentLevel } from "$lib/monitors/monitor-utils";
+	import { NEUTRAL_LEVEL_COLOR, readingDisplay, readingLevel } from "$lib/levels";
 
 	type TempDataBox = Pick<ComponentProps<typeof DataBox>, "color" | "value">;
 
@@ -28,6 +27,10 @@
 	// current reading for the map's pollutant.
 	const details = new MonitorDetailsState();
 	const meta = $derived(monitorsManager.meta);
+	// The map's pollutant, when it is one the panel can show.
+	const mapPollutant = $derived(
+		PANEL_POLLUTANTS.find((p) => p === monitorsManager.pollutant) ?? null
+	);
 	// Shown only once the metadata is in too; labels and levels come from it.
 	const monitor = $derived(details.status === "ready" && meta ? details.monitor : null);
 
@@ -42,14 +45,15 @@
 	// Bumped whenever the map's readings are replaced, i.e. its 2-minute refresh ran. The data
 	// box follows it; the chart decides for itself whether its date range can have new entries.
 	let refreshTick = $state(0);
-	let seenLatest = untrack(() => monitorsManager.latest);
+	let seenLatest = untrack(() => monitorsManager.store.latest);
 
 	$effect(() => {
-		const latest = monitorsManager.latest;
-		// Null while a pollutant change is loading; wait for the readings that follow.
-		if (!latest || latest === seenLatest) return;
+		const latest = monitorsManager.store.latest;
+		// Empty before the first load and while a pollutant change is loading; wait for the
+		// readings that follow.
+		if (latest.size === 0 || latest === seenLatest) return;
 		// The first readings of a cold load arrive alongside this panel's own request.
-		const first = seenLatest === null;
+		const first = seenLatest.size === 0;
 		seenLatest = latest;
 		if (first) return;
 		untrack(() => {
@@ -59,14 +63,13 @@
 	});
 
 	const panel = $derived(
-		monitor && meta ? choosePanelPollutant(monitorsManager.pollutant, monitor, meta) : null
+		monitor && meta ? choosePanelPollutant(mapPollutant, monitor, meta) : null
 	);
 	const reading = $derived(
 		monitor && panel?.pollutant && panel.hasReading ? monitor.latest[panel.pollutant] : undefined
 	);
 	// Set when the panel shows a different pollutant than the map is coloring by.
 	const pollutantNote = $derived.by(() => {
-		const mapPollutant = monitorsManager.pollutant;
 		if (!meta || !panel?.pollutant || !panel.hasReading || !mapPollutant) return;
 		if (panel.pollutant === mapPollutant) return;
 		const shown = meta.entryType(panel.pollutant).label;
@@ -81,18 +84,15 @@
 		if (!monitor || !meta || !panel?.pollutant || !reading) return;
 
 		const entryType = meta.entryType(panel.pollutant);
-		const level: SJVAirEntryLevel | undefined = getCurrentLevel(
-			reading.value,
-			entryType.asIter.levels!
-		);
+		const level = readingLevel(reading.value, entryType.scale);
 
 		const updateDuration = meta.monitorType(monitor.type).expected_interval;
 
 		return {
-			color: level?.color ?? "",
+			color: level?.color ?? NEUTRAL_LEVEL_COLOR,
 			header: entryType.label,
 			subheading: `(${updateDuration} avg)`,
-			value: Math.round(parseInt(reading.value, 10)).toString()
+			value: readingDisplay(reading.value)
 		};
 	});
 
@@ -201,9 +201,12 @@
 				</div>
 			{/if}
 
-			<div class="tall:block hidden">
-				<MonitorWidgetModal monitorId={monitor.id} />
-			</div>
+			<!-- The widget shows current readings, and errors for an inactive monitor. -->
+			{#if panel.hasReading}
+				<div class="tall:block hidden">
+					<MonitorWidgetModal monitorId={monitor.id} />
+				</div>
+			{/if}
 			<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
 			{#if (globalThis as any).USER?.is_authenticated}
 				<MonitorSubscriptionManager monitorId={monitor.id} />

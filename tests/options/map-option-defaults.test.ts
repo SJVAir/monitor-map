@@ -1,75 +1,63 @@
-import { describe, expect, it, vi } from "vitest";
-import { applyMapOptionDefaults, type MapOptionTargets } from "$lib/options/map-option-defaults";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-function flippedTargets(): MapOptionTargets {
-	const opt = (value: boolean) => ({ value });
-	return {
-		manager: { pollutant: "o3" },
-		integration: {
-			enabled: false,
-			clustered: false,
-			displayOptions: {
-				airnow: opt(false),
-				aqlite: opt(false),
-				aqview: opt(false),
-				bam1022: opt(false),
-				airgradient: opt(false),
-				purpleair: opt(false),
-				vozbox: opt(false),
-				inactive: opt(true),
-				inside: opt(true)
-			}
-		},
-		collocationSites: { enabled: true },
-		hmsFire: { enabled: false },
-		hmsSmoke: { enabled: false },
-		evStations: {
-			enabled: true,
-			clustered: false,
-			displayOptions: { lvl2: opt(false), lvl3: opt(false) }
-		},
-		wind: { enabled: true },
-		mapStyle: { reset: vi.fn() }
-	};
+const setPollutant = vi.fn();
+vi.mock("$lib/monitors/monitors.svelte.js", () => ({ monitorsManager: { setPollutant } }));
+
+const { MAP_OPTION_DEFAULTS } = await import("$lib/options/map-option-defaults");
+const { mapOptions, resetMapOptions } = await import("$lib/options/map-options.svelte.js");
+
+function flip() {
+	mapOptions.monitorsOn = false;
+	for (const key of Object.keys(mapOptions.monitorTypes)) mapOptions.monitorTypes[key] = false;
+	mapOptions.inactive = true;
+	mapOptions.inside = true;
+	mapOptions.clustered = false;
+	mapOptions.collocationSites = true;
+	mapOptions.fireAndSmoke = false;
+	mapOptions.evStations = true;
+	mapOptions.evLevels.lvl2 = false;
+	mapOptions.evLevels.lvl3 = false;
+	mapOptions.wind = true;
 }
 
-describe("applyMapOptionDefaults", () => {
-	it("restores every option to its default", () => {
-		const t = flippedTargets();
-		applyMapOptionDefaults(t, "pm25");
+describe("resetMapOptions", () => {
+	beforeEach(() => {
+		setPollutant.mockClear();
+		flip();
+	});
 
-		expect(t.manager.pollutant).toBe("pm25");
-		expect(t.integration.enabled).toBe(true);
-		expect(t.integration.clustered).toBe(true);
-		const values = Object.fromEntries(
-			Object.entries(t.integration.displayOptions).map(([key, o]) => [key, o.value])
-		);
-		expect(values).toEqual({
+	it("starts at the defaults", async () => {
+		vi.resetModules();
+		const fresh = await import("$lib/options/map-options.svelte.js");
+		expect({ ...fresh.mapOptions }).toEqual({ ...MAP_OPTION_DEFAULTS, monitorsOn: true });
+	});
+
+	it("restores every option to its default", () => {
+		resetMapOptions("pm25");
+		expect({ ...mapOptions }).toEqual({ ...MAP_OPTION_DEFAULTS, monitorsOn: true });
+		expect(MAP_OPTION_DEFAULTS.monitorTypes).toEqual({
 			airnow: true,
 			aqlite: true,
 			aqview: true,
 			bam1022: true,
 			airgradient: true,
 			purpleair: true,
-			vozbox: true,
-			inactive: false,
-			inside: false
+			vozbox: true
 		});
-		expect(t.collocationSites.enabled).toBe(false);
-		expect(t.hmsFire.enabled).toBe(true);
-		expect(t.hmsSmoke.enabled).toBe(true);
-		expect(t.evStations.enabled).toBe(false);
-		expect(t.evStations.clustered).toBe(true);
-		expect(t.evStations.displayOptions.lvl2.value).toBe(true);
-		expect(t.evStations.displayOptions.lvl3.value).toBe(true);
-		expect(t.wind.enabled).toBe(false);
-		expect(t.mapStyle.reset).toHaveBeenCalledOnce();
+		expect(setPollutant).toHaveBeenCalledExactlyOnceWith("pm25");
 	});
 
-	it("re-enables monitors without changing the pollutant when meta isn't loaded", () => {
-		const t = flippedTargets();
-		applyMapOptionDefaults(t, null);
-		expect(t.manager.pollutant).toBe("o3");
-		expect(t.integration.enabled).toBe(true);
+	it("leaves the defaults themselves untouched", () => {
+		resetMapOptions("pm25");
+		mapOptions.monitorTypes.airnow = false;
+		mapOptions.evLevels.lvl2 = false;
+		expect(MAP_OPTION_DEFAULTS.monitorTypes.airnow).toBe(true);
+		expect(MAP_OPTION_DEFAULTS.evLevels.lvl2).toBe(true);
+	});
+
+	it("turns monitors on without changing the pollutant when meta isn't loaded", () => {
+		resetMapOptions(null);
+		expect(mapOptions.monitorsOn).toBe(true);
+		expect(setPollutant).not.toHaveBeenCalled();
 	});
 });

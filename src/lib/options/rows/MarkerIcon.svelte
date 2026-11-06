@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { MapImageIcon } from "$lib/map/integrations/types";
+	/** A marker image from its SVG markup (e.g. map-sdk's `circle`). */
+	let { svg, class: className = "w-4" }: { svg: string | undefined; class?: string } = $props();
 
-	let { icon, class: className = "w-4" }: { icon: MapImageIcon | undefined; class?: string } =
-		$props();
+	const src = $derived(svg ? `data:image/svg+xml;utf8,${encodeURIComponent(svg)}` : undefined);
 </script>
 
-{#if icon}
-	<img src={icon.image.src} alt="" class={className} />
+{#if src}
+	<img {src} alt="" class={className} />
 {/if}

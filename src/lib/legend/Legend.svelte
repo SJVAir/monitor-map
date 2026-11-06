@@ -1,15 +1,25 @@
 <script lang="ts">
 	import { ChevronDownIcon, InfoIcon } from "@lucide/svelte";
-	import LegendBar from "./LegendBar.svelte";
-	import type { LegendSection } from "./legend-data";
+	import { Legend, legendSection, type MapContext } from "@sjvair/map-sdk";
 
-	let { sections }: { sections: Array<LegendSection> } = $props();
+	let { map }: { map: MapContext } = $props();
 
 	// Independent of which sections are active, so toggling a layer doesn't reset it.
 	let collapsed = $state(false);
+
+	// What map-sdk's Legend would list: a scale with levels, or a status line for a plugin that is
+	// loading or failing. The card is hidden while there is none.
+	const hasSections = $derived(
+		map.plugins.some((plugin) => {
+			const data = plugin.legend?.();
+			if (!data) return false;
+			if ("status" in data) return data.status.state !== "ready";
+			return legendSection(data, map.format) !== null;
+		})
+	);
 </script>
 
-{#if sections.length}
+{#if hasSections}
 	<div class="pointer-events-auto w-84 max-w-[calc(100vw-2rem)] rounded-md bg-white shadow">
 		<button
 			type="button"
@@ -21,20 +31,9 @@
 			<span class="flex-1 text-left">Legend</span>
 			<ChevronDownIcon size={18} class="transition-transform {collapsed ? '-rotate-90' : ''}" />
 		</button>
-		{#if !collapsed}
-			<div class="flex flex-col gap-3 border-t border-gray-200 px-4 py-3">
-				{#each sections as section (section.id)}
-					<div>
-						<p class="mb-2 text-center text-sm font-semibold">
-							{section.title}
-							{#if section.unit}
-								<span class="text-xs font-normal text-gray-500">({section.unit})</span>
-							{/if}
-						</p>
-						<LegendBar bar={section.bar} />
-					</div>
-				{/each}
-			</div>
-		{/if}
+		<!-- Kept mounted (hidden) when collapsed so the legend doesn't re-read the theme on expand. -->
+		<div class="border-t border-gray-200 {collapsed ? 'hidden' : ''}">
+			<Legend {map} order="top-first" />
+		</div>
 	</div>
 {/if}
