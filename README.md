@@ -160,7 +160,12 @@ npm run lint         # Prettier check + ESLint
 npm run format       # Auto-format with Prettier
 npm test             # Vitest (specs in tests/**)
 npm run test:bundle  # build:lib, then check the light entries keep maplibre off the eager path
+npm run map-sdk:pack # Optional: pack ../map-sdk into vendor/ to try an unreleased map-sdk
 ```
+
+`@sjvair/map-sdk` is the published npm version, pinned exactly in `package.json`. To try an
+unreleased map-sdk, run `npm run map-sdk:pack`, then `npm install` the tarball path it prints;
+do not commit that change.
 
 ## Publishing
 

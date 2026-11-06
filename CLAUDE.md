@@ -15,7 +15,7 @@ npm run lint         # Prettier check + ESLint
 npm run format       # Auto-format with Prettier
 npm test             # Vitest (specs in tests/**)
 npm run test:bundle  # build:lib, then check the light entries keep the map engine off the eager path
-npm run map-sdk:pack # Pack ../map-sdk into vendor/ (see map-sdk below)
+npm run map-sdk:pack # Optional: pack ../map-sdk into vendor/ (see map-sdk below)
 ```
 
 Vitest has three projects (`vitest.config.ts`). `server` (everything outside `tests/client/` and
@@ -95,10 +95,11 @@ hosts supply their own tokens.
 
 ### map-sdk
 
-`@sjvair/map-sdk` is installed from a packed tarball in `vendor/` (`npm run map-sdk:pack`) until it
-is published. `@maptiler/sdk` is pinned `~4.2.0` (map-sdk's pin); `npm ls @maptiler/sdk svelte`
-must show one copy of each. A map-sdk gap is reported, not worked around with CSS overrides or
-map-sdk internals.
+`@sjvair/map-sdk` is the published npm version, pinned exactly (`0.1.0-beta.1`). To try an
+unreleased map-sdk locally, `npm run map-sdk:pack` packs `../map-sdk` into `vendor/` (git-ignored)
+and prints the tarball path to `npm install`; never commit that. `@maptiler/sdk` is pinned
+`~4.2.0` (map-sdk's pin); `npm ls @maptiler/sdk svelte @sjvair/sdk` must show one copy of each. A
+map-sdk gap is reported, not worked around with CSS overrides or map-sdk internals.
 
 ### Svelte 5 runes
 
