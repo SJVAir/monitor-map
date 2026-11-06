@@ -120,6 +120,7 @@
 			{map}
 			label="Air quality monitor map"
 			controls="engine"
+			featureList={{ position: "top-right", reveal: "focus" }}
 			selectionBar={false}
 			tooltip="pointer"
 			class="h-full w-full"
