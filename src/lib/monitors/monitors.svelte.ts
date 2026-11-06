@@ -25,7 +25,10 @@ export interface MonitorsManager {
 	init(pollutant?: unknown, options?: MonitorsInitOptions): Promise<void>;
 	readonly initialized: boolean;
 	readonly meta: MonitorsMeta | null;
-	/** Every monitor, or null until initialized. */
+	/**
+	 * Every monitor, or null until initialized. The same array between reads until the store's
+	 * monitors are replaced.
+	 */
 	readonly list: MonitorData[] | null;
 	/** The pollutant the readings are for, or null before init. */
 	readonly pollutant: string | null;
@@ -42,6 +45,9 @@ function initPollutant(pollutant: unknown): "pm25" | "o3" | undefined {
 }
 
 export function createMonitorsManager(store: MonitorsStore): MonitorsManager {
+	// The list built from `store.monitors`, which the store replaces rather than mutates.
+	let listFrom: MonitorsStore["monitors"] | null = null;
+	let list: MonitorData[] = [];
 	return {
 		init: (pollutant, options) => store.init(initPollutant(pollutant), options),
 		get initialized() {
@@ -51,7 +57,13 @@ export function createMonitorsManager(store: MonitorsStore): MonitorsManager {
 			return store.meta;
 		},
 		get list() {
-			return store.initialized ? [...store.monitors.values()] : null;
+			if (!store.initialized) return null;
+			const monitors = store.monitors;
+			if (monitors !== listFrom) {
+				listFrom = monitors;
+				list = [...monitors.values()];
+			}
+			return list;
 		},
 		get pollutant() {
 			return store.entryType;

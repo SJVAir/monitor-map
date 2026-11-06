@@ -15,9 +15,11 @@
  * ```svelte
  * <!-- app root -->
  * <script>
- *   import { provideMonitorMapRouter } from "@sjvair/monitor-map";
+ *   import { configureMonitorMap, provideMonitorMapRouter } from "@sjvair/monitor-map";
  *   import { route, navigate, p, isActive, Router } from "./router";
  *
+ *   // Once at startup, before the map or the EV layer is used. The library reads no keys itself.
+ *   configureMonitorMap({ maptilerKey, nrelKey });
  *   provideMonitorMapRouter({ route, navigate, p, isActive, basePath: "/my-map" });
  * </script>
  *
@@ -25,7 +27,8 @@
  * ```
  *
  * A host that must stay light at startup imports from the subpath entries instead:
- * `provideMonitorMapRouter`/`monitorsManager` from "@sjvair/monitor-map/core" (no map), and
+ * `configureMonitorMap`/`provideMonitorMapRouter`/`monitorsManager` from
+ * "@sjvair/monitor-map/core" (no map), and
  * `monitorMapRoutes` from "@sjvair/monitor-map/routes" (same tree, lazy layout and routes).
  * `monitorMapRoutes` from this entry stays eager.
  */

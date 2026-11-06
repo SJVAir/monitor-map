@@ -20,6 +20,7 @@
 	} from "./DateRange";
 	import { fetchChartData, type ChartMonitor } from "./requests";
 	import { getChartConfig } from "./chart-utils";
+	import { PACIFIC_TIME_ZONE } from "./pacific-time";
 	import { levelColors } from "./level-colors";
 
 	interface Props {
@@ -130,6 +131,8 @@
 			el.innerHTML = "";
 			const maxDiff = Math.max(...flatData) - Math.min(...flatData);
 			const opts = getChartConfig(monitorType, maxDiff, width, height, colors, pollutantLabel);
+			// Axis ticks in Pacific time, like the tooltip.
+			opts.tzDate = (ts) => uPlot.tzDate(new Date(ts * 1000), PACIFIC_TIME_ZONE);
 			instance = new uPlot(opts, chartManager.chartData, el);
 		};
 

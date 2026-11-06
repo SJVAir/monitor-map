@@ -181,7 +181,9 @@ Consequences for any consuming app:
   host app's own Vite config runs `@sveltejs/enhanced-img`'s `enhancedImages()`
   plugin — hence it's a `peerDependency`, not just a `devDependency` here.
 - The app's Tailwind must scan this package for classes (e.g. sjvair-mobile's
-  `@source "../node_modules/@sjvair/monitor-map/dist/lib";`).
+  `@source "../node_modules/@sjvair/monitor-map/dist/lib";`), and map-sdk's too:
+  `@source "../node_modules/@sjvair/map-sdk/dist";` plus `@import "@sjvair/map-sdk/theme.css";`
+  (the host defines the theme tokens map-sdk needs).
 
 If you touch `vite.config.lib.ts` — it no longer exists; don't recreate it.
 

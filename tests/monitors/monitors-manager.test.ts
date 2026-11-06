@@ -43,6 +43,22 @@ describe("monitorsManager", () => {
 		expect(manager.list).toEqual([a, b]);
 	});
 
+	it("returns the same list between reads until the store's monitors are replaced", () => {
+		const { store, manager } = setup();
+		store.monitors.set("a", { id: "a" } as MonitorData);
+		expect(manager.list).toBeNull();
+		store.initialized = true;
+		const first = manager.list;
+		expect(manager.list).toBe(first);
+
+		const c = { id: "c" } as MonitorData;
+		store.monitors = new Map([["c", c]]);
+		const second = manager.list;
+		expect(second).not.toBe(first);
+		expect(second).toEqual([c]);
+		expect(manager.list).toBe(second);
+	});
+
 	it("passes pm25 and o3 through to the store's init with the options", async () => {
 		const { store, manager } = setup();
 		await manager.init("pm25", { autoUpdate: false });

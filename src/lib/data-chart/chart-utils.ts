@@ -1,6 +1,6 @@
 import type { LevelColors } from "./level-colors";
 import { tooltipsPlugin, uPlotCursorConfig } from "./tooltip";
-import { fromUnixTime, getUnixTime, isToday, isAfter } from "date-fns";
+import { chartRangeMax } from "./pacific-time";
 import type uPlot from "uplot";
 import type { MonitorType } from "@sjvair/sdk";
 
@@ -64,12 +64,7 @@ export function getChartConfig(
 		},
 		scales: {
 			x: {
-				range: (_: uPlot, min: number, max: number) => {
-					const maxDate = fromUnixTime(max);
-					const now = new Date();
-					max = isToday(maxDate) && isAfter(now, maxDate) ? getUnixTime(now) : max;
-					return [min, max];
-				}
+				range: (_: uPlot, min: number, max: number) => [min, chartRangeMax(max)]
 			},
 			y: {
 				range: {
