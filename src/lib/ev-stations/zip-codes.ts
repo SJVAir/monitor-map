@@ -458,6 +458,11 @@ export const Inyo = [
  * Every county's ZIPs once, sorted: the EV charger query's `zip` list. A ZIP that spans two
  * counties is in both lists above; `scripts/check-ev-zips.mjs` checks the lists against the
  * Census ZCTA-to-county file.
+ *
+ * The county lists began as a hand-scraped list. 5.0 only removes ZIPs with no land in their
+ * county; it adds none. Border ZIPs with some San Joaquin land (95632 Galt, 95641 Isleton,
+ * 94505 Discovery Bay) are left out (decided 2026-11-07): their chargers sit mostly outside
+ * the county. Revisit if users ask for chargers just over the county line.
  */
 export const EV_ZIP_CODES: readonly string[] = [
 	...new Set([

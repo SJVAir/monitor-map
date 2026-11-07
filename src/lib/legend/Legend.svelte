@@ -32,8 +32,8 @@
 			<ChevronDownIcon size={18} class="transition-transform {collapsed ? '-rotate-90' : ''}" />
 		</button>
 		<!-- Kept mounted (hidden) when collapsed so the legend doesn't re-read the theme on expand. -->
-		<div class="border-t border-gray-200 {collapsed ? 'hidden' : ''}">
-			<Legend {map} order="top-first" />
+		<div class="border-t border-gray-200 px-4 py-3 {collapsed ? 'hidden' : ''}">
+			<Legend {map} order="top-first" framed={false} />
 		</div>
 	</div>
 {/if}
