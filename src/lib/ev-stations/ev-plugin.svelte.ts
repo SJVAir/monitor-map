@@ -26,13 +26,6 @@ function clusterTooltip(level: EvLevel, count: number) {
 	}));
 }
 
-/** Under a station's name in the hover tooltip, in place of map-sdk's "No level" chip. */
-function stationTooltip(level: EvLevel) {
-	return createRawSnippet(() => ({
-		render: () => `<p class="text-sm">${LEVEL_LABELS[level]} charger</p>`
-	}));
-}
-
 /**
  * One level of EV chargers, as 4.x drew them: the level's charger icon and, clustered, bubbles in
  * the level's color (radius 15/20/25 by count, with a white count) that zoom in on click. Stations
@@ -52,7 +45,7 @@ export function evPlugin(
 		layerLabel: `${LEVEL_LABELS[level]} Chargers`,
 		selectable: false,
 		icon: { category: () => level, draw: () => icon, size: ICON_SIZE },
-		tooltip: () => stationTooltip(level),
+		detail: () => `${LEVEL_LABELS[level]} charger`,
 		...(options.clustered && {
 			cluster: {
 				radius: 40,
