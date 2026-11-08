@@ -20,8 +20,7 @@ function entryOf(entry: PluginEntry): { plugin: MapPlugin; options?: PluginOptio
  * Keeps `map`'s plugins in step with `wanted()`, in `DRAW_ORDER`: adds a wanted plugin below the
  * first present plugin above it and removes one that is no longer wanted. A change to anything
  * `deps()` reads removes and re-adds every present plugin of `factories` (e.g. `clustered`,
- * which a plugin only takes when it is built). Call it during component setup. The adds and
- * removes run in a microtask after the change, never inside an effect.
+ * which a plugin only takes when it is built). Call it during component setup.
  */
 export function syncPlugins(
 	map: MapContext,
@@ -44,47 +43,27 @@ export function syncPlugins(
 		});
 	}
 
-	// The pass runs in a microtask, outside this effect: map-sdk's plugin setup creates
-	// `$effect.root`s, and created while this effect runs they would be owned by it and die
-	// (stop re-running) when it re-runs. Several runs before the microtask share one pass, which
-	// takes the latest wanted set and generation.
-	let want: Set<PluginKey> | null = null;
-	let current = 0;
-	let scheduled = false;
-	let disposed = false;
-
-	$effect(() => () => {
-		disposed = true;
-	});
-
 	$effect(() => {
-		want = wanted();
-		current = generation;
-		if (scheduled) return;
-		scheduled = true;
-		queueMicrotask(() => {
-			scheduled = false;
-			if (!disposed && want) untrack(() => pass(want!, current));
+		const want = wanted();
+		const current = generation;
+		untrack(() => {
+			const rebuild = current !== built;
+			built = current;
+			// A scratch copy of the ids for this pass; nothing reads it reactively.
+			// eslint-disable-next-line svelte/prefer-svelte-reactivity
+			const present = new Set(map.plugins.map((p) => p.id));
+			for (const key of keys) {
+				if (present.has(key) && (rebuild || !want.has(key))) {
+					map.removePlugin(key);
+					present.delete(key);
+				}
+			}
+			for (const key of keys) {
+				if (!want.has(key) || present.has(key)) continue;
+				const { plugin, options } = entryOf(factories[key]!());
+				map.addPlugin(plugin, { ...options, before: beforeId(key, present) });
+				present.add(key);
+			}
 		});
 	});
-
-	function pass(wantNow: Set<PluginKey>, generationNow: number): void {
-		const rebuild = generationNow !== built;
-		built = generationNow;
-		// A scratch copy of the ids for this pass; nothing reads it reactively.
-		// eslint-disable-next-line svelte/prefer-svelte-reactivity
-		const present = new Set(map.plugins.map((p) => p.id));
-		for (const key of keys) {
-			if (present.has(key) && (rebuild || !wantNow.has(key))) {
-				map.removePlugin(key);
-				present.delete(key);
-			}
-		}
-		for (const key of keys) {
-			if (!wantNow.has(key) || present.has(key)) continue;
-			const { plugin, options } = entryOf(factories[key]!());
-			map.addPlugin(plugin, { ...options, before: beforeId(key, present) });
-			present.add(key);
-		}
-	}
 }
