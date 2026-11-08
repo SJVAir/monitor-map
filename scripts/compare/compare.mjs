@@ -97,12 +97,12 @@ const LABELS = {
 		note: "Cluster averages ignore monitors without a reading, and no-reading monitors keep their shape in neutral; values differ (local vs production data)."
 	},
 	"tip-monitor": {
-		label: "question",
-		note: 'Tooltip text differs: 5.0 dates it "Nov 5, 2026, 2:58 PM" (4.3 "2:58:pm Thursday Nov 05, 2026") and adds the level name ("Moderate") under the name. The color is the half-open boundary fix: 9 µg/m³ is Moderate in 5.0, Good in 4.3.'
+		label: "same",
+		note: 'Date matches 4.3 minus its stray colon, in Pacific time ("12:29 pm Sunday Nov 08, 2026" vs "12:31:pm …"; map-sdk beta.4). 5.0 keeps its own style: the level name under the name, larger text (decided 2026-11-07).'
 	},
 	"tip-cluster": {
-		label: "question",
-		note: 'Cluster tooltip: 5.0 says "3 monitors" plus the level name; 4.3 says "3 monitors covering 22.619mi²" with no level. 5.0 also draws the text black and larger.'
+		label: "same",
+		note: 'Area line is back (map-sdk beta.4): "3 monitors within a 22.619 mi² area", the same area as 4.3\'s "3 monitors covering 22.619mi²". 5.0 keeps the level name and larger text (decided 2026-11-07). Clusters of 4+ may show a different area (convex hull), as expected. Max/min differ on phones only because local and production readings differ.'
 	},
 	collocation: {
 		label: "same",
@@ -110,9 +110,12 @@ const LABELS = {
 	},
 	"tip-collocation": {
 		label: "same",
-		note: "Both show the site tooltip over the monitor cluster (beta.2 fix). Different sites were hovered (the pointer lands on whichever site is near the same pixel), and the local stack's readings differ, so the 5.0 tooltip shows No reading / No level."
+		note: "Both show the site tooltip over the monitor cluster (beta.2 fix). Different sites were hovered (the pointer lands on whichever site is near the same pixel), and the local stack's readings differ, so the 5.0 tooltip shows No reading / No level and so no date. Its date uses the same formatter as the monitor tooltip (map-sdk beta.4)."
 	},
-	"tip-smoke": { label: "accessibility", note: "Smoke tooltip (4.3 has none)." },
+	"tip-smoke": {
+		label: "same",
+		note: "No hover tooltip on either (map-sdk beta.4, decided 2026-11-07). Plumes stay in the keyboard list with their density."
+	},
 	wind: { label: "same", note: "Wind layer at 0.5 opacity, drawn lowest." },
 	"theme-default": { label: "same", note: "" },
 	"theme-dark": { label: "same", note: "" },
@@ -125,7 +128,7 @@ const LABELS = {
 	},
 	"tip-fire": {
 		label: "accessibility",
-		note: "5.0 shows a Fire detection tooltip on a hotspot (0.7 MW, <10 badge); 4.3 shows none."
+		note: '5.0 shows the reading box on a hotspot: "Fire (MW)", the power in its level color (0.6), "1 fire detection" and "<10 MW" (map-sdk beta.4, decided 2026-11-07); 4.3 shows no fire tooltip.'
 	},
 	ev: {
 		label: "same",
