@@ -63,6 +63,16 @@ The user's, with dates:
 - **Parity check (2026-11-05):** a comparison page of paired screenshots (5.0 on the local stack
   beside the public sjvair.com map) that the user reviews. Playwright drives both; the user can
   put Chrome in focus on request for hands-on checks.
+- **Tooltips (2026-11-07, from the comparison review; map-sdk defaults since 0.1.0-beta.4):**
+  - monitor and collocation tooltips keep 5.0's style, with 4.3's date format minus its stray
+    colon, in Pacific time: "4:00 pm Friday Nov 06, 2026" (" PT" follows it outside Pacific);
+  - the cluster tooltip gets its area line back, "3 monitors within a 22.619 mi² area", and keeps
+    5.0's level name and larger text. The area is the convex hull, so clusters of 4+ can differ
+    from 4.3's number; that is expected;
+  - the fire tooltip is the reading box: "Fire (MW)", the power in its level color, the name with
+    the detection count ("1 fire detection") and the level;
+  - smoke has no hover tooltip and doesn't take the hover. Plumes stay in the feature list with
+    their density, and a plume picked from the list still shows its tooltip.
 
 ## Goals
 
@@ -259,8 +269,9 @@ map-sdk never imports `@maptiler/weather` (license policy); monitor-map does, an
 
 map-sdk's presets and stores as in the demo: `hmsSmokePlugin` (outline in the plume color),
 `hmsFirePlugin` (groups below zoom 10, hotspots from 10, blocks legend), `collocationSitesPlugin`
-(crosshair `#4A5FC6`, wins the hover). Smoke and fire tooltips are map-sdk's accessibility
-addition.
+(crosshair `#4A5FC6`, wins the hover). The fire tooltip, map-sdk's reading box, is an
+accessibility addition (4.3 has none). Smoke has no hover tooltip, as in 4.3, but plumes are in
+the feature list. See "Tooltips" under "Decisions".
 
 ## Fixes folded in
 
@@ -373,7 +384,8 @@ map-sdk's components (List button and panel, tooltips, legend) use theme tokens.
 - **Comparison page:** an HTML page of paired screenshots, 5.0 (local stack) beside the public
   sjvair.com map, at desktop and phone widths: the map at load, each options menu (toolbar and
   panel), the legend, search (monitor and place, with the pin), the load screen and its error,
-  monitor, cluster and collocation tooltips, EV clusters and popup, fire at zoom 9 and 10, smoke,
+  monitor, cluster and collocation tooltips, EV clusters and popup, fire at zoom 9 and 10 and its
+  tooltip, smoke (no hover tooltip),
   wind, each basemap theme, the detail panel (with and without current readings, the chart, the
   widget modal, the subscription states). Each pair is labeled same / fix / accessibility /
   question. It goes at the top of the main monitor-map checkout, uncommitted; the user reviews it
