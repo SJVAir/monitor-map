@@ -60,36 +60,34 @@ const log = (...a) => console.log(...a.map(redact));
 // ---------------------------------------------------------------------------------------------
 // Labels: set after reviewing the screenshots. "<id>@phone" / "<id>@desktop" override "<id>".
 
-const LIST =
-	"The List button peeks out top-left behind the toolbar (pending map-sdk: moves top right, keyboard focus only).";
 const LEGEND_SAME =
-	"Level labels and outlined swatches are accessibility; the box nested in the card is pending map-sdk (unframed option). Section titles: see the Legend pair.";
+	"Level labels and outlined swatches are accessibility additions. Section titles: see the Legend pair.";
 const LABELS = {
 	load: {
 		label: "question",
-		note: `Attribution: 5.0 adds "NOAA Hazard Mapping System | SJVAir sensors, AirNow, AQview, AQLite" with underlined links, and on phones folds it behind an (i) button; 4.3 shows only MapTiler/OSM text and the MapTiler logo bottom-left. ${LIST}`
+		note: `Attribution: 5.0 adds "NOAA Hazard Mapping System | SJVAir sensors, AirNow, AQview, AQLite" with underlined links, and on phones folds it behind an (i) button; 4.3 shows only MapTiler/OSM text and the MapTiler logo bottom-left.`
 	},
 	legend: {
 		label: "question",
-		note: 'Section titles differ: 5.0 "Fires" and "Smoke", 4.3 "Fire" and "Smoke Density". Also: level labels and outlined swatches (accessibility), the box nested in the card (pending map-sdk), and 5.0 lists "Very Hazardous" for ozone.'
+		note: 'Section titles differ: 5.0 "Fires" and "Smoke", 4.3 "Fire" and "Smoke Density". Also: level labels and outlined swatches (accessibility additions), and 5.0 lists "Very Hazardous" for ozone.'
 	},
 	"legend-pm25": {
-		label: "pending",
-		note: `The legend box sits nested inside the "Legend" card (pending map-sdk's unframed option). ${LEGEND_SAME}`
+		label: "same",
+		note: `One card now (no nested box). ${LEGEND_SAME}`
 	},
 	"legend-ev": {
-		label: "accessibility",
+		label: "same",
 		note: `Neither side adds an EV section. ${LEGEND_SAME}`
 	},
 	"legend-collapsed": { label: "same", note: "Collapsed card, chevron turned right." },
 	"options-panel": { label: "same", note: "Map Options panel, sections closed." },
-	"menu-pollutant": { label: "same", note: LIST },
+	"menu-pollutant": { label: "same", note: "" },
 	"menu-monitors": {
 		label: "same",
-		note: `Ozone hides the types that don't report it on both. ${LIST}`
+		note: `Ozone hides the types that don't report it on both.`
 	},
 	"menu-monitors-pm25": { label: "same", note: "Collocation Sites shows for PM2.5." },
-	"menu-layers": { label: "same", note: LIST },
+	"menu-layers": { label: "same", note: "" },
 	"menu-layers-ev": { label: "same", note: "EV Chargers expanded with Level 2 and Level 3." },
 	"menu-overlays": { label: "same", note: "" },
 	"menu-settings": { label: "same", note: "" },
@@ -111,8 +109,8 @@ const LABELS = {
 		note: "Crosshairs in #4A5FC6. The local stack has no collocation records, so this run served the 5.0 page the public list."
 	},
 	"tip-collocation": {
-		label: "question",
-		note: 'Hovering a collocation site: 4.3 shows the site\'s tooltip (monitor, "Reference monitor", "Collocated monitor disabled"); 5.0 shows the monitor cluster under it, so the site does not win the hover here.'
+		label: "same",
+		note: "Both show the site tooltip over the monitor cluster (beta.2 fix). Different sites were hovered (the pointer lands on whichever site is near the same pixel), and the local stack's readings differ, so the 5.0 tooltip shows No reading / No level."
 	},
 	"tip-smoke": { label: "accessibility", note: "Smoke tooltip (4.3 has none)." },
 	wind: { label: "same", note: "Wind layer at 0.5 opacity, drawn lowest." },
@@ -122,12 +120,12 @@ const LABELS = {
 	reset: { label: "same", note: "Back to Streets default, Ozone, defaults." },
 	"fire-z9": { label: "same", note: "Fire groups below zoom 10." },
 	"fire-z10": {
-		label: "question",
-		note: "At zoom 10 4.3 draws the hotspots; 5.0 draws no fire at all here. A probe at zoom 10.2 found the hotspots layer rendering 0 features with 36 in its source (groups stop at 10)."
+		label: "same",
+		note: "Hotspot icon now drawn at zoom 10 on both (map-sdk beta.2). 4.3 shows monitor triangles here that the local stack has no data for."
 	},
 	"tip-fire": {
-		label: "question",
-		note: "Follows from the zoom-10 pair: 5.0 has no hotspot to hover (its tooltip is the smoke under the pointer); 4.3 shows the hotspot icon, no tooltip."
+		label: "accessibility",
+		note: "5.0 shows a Fire detection tooltip on a hotspot (0.7 MW, <10 badge); 4.3 shows none."
 	},
 	ev: {
 		label: "same",
@@ -135,9 +133,12 @@ const LABELS = {
 	},
 	"tip-ev-cluster": {
 		label: "question",
-		note: 'Where an EV cluster sits on a monitor cluster, 5.0 shows the EV cluster tooltip ("Level 3 Chargers, 44 stations"); 4.3 shows the monitor cluster\'s. The EV tooltip itself matches.'
+		note: "5.0 shows the EV cluster tooltip (Level 3 Chargers, 44 stations); 4.3 shows the monitor cluster's under it. Could not be settled: the local stack has only two Ozone monitors, so 5.0 has no monitor cluster under the EV cluster to compete. The EV tooltip itself matches."
 	},
-	"ev-popup": { label: "same", note: "Station popup contents and layout." },
+	"ev-popup": {
+		label: "same",
+		note: 'Station popup contents and layout. 5.0 also gives stations a hover tooltip ("Level 2/3 charger"), an accessibility addition; 4.3 had none.'
+	},
 	"ev-cluster-click": { label: "same", note: "Click eases to the expansion zoom." },
 	"search-place": {
 		label: "same",
