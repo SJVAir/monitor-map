@@ -122,6 +122,29 @@ parameter: the panel shows the map's pollutant when the monitor reports it and o
 one it does report, saying so. An inactive monitor gets a panel with its past data and a
 note that it has no current readings; an unknown id gets "Monitor not found."
 
+#### Who is logged in
+
+The host page tells the map who is logged in through a global `USER` object
+(`globalThis.USER`). The map only reads it, and reads two fields:
+
+- `is_authenticated`: when truthy, the panel shows the alerts subscription control.
+- `api_token`: sent with subscription requests when it is a non-empty string. Otherwise no
+  token is sent and the request relies on the session cookie.
+
+A host that sets `USER` once, before the map loads, needs nothing else. A host that changes it
+while the map is showing (replacing the object or editing a field) calls
+`monitorMapUserChanged()` afterwards, from `@sjvair/monitor-map` or `/core`, and an open panel
+updates: the control disappears on logout, and appears or reloads on login or a user switch.
+
+```ts
+import { monitorMapUserChanged } from "@sjvair/monitor-map/core";
+
+globalThis.USER = loggedOutUser;
+monitorMapUserChanged();
+```
+
+Both fields stay as described here through 5.0.
+
 ### Cancelling requests
 
 `monitorsManager.init()` takes `{ signal }` (an `AbortSignal`). Aborting rejects that call with
@@ -142,7 +165,10 @@ subscription status cancel their own superseded requests; that work resolves qui
   `/monitor/:id`, lazy as before.
 - **`/core`** keeps `provideMonitorMapRouter`, `useMonitorMapRouter`, `ROUTER_KEY`,
   `MonitorMapRouterApi` and `monitorsManager` (`init(pollutant?, { autoUpdate?, signal? })`,
-  `initialized`, `meta`, `list`), and adds `configureMonitorMap` and `monitorMapConfig`.
+  `initialized`, `meta`, `list`), and adds `configureMonitorMap`, `monitorMapConfig` and
+  `monitorMapUserChanged`.
+- **`USER`:** read as in 4.x (`is_authenticated` and `api_token`). New: a host that changes it
+  while the map is showing calls `monitorMapUserChanged()` (see "Who is logged in").
 - **Tailwind:** add `@source "../node_modules/@sjvair/map-sdk/dist";` and
   `@import "@sjvair/map-sdk/theme.css";` beside the existing monitor-map `@source`. The host
   defines the theme tokens map-sdk needs (`--background` to `--radius`, plus `--popover` and
