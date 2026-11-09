@@ -229,8 +229,11 @@
 		</OptionsGroup>
 	{/snippet}
 	{#snippet overlays()}
-		<div class="pointer-events-none absolute bottom-4 left-4 z-10">
-			<Legend {map} />
+		<!-- From below the options toolbar to the bottom, so the legend never covers it. -->
+		<div
+			class="pointer-events-none absolute top-18 bottom-4 left-4 z-10 flex flex-col justify-end md:top-32"
+		>
+			<Legend {map} {panelOpen} />
 		</div>
 	{/snippet}
 	{#snippet search()}
