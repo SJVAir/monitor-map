@@ -11,11 +11,15 @@ SJVAir's interactive air quality monitor map, built with Svelte 5, Vite and
 ## Installation
 
 ```bash
-npm install @sjvair/monitor-map @sjvair/sdk
+npm install @sjvair/monitor-map "@sjvair/sdk@npm:@jsr/sjvair__sdk@^5.0.0-beta.3"
 ```
 
 `@sjvair/sdk` (5.x) is a peer dependency, so the host and the map share one copy and the host's
-`setOrigin` covers both. `@sjvair/map-sdk` and `@maptiler/sdk` are ordinary dependencies.
+`setOrigin` covers both. It is published on JSR, so the host's `.npmrc` needs
+`@jsr:registry=https://npm.jsr.io` (and `allow-remote=root` on npm 12). `@sjvair/map-sdk` and
+`@maptiler/sdk` are ordinary dependencies.
+
+The 5.0 betas are on the `next` dist-tag: `npm install @sjvair/monitor-map@next`.
 
 ## Keys
 
@@ -132,6 +136,7 @@ subscription status cancel their own superseded requests; that work resolves qui
   environment.
 - **`@sjvair/sdk` is a peer dependency** (`^5.0.0-beta.3` for the betas): install it in the host.
   `@sjvair/map-sdk` and `@maptiler/sdk` are ordinary dependencies; add neither.
+- **Svelte `^5.57.0`:** the `svelte` peer range was `^5.0.0`.
 - **`meta` is SDK 5.0's:** `meta.levels` is gone; read `meta.scale`.
 - **`/routes`** is unchanged: `monitorMapRoutes` with the map at `/` and a monitor at
   `/monitor/:id`, lazy as before.
@@ -172,4 +177,6 @@ do not commit that change.
 Publishing to npm (`@sjvair/monitor-map`) happens via GitHub Actions
 (`.github/workflows/release-package.yml`) whenever a GitHub Release is published (or the
 workflow is triggered manually). The workflow runs `npm test` and `npm run test:bundle`
-before publishing. Bump `version` in `package.json` before cutting the release.
+before publishing. Bump `version` in `package.json` before cutting the release. A version with a
+`-` (such as `5.0.0-beta.0`) is published to the `next` dist-tag, not `latest`; mark its GitHub
+Release as a pre-release.
