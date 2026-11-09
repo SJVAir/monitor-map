@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-svelte";
 import { page } from "vitest/browser";
 import type { MapContext } from "@sjvair/map-sdk";
+import "../../src/app.css";
 import Legend from "$lib/legend/Legend.svelte";
 
 const format = { number: (n: number) => String(n) };
@@ -101,4 +102,24 @@ describe("when a monitor panel opens", () => {
 		await screen.rerender({ panelOpen: true });
 		await expect.element(header(screen)).toHaveAttribute("aria-expanded", "true");
 	});
+});
+
+it("scrolls its scales instead of growing past its container", async () => {
+	const levels = [{ min: 0, color: "#00e400", label: "Good", opacity: null }];
+	const plugins = ["a", "b", "c", "d", "e"].map((id) => ({
+		id,
+		legend: () => ({ pluginId: id, title: id, units: "", scale: { kind: "range", levels } })
+	}));
+	const map = { plugins, format, messages: (key: string) => key } as unknown as MapContext;
+	const screen = await render(Legend, { map });
+	const host = screen.container as HTMLElement;
+	host.style.cssText =
+		"height: 160px; display: flex; flex-direction: column; justify-content: flex-end";
+
+	const header = screen.getByRole("button", { name: "Legend" });
+	const card = header.element().parentElement!;
+	const body = card.lastElementChild as HTMLElement;
+	await expect.poll(() => card.getBoundingClientRect().height).toBeLessThanOrEqual(160);
+	expect(body.scrollHeight).toBeGreaterThan(body.clientHeight);
+	await expect.element(header).toBeVisible();
 });

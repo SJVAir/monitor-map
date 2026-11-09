@@ -46,10 +46,14 @@
 </script>
 
 {#if hasSections}
-	<div class="pointer-events-auto w-84 max-w-[calc(100vw-2rem)] rounded-md bg-white shadow">
+	<!-- Capped by its container (below the options toolbar) and a fixed maximum; the scales
+	     scroll while the header stays in view. -->
+	<div
+		class="pointer-events-auto flex max-h-[min(100%,28rem)] w-84 max-w-[calc(100vw-2rem)] flex-col rounded-md bg-white shadow"
+	>
 		<button
 			type="button"
-			class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 font-semibold"
+			class="flex w-full shrink-0 cursor-pointer items-center gap-2 px-4 py-2 font-semibold"
 			aria-expanded={!collapsed}
 			onclick={toggle}
 		>
@@ -58,7 +62,9 @@
 			<ChevronDownIcon size={18} class="transition-transform {collapsed ? '-rotate-90' : ''}" />
 		</button>
 		<!-- Kept mounted (hidden) when collapsed so the legend doesn't re-read the theme on expand. -->
-		<div class="border-t border-gray-200 px-4 py-3 {collapsed ? 'hidden' : ''}">
+		<div
+			class="min-h-0 overflow-y-auto border-t border-gray-200 px-4 py-3 {collapsed ? 'hidden' : ''}"
+		>
 			<Legend {map} order="top-first" framed={false} />
 		</div>
 	</div>
