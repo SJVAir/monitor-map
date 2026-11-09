@@ -1,11 +1,37 @@
 <script lang="ts">
 	import { ChevronDownIcon, InfoIcon } from "@lucide/svelte";
+	import { untrack } from "svelte";
 	import { Legend, legendSection, type MapContext } from "@sjvair/map-sdk";
+	import { isWideLayout } from "$lib/options/layout";
 
-	let { map }: { map: MapContext } = $props();
+	let { map, panelOpen = false }: { map: MapContext; panelOpen?: boolean } = $props();
 
 	// Independent of which sections are active, so toggling a layer doesn't reset it.
 	let collapsed = $state(false);
+	// True while the legend is collapsed because a panel opened, until the user touches it.
+	let autoCollapsed = false;
+	let wasPanelOpen = false;
+
+	// On a narrow screen the panel takes the bottom half of the map, so opening one collapses
+	// the legend; closing it reopens the legend only if the user hasn't touched it since.
+	$effect(() => {
+		const open = panelOpen;
+		untrack(() => {
+			if (open && !wasPanelOpen && !collapsed && !isWideLayout()) {
+				collapsed = true;
+				autoCollapsed = true;
+			} else if (!open && wasPanelOpen) {
+				if (autoCollapsed) collapsed = false;
+				autoCollapsed = false;
+			}
+			wasPanelOpen = open;
+		});
+	});
+
+	function toggle() {
+		collapsed = !collapsed;
+		autoCollapsed = false;
+	}
 
 	// What map-sdk's Legend would list: a scale with levels, or a status line for a plugin that is
 	// loading or failing. The card is hidden while there is none.
@@ -25,7 +51,7 @@
 			type="button"
 			class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 font-semibold"
 			aria-expanded={!collapsed}
-			onclick={() => (collapsed = !collapsed)}
+			onclick={toggle}
 		>
 			<InfoIcon size={18} class="text-gray-500" />
 			<span class="flex-1 text-left">Legend</span>

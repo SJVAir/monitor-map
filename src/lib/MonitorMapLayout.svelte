@@ -230,7 +230,7 @@
 	{/snippet}
 	{#snippet overlays()}
 		<div class="pointer-events-none absolute bottom-4 left-4 z-10">
-			<Legend {map} />
+			<Legend {map} {panelOpen} />
 		</div>
 	{/snippet}
 	{#snippet search()}
