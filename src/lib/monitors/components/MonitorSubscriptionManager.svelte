@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from "svelte";
 	import { BellCheckIcon, BellOffIcon, ChevronDownIcon } from "@lucide/svelte";
 	import { subscribe, unsubscribe } from "@sjvair/sdk/account";
 	import LoadError from "$lib/LoadError.svelte";
@@ -41,7 +42,9 @@
 		const controller = new AbortController();
 		const { signal } = controller;
 		loading = true;
-		loadSubscriptionLevel(id, { signal })
+		// Untracked: the panel remounts this control when the user's token changes, and other
+		// monitorMapUserChanged() calls must not reload it.
+		untrack(() => loadSubscriptionLevel(id, { signal }))
 			.then((level) => {
 				if (!signal.aborted) subscribedLevel = level;
 			})

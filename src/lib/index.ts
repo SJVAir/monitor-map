@@ -41,4 +41,5 @@ export {
 	type MonitorMapRouterApi
 } from "./router-context";
 export { monitorsManager } from "./monitors/monitors.svelte.js";
+export { monitorMapUserChanged } from "./user.svelte.js";
 export type { MonitorsManager, MonitorsInitOptions } from "./monitors/monitors.svelte.js";

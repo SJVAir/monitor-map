@@ -10,6 +10,8 @@
 	import { choosePanelPollutant, PANEL_POLLUTANTS } from "$lib/monitors/panel-pollutant";
 	import { useMonitorMapRouter } from "./router-context";
 	import { fetchTempByCoords } from "$lib/weather";
+	import { getApiToken } from "$lib/monitors/subscriptions";
+	import { isAuthenticated } from "$lib/user.svelte.js";
 	import { Colors, valueToColor } from "$lib/colors";
 	import { NEUTRAL_LEVEL_COLOR, readingDisplay, readingLevel } from "$lib/levels";
 
@@ -207,9 +209,11 @@
 					<MonitorWidgetModal monitorId={monitor.id} />
 				</div>
 			{/if}
-			<!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-			{#if (globalThis as any).USER?.is_authenticated}
-				<MonitorSubscriptionManager monitorId={monitor.id} />
+			{#if isAuthenticated()}
+				<!-- A different user's token reloads the subscription status. -->
+				{#key getApiToken()}
+					<MonitorSubscriptionManager monitorId={monitor.id} />
+				{/key}
 			{/if}
 
 			{#if panel.pollutant}

@@ -6,6 +6,7 @@ import "../../src/app.css";
 import MonitorDetailPanel from "$lib/MonitorDetailPanel.svelte";
 import { ROUTER_KEY, type MonitorMapRouterApi } from "$lib/router-context";
 import { fetchTempByCoords } from "$lib/weather";
+import { monitorMapUserChanged } from "$lib/user.svelte.js";
 
 vi.mock("@sjvair/sdk", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@sjvair/sdk")>()),
@@ -89,6 +90,7 @@ beforeEach(async () => {
 afterEach(() => {
 	vi.clearAllMocks();
 	delete (globalThis as { USER?: unknown }).USER;
+	monitorMapUserChanged();
 });
 
 describe("MonitorDetailPanel", () => {
@@ -127,5 +129,60 @@ describe("MonitorDetailPanel", () => {
 		// Rendered but hidden by the `tall:` variant (getByRole would skip it as hidden).
 		await expect.element(screen.getByText("Get the widget!")).toBeInTheDocument();
 		await expect.element(screen.getByText("Get the widget!")).not.toBeVisible();
+	});
+});
+
+describe("logged-in user", () => {
+	const g = globalThis as { USER?: { is_authenticated?: boolean; api_token?: string } };
+	const subscribe = () => screen.getByRole("button", { name: "Subscribe to Alerts" });
+	let screen: Awaited<ReturnType<typeof renderPanel>>;
+
+	beforeEach(() => {
+		detailsMock.mockResolvedValue(monitor());
+	});
+
+	it("hides the subscribe control after logout", async () => {
+		g.USER = { is_authenticated: true, api_token: "t" };
+		screen = await renderPanel();
+		await expect.element(subscribe()).toBeVisible();
+
+		g.USER = { is_authenticated: false };
+		monitorMapUserChanged();
+
+		await expect.element(subscribe()).not.toBeInTheDocument();
+	});
+
+	it("shows it after login", async () => {
+		g.USER = { is_authenticated: false };
+		screen = await renderPanel();
+		await expect.element(screen.getByText("Data Provided Courtesy Of:")).toBeVisible();
+		expect(subscribe().query()).toBeNull();
+
+		g.USER = { is_authenticated: true, api_token: "t" };
+		monitorMapUserChanged();
+
+		await expect.element(subscribe()).toBeVisible();
+	});
+
+	it("follows a field edited in place", async () => {
+		g.USER = { is_authenticated: true, api_token: "t" };
+		screen = await renderPanel();
+		await expect.element(subscribe()).toBeVisible();
+
+		g.USER.is_authenticated = false;
+		monitorMapUserChanged();
+
+		await expect.element(subscribe()).not.toBeInTheDocument();
+	});
+
+	it("ignores a change it isn't told about", async () => {
+		g.USER = { is_authenticated: true, api_token: "t" };
+		screen = await renderPanel();
+		await expect.element(subscribe()).toBeVisible();
+
+		g.USER = { is_authenticated: false };
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		expect(subscribe().query()).not.toBeNull();
 	});
 });
