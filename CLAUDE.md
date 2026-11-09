@@ -95,7 +95,7 @@ hosts supply their own tokens.
 
 ### map-sdk
 
-`@sjvair/map-sdk` is the published npm version, pinned exactly (`0.1.0-beta.4`). To try an
+`@sjvair/map-sdk` is the published npm version, pinned exactly (`0.1.0-beta.5`). To try an
 unreleased map-sdk locally, `npm run map-sdk:pack` packs `../map-sdk` into `vendor/` (git-ignored)
 and prints the tarball path to `npm install`; never commit that. `@maptiler/sdk` is pinned
 `~4.2.0` (map-sdk's pin); `npm ls @maptiler/sdk svelte @sjvair/sdk` must show one copy of each. A
