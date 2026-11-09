@@ -119,10 +119,11 @@ VITE_NREL_KEY=
 `package.json` `exports` has three entries, all built by `svelte-package` into `dist/lib`:
 
 - `.` (`src/lib/index.ts`): `monitorMapRoutes` (eager), `configureMonitorMap`,
-  `monitorMapConfig`, the router context and `monitorsManager`. Nothing else is exported.
-- `./core` (`src/lib/core.ts`): the router context, `monitorsManager`, `configureMonitorMap` and
-  `monitorMapConfig`, and nothing that reaches `@maptiler/sdk`, `@maptiler/weather`, maplibre or
-  `uplot` at runtime.
+  `monitorMapConfig`, the router context, `monitorsManager` and `monitorMapUserChanged`. Nothing
+  else is exported.
+- `./core` (`src/lib/core.ts`): the router context, `monitorsManager`, `configureMonitorMap`,
+  `monitorMapConfig` and `monitorMapUserChanged`, and nothing that reaches `@maptiler/sdk`,
+  `@maptiler/weather`, maplibre or `uplot` at runtime.
 - `./routes` (`src/lib/lazy-routes.ts`): `monitorMapRoutes` whose layout and monitor panel load
   on demand. Its components are light eager wrappers (`LazyMapLayout`, `LazyMonitorDetailPanel`)
   that load the real ones through `src/lib/lazy-chunks.ts` and show the load screen (or
@@ -136,9 +137,9 @@ VITE_NREL_KEY=
 single across entries. `npm run test:bundle` (`tests/bundle/check-bundle.mjs`) bundles the entries
 from `dist/lib` and fails if maplibre, maptiler, `@maptiler/weather` or uplot is reachable without
 a dynamic import, if `./core` exports anything other than `ROUTER_KEY`, `configureMonitorMap`,
-`monitorMapConfig`, `monitorsManager`, `provideMonitorMapRouter` and `useMonitorMapRouter`, if an
-`exports` target is missing, or if the two on-demand imports are gone from the startup bundle; the
-release workflow runs it before publishing.
+`monitorMapConfig`, `monitorMapUserChanged`, `monitorsManager`, `provideMonitorMapRouter` and
+`useMonitorMapRouter`, if an `exports` target is missing, or if the two on-demand imports are gone
+from the startup bundle; the release workflow runs it before publishing.
 
 ### Cancelling requests (`src/lib/abort.ts`)
 

@@ -85,6 +85,7 @@ const CORE_EXPORTS = [
 	"ROUTER_KEY",
 	"configureMonitorMap",
 	"monitorMapConfig",
+	"monitorMapUserChanged",
 	"monitorsManager",
 	"provideMonitorMapRouter",
 	"useMonitorMapRouter"
