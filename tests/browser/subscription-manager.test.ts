@@ -69,3 +69,21 @@ describe("MonitorSubscriptionManager load errors", () => {
 		expect(unhandled).not.toHaveBeenCalled();
 	});
 });
+
+describe("MonitorSubscriptionManager and the logged-in user", () => {
+	it("doesn't reload when told the user changed", async () => {
+		const { currentUser, monitorMapUserChanged } = await import("$lib/user.svelte.js");
+		// The real loader reads the token (and so the user) before its first await.
+		loadMock.mockImplementation(() => {
+			currentUser();
+			return Promise.resolve("unhealthy");
+		});
+		render(MonitorSubscriptionManager, { monitorId: "m1" });
+		await expect.element(page.getByText("Manage Subscription")).toBeVisible();
+
+		monitorMapUserChanged();
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		expect(loadMock).toHaveBeenCalledTimes(1);
+	});
+});
