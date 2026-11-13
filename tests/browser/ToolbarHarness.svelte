@@ -87,13 +87,17 @@
 		}
 	} as unknown as MapContext;
 
-	const manager = $state({
-		pollutant: "pm25" as string | null,
+	// Only the pollutant is state; the metadata stays a plain object, not a deep proxy.
+	let pollutant = $state<string | null>("pm25");
+	const manager = {
+		get pollutant() {
+			return pollutant;
+		},
 		meta,
 		setPollutant(p: "pm25" | "o3") {
-			manager.pollutant = p;
+			pollutant = p;
 		}
-	});
+	};
 
 	const toolbar = createMonitorMapToolbar(map, manager, icons);
 

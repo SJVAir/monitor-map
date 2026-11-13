@@ -1,22 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { beforeId, DRAW_ORDER, wantedPlugins } from "$lib/options/plugin-order";
 import type { OptionValues } from "@sjvair/map-sdk";
-
-// The toolbar's defaults (map-sdk's presets plus monitor-map's rows), as a fixture.
-const DEFAULTS: OptionValues = {
-	inactive: false,
-	inside: false,
-	collocationSites: false,
-	clustered: true,
-	fireAndSmoke: true,
-	evStations: false,
-	"ev:lvl2": true,
-	"ev:lvl3": true,
-	wind: false
-};
+import { OPTION_DEFAULTS } from "../fixtures/option-defaults";
 
 function options(overrides: OptionValues = {}): OptionValues {
-	return { ...DEFAULTS, ...overrides };
+	return { ...OPTION_DEFAULTS, ...overrides };
 }
 
 describe("DRAW_ORDER", () => {

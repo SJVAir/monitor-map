@@ -63,9 +63,10 @@ mobile app (`../mobile`). The SDK's dev pin is `5.0.0-beta.10` and its peer rang
   monitor-map's own rows (EV Chargers and its levels, Wind), declared beside the rows in
   `toolbar-groups.ts` (`buildToolbar`). `createMonitorMapToolbar`
   (`options/monitor-map-toolbar.svelte.ts`) is the toolbar's wiring, used by `MonitorMapLayout`
-  and the toolbar spec's harness. Plugins and `filteredMonitors` read `mapOptions`. The pollutant is `monitorsManager.pollutant`;
-  pollutant **None** is not a value of it: it turns monitors off (URL `?pollutant=none`,
-  `src/lib/options/pollutant-param.ts`). The `?pollutant=` sync lives in `MonitorMapLayout`.
+  and the toolbar spec's harness. Plugins and `filteredMonitors` read `mapOptions`. The pollutant
+  is `monitorsManager.pollutant`; pollutant **None** is not a value of it: it turns monitors off
+  (URL `?pollutant=none`, `src/lib/options/pollutant-param.ts`). The `?pollutant=` sync lives in
+  `MonitorMapLayout`.
 - `src/lib/options/plugin-order.ts` holds `DRAW_ORDER` (bottom to top: `wind`, `hms-smoke`,
   `hms-fire`, `collocation-sites`, `monitors`, `ev-l2`, `ev-l3`), `beforeId` and `wantedPlugins`
   (which plugins the options want). `syncPlugins` (`src/lib/map/sync-plugins.svelte.ts`) adds and

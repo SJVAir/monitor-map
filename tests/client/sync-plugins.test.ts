@@ -1,23 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { flushSync } from "svelte";
 import { syncPlugins, type PluginFactories } from "$lib/map/sync-plugins.svelte.js";
-import type { MapPlugin, OptionValues } from "@sjvair/map-sdk";
+import type { MapPlugin } from "@sjvair/map-sdk";
 import { mapOptions, monitorsDisplay } from "$lib/options/option-values.svelte.js";
 import { wantedPlugins } from "$lib/options/plugin-order";
 import { fakeMap, inEffectRoot, type FakeMap } from "./fake-map.svelte.js";
-
-// The toolbar's defaults (map-sdk's presets plus monitor-map's rows), as a fixture.
-const DEFAULTS: OptionValues = {
-	inactive: false,
-	inside: false,
-	collocationSites: false,
-	clustered: true,
-	fireAndSmoke: true,
-	evStations: false,
-	"ev:lvl2": true,
-	"ev:lvl3": true,
-	wind: false
-};
+import { OPTION_DEFAULTS } from "../fixtures/option-defaults";
 
 const plugin = (id: string) => ({ id }) as unknown as MapPlugin;
 const factories: PluginFactories = {
@@ -45,7 +33,7 @@ describe("syncPlugins", () => {
 	beforeEach(() => {
 		// Every key goes, so one a test added can't reach the next.
 		for (const key of Object.keys(mapOptions)) delete mapOptions[key];
-		Object.assign(mapOptions, DEFAULTS, { fireAndSmoke: false });
+		Object.assign(mapOptions, OPTION_DEFAULTS, { fireAndSmoke: false });
 		monitorsDisplay.monitorsOn = true;
 	});
 
