@@ -1,22 +1,13 @@
 <script lang="ts">
 	import {
-		hmsOptions,
-		monitorsOptions,
 		OptionsToolbar,
-		settingsGroup,
 		type MapContext,
 		type OptionIcon,
 		type OptionValues
 	} from "@sjvair/map-sdk";
 	import type { MonitorsMeta } from "@sjvair/sdk";
-	import {
-		applyOptionChange,
-		initMapOptions,
-		monitorsDisplay,
-		toolbarValues
-	} from "$lib/options/option-values.svelte.js";
-	import { buildToolbar, type ToolbarIcons } from "$lib/options/toolbar-groups";
-	import { currentSelection } from "$lib/options/pollutant-param";
+	import { createMonitorMapToolbar } from "$lib/options/monitor-map-toolbar.svelte.js";
+	import type { ToolbarIcons } from "$lib/options/toolbar-groups";
 
 	interface Props {
 		/** Called after each change is applied, with what the toolbar passed. */
@@ -98,43 +89,25 @@
 
 	const manager = $state({
 		pollutant: "pm25" as string | null,
+		meta,
 		setPollutant(p: "pm25" | "o3") {
 			manager.pollutant = p;
 		}
 	});
 
-	const monitors = monitorsOptions(map);
-	const toolbar = $derived(
-		buildToolbar({
-			monitors,
-			settings: settingsGroup(map, {
-				icon: icons.settings,
-				clusters: { icon: icons.clusters },
-				basemap: { icons: { basemap: icons.basemap, theme: icons.theme } },
-				reset: { icon: icons.reset }
-			}),
-			hms: hmsOptions(map, { icon: icons.fireAndSmoke }),
-			meta,
-			selection: currentSelection(manager.pollutant, monitorsDisplay.monitorsOn),
-			layersLabel: map.messages("mapsdk_options_layers"),
-			overlaysLabel: map.messages("mapsdk_options_overlays"),
-			icons
-		})
-	);
-
-	$effect.pre(() => initMapOptions(toolbar.defaults));
+	const toolbar = createMonitorMapToolbar(map, manager, icons);
 
 	function onchange(next: OptionValues, changed: string[]) {
-		applyOptionChange(next, changed, { manager, basemap: map.basemap });
+		toolbar.onchange(next, changed);
 		onchanged?.(next, changed);
 	}
 </script>
 
 <OptionsToolbar
 	{map}
-	groups={toolbar.groups}
-	values={toolbarValues(manager.pollutant, monitorsDisplay.monitorsOn, "pm25")}
+	groups={toolbar.preset.groups}
+	values={toolbar.values}
 	{onchange}
-	defaults={toolbar.defaults}
+	defaults={toolbar.preset.defaults}
 	basemapKey="basemap"
 />

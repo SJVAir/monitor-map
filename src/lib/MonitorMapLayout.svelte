@@ -20,13 +20,9 @@
 	import {
 		collocationSitesPlugin,
 		hmsFirePlugin,
-		hmsOptions,
 		hmsSmokePlugin,
-		monitorsOptions,
 		monitorsPlugin,
-		OptionsToolbar,
-		settingsGroup,
-		type OptionValues
+		OptionsToolbar
 	} from "@sjvair/map-sdk";
 	import { windPlugin } from "$lib/wind/wind-plugin.js";
 	import { evPlugin } from "$lib/ev-stations/ev-plugin.svelte.js";
@@ -46,15 +42,9 @@
 		hmsSmokeStore,
 		monitorsStore
 	} from "$lib/stores.svelte.js";
-	import {
-		applyOptionChange,
-		bindBasemap,
-		initMapOptions,
-		mapOptions,
-		monitorsDisplay,
-		toolbarValues
-	} from "$lib/options/option-values.svelte.js";
-	import { buildToolbar, type ToolbarIcons } from "$lib/options/toolbar-groups";
+	import { bindBasemap, mapOptions, monitorsDisplay } from "$lib/options/option-values.svelte.js";
+	import { createMonitorMapToolbar } from "$lib/options/monitor-map-toolbar.svelte.js";
+	import type { ToolbarIcons } from "$lib/options/toolbar-groups";
 	import { ROW_ICONS } from "$lib/options/row-icons";
 	import pm25Icon from "$lib/assets/icons/pm25/pm25-02-particle-field.svg";
 	import ozoneIcon from "$lib/assets/icons/ozone/ozone-08-sunrise-haze.svg";
@@ -99,43 +89,8 @@
 		evLevel3: { svg: ROW_ICONS.evLevel3 }
 	};
 
-	// Once per map: it keeps what the metadata answers. The groups follow the metadata, the
-	// pollutant and the basemap the map draws, so they're rebuilt in a $derived.
-	const monitorsPreset = monitorsOptions(map);
-	const toolbarPreset = $derived(
-		buildToolbar({
-			monitors: monitorsPreset,
-			settings: settingsGroup(map, {
-				icon: icons.settings,
-				clusters: { icon: icons.clusters },
-				basemap: { icons: { basemap: icons.basemap, theme: icons.theme } },
-				reset: { icon: icons.reset }
-			}),
-			hms: hmsOptions(map, { icon: icons.fireAndSmoke }),
-			meta: monitorsManager.meta,
-			selection: currentSelection(monitorsManager.pollutant, monitorsDisplay.monitorsOn),
-			layersLabel: map.messages("mapsdk_options_layers"),
-			overlaysLabel: map.messages("mapsdk_options_overlays"),
-			icons
-		})
-	);
-
-	// Defaults that arrive later (a type key once the metadata loads) fill in; a value the user
-	// already has, including one from before a remount, stays.
-	$effect.pre(() => initMapOptions(toolbarPreset.defaults));
-
-	// The pollutant shows the manager's; before it has one, the default's key.
-	const toolbarOptionValues = $derived(
-		toolbarValues(
-			monitorsManager.pollutant,
-			monitorsDisplay.monitorsOn,
-			String(toolbarPreset.defaults.pollutant ?? "pm25")
-		)
-	);
-
-	function onOptionsChange(next: OptionValues, changed: string[]) {
-		applyOptionChange(next, changed, { manager: monitorsManager, basemap: map.basemap });
-	}
+	// The toolbar's groups, defaults and values, and where its changes go.
+	const toolbarOptions = createMonitorMapToolbar(map, monitorsManager, icons);
 
 	// "?pollutant=none" must turn monitors off before the effects below first run, so the
 	// state->URL effect never sees monitors on and overwrites the param.
@@ -314,10 +269,10 @@
 	{#snippet toolbar()}
 		<OptionsToolbar
 			{map}
-			groups={toolbarPreset.groups}
-			values={toolbarOptionValues}
-			onchange={onOptionsChange}
-			defaults={toolbarPreset.defaults}
+			groups={toolbarOptions.preset.groups}
+			values={toolbarOptions.values}
+			onchange={toolbarOptions.onchange}
+			defaults={toolbarOptions.preset.defaults}
 			basemapKey="basemap"
 		>
 			{#snippet search()}
