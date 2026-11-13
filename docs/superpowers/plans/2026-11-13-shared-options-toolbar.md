@@ -309,7 +309,7 @@ right-hand control column (10px margin + 29px buttons) plus an 8px gap clear: wi
 
 Blocked until the coordinator reports the map-sdk beta with the layout root and its final API name
 (map-sdk-24 proposes a `MapView` prop, `layoutRoot={shell}`, with `bind:this` on the shell box; the map's own box when null; the user's pick is pending). If it isn't published before the PR is ready, skip this
-task, add a `DEFERRED.md` entry (miss to finish before the mobile beta) in Task 8, and say so in the
+task, add a `DEFERRED.md` entry (miss to finish before monitor-map's next npm beta) in Task 8, and say so in the
 PR.
 
 **Files:**
@@ -353,7 +353,6 @@ PR.
       px; "BAM 1022" shows under Reference-grade. No subscribing.
 - [ ] **Step 4:** Commit `docs: the shared options toolbar`; push the branch; open the PR into
       `release/5.0.0` (no AI attribution) listing: the visible differences (BAM 1022, basemap switch
-      to the default variant, no Basic/Toner/Voyager), the Task 7 status, and what mobile must change
-      (spec section).
+      to the default variant, no Basic/Toner/Voyager), the Task 7 status, and the spec's "For hosts" changes.
 - [ ] **Step 5:** Tell the coordinator (`data-dashboard-81`) the PR link and the peer-range change.
-      Merging, and the `5.0.0-beta.2` GitHub Release for mobile, each wait for the user's own yes.
+      Merging, and the `5.0.0-beta.2` GitHub Release, each wait for the user's own yes.
