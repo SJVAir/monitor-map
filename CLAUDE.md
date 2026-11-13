@@ -29,10 +29,10 @@ after `vi.resetModules()` a spec must take `flushSync` from a fresh `await impor
 ## Architecture Overview
 
 A **Svelte 5 + Vite** app that shows real-time air quality monitor data on an interactive map
-built on **`@sjvair/map-sdk`** (which drives `@maptiler/sdk`) and **`@sjvair/sdk` 5.0** (dev pin `5.0.0-beta.10`, peer `^5.0.0-beta.10`) for the
+built on **`@sjvair/map-sdk`** (which drives `@maptiler/sdk`) and **`@sjvair/sdk` 5.0** for the
 data. It produces a code-split ES module widget (embedded in a Django HTML template via
 `<div id="SJVAirMonitorMap">`) and exports `src/lib/` as a component library for the Capacitor
-mobile app (`../mobile`).
+mobile app (`../mobile`). The SDK's dev pin is `5.0.0-beta.10` and its peer range `^5.0.0-beta.10`.
 
 ### Entry, routing and keys
 
@@ -49,18 +49,19 @@ mobile app (`../mobile`).
 ### The map
 
 - `MonitorMapLayout` (`src/lib/MonitorMapLayout.svelte`) builds the map per layout mount with
-  `createLiveMap()` (`src/lib/map/live-map.svelte.ts`: globe, Streets v4, map-sdk's `defaultBasemaps`) and
-  renders it in `MapShell` (`src/lib/map/MapShell.svelte`), which owns the load screen, the panel
-  slide (desktop 2/3 + 1/3, mobile 50/50), the toolbar and overlay slots of map-sdk's `MapView`,
-  and the sv-router click escape-hatch (`routerEscapeHatch`). Features are map-sdk **plugins**, not hand-managed layers.
+  `createLiveMap()` (`src/lib/map/live-map.svelte.ts`: globe, Streets v4, map-sdk's
+  `defaultBasemaps`) and renders it in `MapShell` (`src/lib/map/MapShell.svelte`), which owns the
+  load screen, the panel slide (desktop 2/3 + 1/3, mobile 50/50), the toolbar and overlay slots of
+  map-sdk's `MapView`, and the sv-router click escape-hatch (`routerEscapeHatch`). Features are
+  map-sdk **plugins**, not hand-managed layers.
 - App-wide data stores are created once in `src/lib/stores.svelte.ts` (map-sdk's monitors, HMS
   smoke/fire and collocation-sites stores). It imports only `@sjvair/map-sdk/stores`, so `/core`
   can reach it without the map engine. `monitorsManager` (`src/lib/monitors/monitors.svelte.ts`)
   is a thin wrapper over the monitors store.
 - Option state is one flat `OptionValues` record, `mapOptions`
   (`src/lib/options/option-values.svelte.ts`; its `MONITOR_MAP_DEFAULTS` win over the presets'
-  defaults). Plugins and `filteredMonitors` read it. The pollutant is `monitorsManager.pollutant`; pollutant **None** is
-  not a value of it: it turns monitors off (URL `?pollutant=none`,
+  defaults). Plugins and `filteredMonitors` read it. The pollutant is `monitorsManager.pollutant`;
+  pollutant **None** is not a value of it: it turns monitors off (URL `?pollutant=none`,
   `src/lib/options/pollutant-param.ts`). The `?pollutant=` sync lives in `MonitorMapLayout`.
 - `src/lib/options/plugin-order.ts` holds `DRAW_ORDER` (bottom to top: `wind`, `hms-smoke`,
   `hms-fire`, `collocation-sites`, `monitors`, `ev-l2`, `ev-l3`), `beforeId` and `wantedPlugins`
@@ -75,17 +76,19 @@ mobile app (`../mobile`).
   with `EV_ZIP_CODES`). `scripts/check-ev-zips.mjs` checks the ZIP list.
 - Search: `src/lib/search/` (`Search.svelte`, `service.ts`, `search-pin.svelte.ts`), moving the
   map-sdk camera. The legend is `src/lib/legend/Legend.svelte`, a card around map-sdk's `Legend`.
-- The options toolbar is map-sdk's `OptionsToolbar`, rendered by `MonitorMapLayout` in `MapShell`'s
-  `toolbar` slot with the search box in its `search` snippet. `buildToolbar`
+- The options toolbar is map-sdk's `OptionsToolbar`, rendered by `MonitorMapLayout` in
+  `MapShell`'s `toolbar` slot with the search box in its `search` snippet. `buildToolbar`
   (`src/lib/options/toolbar-groups.ts`) assembles its groups from map-sdk's presets
   (`monitorsOptions`, `hmsOptions` and the settings preset), plus monitor-map's own Layers (EV
-  chargers with Level 2 and 3) and Overlays (Wind) groups; `row-icons.ts` holds the icons. Labels,
-  help text and the monitor types come from map-sdk and the SDK metadata. `onOptionsChange` writes
-  changes into `mapOptions`; the pollutant is bridged to `monitorsManager` and `monitorsOn`
+  chargers with Level 2 and 3) and Overlays (Wind) groups. The icons are snippets in
+  `MonitorMapLayout`; `row-icons.ts` holds only the EV level markers' SVG. Labels, help text and
+  the monitor types come from map-sdk and the SDK metadata. `onOptionsChange` writes changes into
+  `mapOptions`; the pollutant is bridged to `monitorsManager` and `monitorsOn`
   (`option-values.svelte.ts`, `pollutant-param.ts`), and the basemap to the map's basemap store.
-  The wide/narrow switch is map-sdk's; `isWideLayout()` in `src/lib/map/layout.ts` is read only at
-  event time, for behavior that follows the page layout (Tailwind `md`). The legend is an overlay
-  placed below `--mapsdk-toolbar-height`.
+  The wide/narrow switch is map-sdk's; `isWideLayout()` in `src/lib/map/layout.ts` is read only
+  at event time, for behavior that follows the page layout (Tailwind `md`). The legend is an
+  overlay (`src/lib/legend/LegendOverlay.svelte`) placed below `--mapsdk-toolbar-height`, with
+  no z-index so map-sdk's toolbar, list and card stack above it.
 - `MonitorDetailPanel` owns a `MonitorDetailsState` (`monitors/monitor-details.svelte.ts`) that
   fetches its monitor with `getMonitorDetails(id)`. `choosePanelPollutant`
   (`monitors/panel-pollutant.ts`) picks the pollutant shown. Only an active monitor's readings

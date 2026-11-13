@@ -144,6 +144,11 @@ describe("buildToolbar", () => {
 		expect(toolbar.groups[3].align).toBe("end");
 	});
 
+	it("puts the Fire & Smoke row first in Layers as map-sdk built it", () => {
+		const layers = build(meta).toolbar.groups[2];
+		expect(layers.rows[0]).toBe(hms.row);
+	});
+
 	it("nests the EV levels under EV Chargers", () => {
 		const layers = build(meta).toolbar.groups[2];
 		const ev = layers.rows[1];

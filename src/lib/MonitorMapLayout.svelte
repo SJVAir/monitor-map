@@ -39,7 +39,7 @@
 	import { retryMonitorsLoad } from "$lib/monitors/retry-load.js";
 	import { monitorsManager } from "$lib/monitors/monitors.svelte.js";
 	import { filteredMonitors } from "$lib/monitors/filtered-source.svelte.js";
-	import Legend from "$lib/legend/Legend.svelte";
+	import LegendOverlay from "$lib/legend/LegendOverlay.svelte";
 	import {
 		collocationSitesStore,
 		hmsFireStore,
@@ -326,12 +326,7 @@
 		</OptionsToolbar>
 	{/snippet}
 	{#snippet overlays()}
-		<!-- From below the options toolbar to the bottom, so the legend never covers it. -->
-		<div
-			class="pointer-events-none absolute top-[calc(var(--mapsdk-toolbar-height,0px)+1rem)] bottom-4 left-4 z-10 flex flex-col justify-end"
-		>
-			<Legend {map} {panelOpen} />
-		</div>
+		<LegendOverlay {map} {panelOpen} />
 	{/snippet}
 	{@render children()}
 </MapShell>

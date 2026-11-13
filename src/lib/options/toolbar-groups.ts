@@ -83,7 +83,7 @@ export function buildToolbar(input: {
 		icon: icons.layers,
 		cluster: "options",
 		rows: [
-			{ ...hms.row, icon: icons.fireAndSmoke },
+			hms.row,
 			{
 				kind: "checkbox",
 				id: "evStations",

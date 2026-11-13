@@ -54,6 +54,7 @@ describe("monitor-map's options toolbar", () => {
 
 	it("flips a whole monitor group in one change", async () => {
 		const { screen, onchanged, trigger } = await setup();
+		await expect.poll(() => trigger("mapsdk_options_monitors")).toBeTruthy();
 		trigger("mapsdk_options_monitors").click();
 		const heading = screen.getByRole("checkbox", { name: "Reference-grade" });
 		await expect.element(heading).toBeChecked();
@@ -67,6 +68,7 @@ describe("monitor-map's options toolbar", () => {
 
 	it("shows the EV levels only while EV Chargers is on", async () => {
 		const { screen, trigger } = await setup();
+		await expect.poll(() => trigger("mapsdk_options_layers")).toBeTruthy();
 		trigger("mapsdk_options_layers").click();
 		const ev = screen.getByRole("checkbox", { name: "EV Chargers" });
 		await expect.element(screen.getByRole("checkbox", { name: "Level 2" })).not.toBeInTheDocument();
@@ -80,6 +82,7 @@ describe("monitor-map's options toolbar", () => {
 
 	it("puts the defaults back in one change on Reset", async () => {
 		const { screen, onchanged, trigger } = await setup();
+		await expect.poll(() => trigger("mapsdk_options_overlays")).toBeTruthy();
 		trigger("mapsdk_options_overlays").click();
 		await screen.getByRole("checkbox", { name: "Wind" }).click();
 		trigger("mapsdk_options_monitors").click();
