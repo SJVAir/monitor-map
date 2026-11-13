@@ -9,7 +9,17 @@ function level(key: string, min: number | null, color: string | null): Level {
 }
 
 function scale(levels: Level[]): Scale {
-	return { id: "s", label: "S", units: "", kind: "range", source: null, levels };
+	return {
+		id: "s",
+		label: "S",
+		units: "",
+		kind: "range",
+		source: null,
+		averaging_hours: null,
+		daily_statistic: null,
+		daily_statistic_label: null,
+		levels
+	};
 }
 
 describe("levelColors", () => {
