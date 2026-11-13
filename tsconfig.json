@@ -24,6 +24,7 @@
 		"src/**/*.ts",
 		"src/**/*.svelte",
 		"tests/**/*.ts",
+		"tests/**/*.svelte",
 		"vite.config.ts",
 		"vitest.config.ts"
 	],

@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { flushSync } from "svelte";
-import type { MapPlugin } from "@sjvair/map-sdk";
 import { syncPlugins, type PluginFactories } from "$lib/map/sync-plugins.svelte.js";
-import { mapOptions } from "$lib/options/map-options.svelte.js";
-import { defaultMapOptions } from "$lib/options/map-option-defaults";
+import type { MapPlugin } from "@sjvair/map-sdk";
+import { mapOptions, monitorsDisplay } from "$lib/options/option-values.svelte.js";
 import { wantedPlugins } from "$lib/options/plugin-order";
 import { fakeMap, inEffectRoot, type FakeMap } from "./fake-map.svelte.js";
+import { OPTION_DEFAULTS } from "../fixtures/option-defaults";
 
 const plugin = (id: string) => ({ id }) as unknown as MapPlugin;
 const factories: PluginFactories = {
@@ -21,9 +21,9 @@ function start(target: FakeMap = fakeMap()) {
 	stop = inEffectRoot(() => {
 		syncPlugins(
 			target.map,
-			() => wantedPlugins(mapOptions, "pm25"),
+			() => wantedPlugins(mapOptions, monitorsDisplay.monitorsOn, "pm25"),
 			factories,
-			() => mapOptions.clustered
+			() => mapOptions.clustered === true
 		);
 	});
 	flushSync();
@@ -31,7 +31,10 @@ function start(target: FakeMap = fakeMap()) {
 
 describe("syncPlugins", () => {
 	beforeEach(() => {
-		Object.assign(mapOptions, defaultMapOptions(), { fireAndSmoke: false });
+		// Every key goes, so one a test added can't reach the next.
+		for (const key of Object.keys(mapOptions)) delete mapOptions[key];
+		Object.assign(mapOptions, OPTION_DEFAULTS, { fireAndSmoke: false });
+		monitorsDisplay.monitorsOn = true;
 	});
 
 	afterEach(() => {
@@ -77,7 +80,7 @@ describe("syncPlugins", () => {
 
 	it("does not rebuild for an option change that leaves the wanted set as it is", () => {
 		start();
-		mapOptions.evLevels.lvl2 = false; // EV chargers are off
+		mapOptions["ev:lvl2"] = false; // EV chargers are off
 		flushSync();
 		expect(fake.removed).toEqual([]);
 		expect(fake.added).toHaveLength(1);

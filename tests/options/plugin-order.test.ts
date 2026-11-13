@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { beforeId, DRAW_ORDER, wantedPlugins } from "$lib/options/plugin-order";
-import { defaultMapOptions, type MapOptions } from "$lib/options/map-option-defaults";
+import type { OptionValues } from "@sjvair/map-sdk";
+import { OPTION_DEFAULTS } from "../fixtures/option-defaults";
 
-function options(overrides: Partial<MapOptions> = {}): MapOptions {
-	return { ...defaultMapOptions(), ...overrides };
+function options(overrides: OptionValues = {}): OptionValues {
+	return { ...OPTION_DEFAULTS, ...overrides };
 }
 
 describe("DRAW_ORDER", () => {
@@ -34,40 +35,34 @@ describe("beforeId", () => {
 
 describe("wantedPlugins", () => {
 	it("is smoke, fire and monitors with the defaults", () => {
-		expect(wantedPlugins(options(), "pm25")).toEqual(
+		expect(wantedPlugins(options(), true, "pm25")).toEqual(
 			new Set(["hms-smoke", "hms-fire", "monitors"])
 		);
 	});
 
 	it("draws collocation sites only for PM2.5 while monitors are on", () => {
-		expect(
-			wantedPlugins(options({ collocationSites: true }), "pm25").has("collocation-sites")
-		).toBe(true);
-		expect(wantedPlugins(options({ collocationSites: true }), "o3").has("collocation-sites")).toBe(
-			false
-		);
-		const off = wantedPlugins(options({ collocationSites: true, monitorsOn: false }), "pm25");
+		const on = options({ collocationSites: true });
+		expect(wantedPlugins(on, true, "pm25").has("collocation-sites")).toBe(true);
+		expect(wantedPlugins(on, true, "o3").has("collocation-sites")).toBe(false);
+		const off = wantedPlugins(on, false, "pm25");
 		expect(off.has("collocation-sites")).toBe(false);
 		expect(off.has("monitors")).toBe(false);
 	});
 
 	it("draws each EV level that is on while EV chargers are on", () => {
-		const wanted = wantedPlugins(
-			options({ evStations: true, evLevels: { lvl2: true, lvl3: false } }),
-			"pm25"
-		);
+		const wanted = wantedPlugins(options({ evStations: true, "ev:lvl3": false }), true, "pm25");
 		expect(wanted.has("ev-l2")).toBe(true);
 		expect(wanted.has("ev-l3")).toBe(false);
-		const off = wantedPlugins(options({ evStations: false }), "pm25");
+		const off = wantedPlugins(options({ evStations: false }), true, "pm25");
 		expect(off.has("ev-l2") || off.has("ev-l3")).toBe(false);
 	});
 
 	it("drops both HMS plugins with Fire & Smoke off", () => {
-		const wanted = wantedPlugins(options({ fireAndSmoke: false }), "pm25");
+		const wanted = wantedPlugins(options({ fireAndSmoke: false }), true, "pm25");
 		expect(wanted.has("hms-smoke") || wanted.has("hms-fire")).toBe(false);
 	});
 
 	it("adds wind while it is on", () => {
-		expect(wantedPlugins(options({ wind: true }), "pm25").has("wind")).toBe(true);
+		expect(wantedPlugins(options({ wind: true }), true, "pm25").has("wind")).toBe(true);
 	});
 });

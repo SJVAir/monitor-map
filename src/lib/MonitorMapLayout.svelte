@@ -3,10 +3,26 @@
 	import { onDestroy, onMount, untrack } from "svelte";
 	import { searchParams } from "sv-router";
 	import {
+		BanIcon,
+		ContrastIcon,
+		CrosshairIcon,
+		EvChargerIcon,
+		FlameIcon,
+		LayersIcon,
+		MapIcon,
+		NetworkIcon,
+		RadioTowerIcon,
+		RotateCcwIcon,
+		SettingsIcon,
+		SquareStackIcon,
+		WindIcon
+	} from "@lucide/svelte";
+	import {
 		collocationSitesPlugin,
 		hmsFirePlugin,
 		hmsSmokePlugin,
-		monitorsPlugin
+		monitorsPlugin,
+		OptionsToolbar
 	} from "@sjvair/map-sdk";
 	import { windPlugin } from "$lib/wind/wind-plugin.js";
 	import { evPlugin } from "$lib/ev-stations/ev-plugin.svelte.js";
@@ -19,20 +35,19 @@
 	import { retryMonitorsLoad } from "$lib/monitors/retry-load.js";
 	import { monitorsManager } from "$lib/monitors/monitors.svelte.js";
 	import { filteredMonitors } from "$lib/monitors/filtered-source.svelte.js";
-	import Legend from "$lib/legend/Legend.svelte";
+	import LegendOverlay from "$lib/legend/LegendOverlay.svelte";
 	import {
 		collocationSitesStore,
 		hmsFireStore,
 		hmsSmokeStore,
 		monitorsStore
 	} from "$lib/stores.svelte.js";
-	import OptionsGroup from "$lib/options/OptionsGroup.svelte";
-	import PollutantMenu from "$lib/options/menus/PollutantMenu.svelte";
-	import MonitorsMenu from "$lib/options/menus/MonitorsMenu.svelte";
-	import LayersMenu from "$lib/options/menus/LayersMenu.svelte";
-	import OverlaysMenu from "$lib/options/menus/OverlaysMenu.svelte";
-	import SettingsMenu from "$lib/options/menus/SettingsMenu.svelte";
-	import { mapOptions } from "$lib/options/map-options.svelte.js";
+	import { bindBasemap, mapOptions, monitorsDisplay } from "$lib/options/option-values.svelte.js";
+	import { createMonitorMapToolbar } from "$lib/options/monitor-map-toolbar.svelte.js";
+	import type { ToolbarIcons } from "$lib/options/toolbar-groups";
+	import { ROW_ICONS } from "$lib/options/row-icons";
+	import pm25Icon from "$lib/assets/icons/pm25/pm25-02-particle-field.svg";
+	import ozoneIcon from "$lib/assets/icons/ozone/ozone-08-sunrise-haze.svg";
 	import { wantedPlugins } from "$lib/options/plugin-order";
 	import {
 		applyPollutantSelection,
@@ -53,10 +68,34 @@
 	// The map's state lives as long as this layout; MapView attaches the GL map when it mounts.
 	const map = createLiveMap();
 
+	// The toolbar's icons: the snippets below, and the EV level markers' SVG.
+	const icons: ToolbarIcons = {
+		monitors: monitorsIcon,
+		pm25: pm25Image,
+		o3: ozoneImage,
+		none: noneIcon,
+		collocation: collocationIcon,
+		layers: layersIcon,
+		fireAndSmoke: fireAndSmokeIcon,
+		evStations: evStationsIcon,
+		overlays: overlaysIcon,
+		wind: windIcon,
+		settings: settingsIcon,
+		clusters: clustersIcon,
+		basemap: basemapIcon,
+		theme: themeIcon,
+		reset: resetIcon,
+		evLevel2: { svg: ROW_ICONS.evLevel2 },
+		evLevel3: { svg: ROW_ICONS.evLevel3 }
+	};
+
+	// The toolbar's groups, defaults and values, and where its changes go.
+	const toolbarOptions = createMonitorMapToolbar(map, monitorsManager, icons);
+
 	// "?pollutant=none" must turn monitors off before the effects below first run, so the
 	// state->URL effect never sees monitors on and overwrites the param.
 	if (parsePollutantParam(route.search.pollutant) === "none") {
-		mapOptions.monitorsOn = false;
+		monitorsDisplay.monitorsOn = false;
 	}
 
 	// The load screen stays up until the monitors load, so a failure has to be shown on it.
@@ -72,7 +111,7 @@
 	const panelOpen = $derived(route.pathname.startsWith(`${basePath}/monitor/`));
 	const selectedId = $derived(panelOpen ? route.params.id : undefined);
 
-	// The monitors the Monitors menu's filters let through; clusters are built from these.
+	// The monitors the toolbar's Monitors rows let through; clusters are built from these.
 	const monitorsSource = filteredMonitors(monitorsStore.dataSource, mapOptions);
 
 	// EV chargers: each level is fetched the first time it is wanted. A failure shows in the legend
@@ -80,7 +119,7 @@
 	const evStore = createEvStore();
 	const evPopups = stationPopups(map);
 	$effect(() => {
-		const wanted = wantedPlugins(mapOptions, monitorsManager.pollutant);
+		const wanted = wantedPlugins(mapOptions, monitorsDisplay.monitorsOn, monitorsManager.pollutant);
 		for (const [key, level] of [
 			["ev-l2", "lvl2"],
 			["ev-l3", "lvl3"]
@@ -93,7 +132,7 @@
 	// plugin is built, so a change rebuilds it.
 	syncPlugins(
 		map,
-		() => wantedPlugins(mapOptions, monitorsManager.pollutant),
+		() => wantedPlugins(mapOptions, monitorsDisplay.monitorsOn, monitorsManager.pollutant),
 		{
 			monitors: () => ({
 				plugin: monitorsPlugin({
@@ -102,7 +141,7 @@
 					layerLabel: "Monitors",
 					selectable: true,
 					selectedStyle: "enlarge",
-					clustered: mapOptions.clustered
+					clustered: mapOptions.clustered === true
 				}),
 				// A removed plugin forgets its mode and selection, so each add passes them again.
 				options: {
@@ -111,41 +150,45 @@
 				}
 			}),
 			"ev-l2": () =>
-				evPlugin("lvl2", evStore.dataSource("lvl2"), { clustered: mapOptions.clustered }),
+				evPlugin("lvl2", evStore.dataSource("lvl2"), { clustered: mapOptions.clustered === true }),
 			"ev-l3": () =>
-				evPlugin("lvl3", evStore.dataSource("lvl3"), { clustered: mapOptions.clustered })
+				evPlugin("lvl3", evStore.dataSource("lvl3"), { clustered: mapOptions.clustered === true })
 		},
-		() => mapOptions.clustered
+		() => mapOptions.clustered === true
 	);
 
 	// Wind, Fire & Smoke and collocation sites take no build-time option, so they sit in their own call
 	// without `deps`: a Marker Clusters change rebuilds only the monitors above. DRAW_ORDER still
 	// holds across the two calls because `syncPlugins` reads `map.plugins` (every plugin on the
 	// map, whichever call added it) to find the plugin to add before.
-	syncPlugins(map, () => wantedPlugins(mapOptions, monitorsManager.pollutant), {
-		wind: () => windPlugin(),
-		"hms-smoke": () =>
-			hmsSmokePlugin({
-				id: "hms-smoke",
-				source: hmsSmokeStore.dataSource,
-				layerLabel: "Smoke"
-			}),
-		"hms-fire": () =>
-			hmsFirePlugin({
-				id: "hms-fire",
-				source: hmsFireStore.groups,
-				hotspots: hmsFireStore.hotspots,
-				layerLabel: "Fires"
-			}),
-		"collocation-sites": () =>
-			collocationSitesPlugin({
-				id: "collocation-sites",
-				source: collocationSitesStore.dataSource,
-				layerLabel: "Collocation sites"
-			})
-	});
+	syncPlugins(
+		map,
+		() => wantedPlugins(mapOptions, monitorsDisplay.monitorsOn, monitorsManager.pollutant),
+		{
+			wind: () => windPlugin(),
+			"hms-smoke": () =>
+				hmsSmokePlugin({
+					id: "hms-smoke",
+					source: hmsSmokeStore.dataSource,
+					layerLabel: "Smoke"
+				}),
+			"hms-fire": () =>
+				hmsFirePlugin({
+					id: "hms-fire",
+					source: hmsFireStore.groups,
+					hotspots: hmsFireStore.hotspots,
+					layerLabel: "Fires"
+				}),
+			"collocation-sites": () =>
+				collocationSitesPlugin({
+					id: "collocation-sites",
+					source: collocationSitesStore.dataSource,
+					layerLabel: "Collocation sites"
+				})
+		}
+	);
 
-	// Keep the Pollutant menu's selection (pm25 / o3 / none) and the "pollutant" URL param in
+	// Keep the toolbar's pollutant (pm25 / o3 / none) and the "pollutant" URL param in
 	// sync, both directions. init() only seeds the pollutant on the store's first-ever
 	// initialization; this effect applies a later "?pollutant=" change (e.g. navigating in from
 	// elsewhere, or back/forward) to an already-running map.
@@ -156,28 +199,30 @@
 		// state here would make a UI-driven change re-trigger this effect before the effect below
 		// syncs the URL, so it would see the stale URL and revert the user's change.
 		untrack(() => {
-			if (currentSelection(monitorsManager.pollutant, mapOptions.monitorsOn) !== selection) {
-				applyPollutantSelection(selection, { manager: monitorsManager, options: mapOptions });
+			if (currentSelection(monitorsManager.pollutant, monitorsDisplay.monitorsOn) !== selection) {
+				applyPollutantSelection(selection, { manager: monitorsManager, options: monitorsDisplay });
 			}
 		});
 	});
 
 	// ...and the reverse: reflect UI-driven changes back to the URL.
 	$effect(() => {
-		const selection = currentSelection(monitorsManager.pollutant, mapOptions.monitorsOn);
+		const selection = currentSelection(monitorsManager.pollutant, monitorsDisplay.monitorsOn);
 		if (selection && searchParams.get("pollutant") !== selection) {
 			searchParams.set("pollutant", selection);
 		}
 	});
 
 	onMount(() => {
+		// Each mount opens on the default basemap; a basemap that fails to load reverts the value.
+		const unbindBasemap = bindBasemap(map.basemap);
 		// A failed load leaves its layer empty (map-sdk's legend shows the status); log it once.
 		for (const store of [hmsSmokeStore, hmsFireStore, collocationSitesStore]) {
 			store.init().catch(console.error);
 		}
 		// A previous instance of this layout paused polling in onDestroy; init() is a no-op by now.
 		monitorsManager.resumeAutoUpdate();
-		return map.on("featureclick", ({ pluginId, ref, lngLat }) => {
+		const offFeatureClick = map.on("featureclick", ({ pluginId, ref, lngLat }) => {
 			// A station clicked on the map or picked from the list: its popup.
 			if ((pluginId === "ev-l2" || pluginId === "ev-l3") && ref.kind === "feature") {
 				const station = evStore.station(ref.id);
@@ -188,6 +233,10 @@
 			navigate(`${basePath}/monitor/:id`, { params: { id: ref.id } }).catch(console.error);
 			map.easeTo({ center: lngLat, minZoom: 12 });
 		});
+		return () => {
+			offFeatureClick();
+			unbindBasemap();
+		};
 	});
 
 	// The selected monitor follows the route: the open panel's monitor, none once it closes.
@@ -217,27 +266,38 @@
 			/>
 		{/if}
 	{/snippet}
-	{#snippet menu()}
-		<OptionsGroup>
-			<PollutantMenu />
-			<MonitorsMenu />
-		</OptionsGroup>
-		<OptionsGroup>
-			<LayersMenu />
-			<OverlaysMenu />
-			<SettingsMenu {map} />
-		</OptionsGroup>
+	{#snippet toolbar()}
+		<OptionsToolbar
+			{map}
+			groups={toolbarOptions.preset.groups}
+			values={toolbarOptions.values}
+			onchange={toolbarOptions.onchange}
+			defaults={toolbarOptions.preset.defaults}
+			basemapKey="basemap"
+		>
+			{#snippet search()}
+				<Search {map} />
+			{/snippet}
+		</OptionsToolbar>
 	{/snippet}
 	{#snippet overlays()}
-		<!-- From below the options toolbar to the bottom, so the legend never covers it. -->
-		<div
-			class="pointer-events-none absolute top-18 bottom-4 left-4 z-10 flex flex-col justify-end md:top-32"
-		>
-			<Legend {map} {panelOpen} />
-		</div>
-	{/snippet}
-	{#snippet search()}
-		<Search {map} />
+		<LegendOverlay {map} {panelOpen} />
 	{/snippet}
 	{@render children()}
 </MapShell>
+
+{#snippet monitorsIcon()}<RadioTowerIcon size={20} color="#4682b4" />{/snippet}
+{#snippet pm25Image()}<img src={pm25Icon} alt="" width="20" height="20" />{/snippet}
+{#snippet ozoneImage()}<img src={ozoneIcon} alt="" width="20" height="20" />{/snippet}
+{#snippet noneIcon()}<BanIcon size={18} color="#778899" />{/snippet}
+{#snippet collocationIcon()}<CrosshairIcon size={16} color="#4A5FC6" />{/snippet}
+{#snippet layersIcon()}<LayersIcon size={20} color="#708090" />{/snippet}
+{#snippet fireAndSmokeIcon()}<FlameIcon size={18} color="#ff4500" />{/snippet}
+{#snippet evStationsIcon()}<EvChargerIcon size={18} color="#708090" />{/snippet}
+{#snippet overlaysIcon()}<SquareStackIcon size={20} color="#708090" />{/snippet}
+{#snippet windIcon()}<WindIcon size={18} color="#1e90ff" />{/snippet}
+{#snippet settingsIcon()}<SettingsIcon size={20} color="#696969" />{/snippet}
+{#snippet clustersIcon()}<NetworkIcon size={18} color="#1e90ff" />{/snippet}
+{#snippet basemapIcon()}<MapIcon size={18} color="#708090" />{/snippet}
+{#snippet themeIcon()}<ContrastIcon size={18} color="#708090" />{/snippet}
+{#snippet resetIcon()}<RotateCcwIcon size={16} />{/snippet}

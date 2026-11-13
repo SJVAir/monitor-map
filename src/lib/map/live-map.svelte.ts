@@ -1,5 +1,4 @@
-import { createMap, type MapContext } from "@sjvair/map-sdk";
-import { monitorMapBasemaps } from "./basemaps";
+import { createMap, defaultBasemaps, type MapContext } from "@sjvair/map-sdk";
 import { monitorMapConfig } from "../config.svelte.js";
 
 /** The San Joaquin Valley view the map opens on. */
@@ -10,7 +9,7 @@ const INITIAL_VIEW = {
 	pitch: 0
 };
 
-/** The monitor map's map context: a globe over space on Streets v4, with every basemap to choose. */
+/** The monitor map's map context: a globe over space on Streets v4, with map-sdk's basemaps. */
 export function createLiveMap(): MapContext {
 	return createMap({
 		config: {
@@ -18,7 +17,7 @@ export function createLiveMap(): MapContext {
 			initialView: INITIAL_VIEW,
 			projection: "globe",
 			space: { preset: "milkyway" },
-			basemaps: monitorMapBasemaps()
+			basemaps: defaultBasemaps({ keepPoiLabels: true })
 		}
 	});
 }

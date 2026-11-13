@@ -1,28 +1,27 @@
 import type { DataSource, MonitorFeatureProperties } from "@sjvair/map-sdk/data";
-import type { MapOptions } from "../options/map-option-defaults";
+import type { OptionValues } from "@sjvair/map-sdk";
+import { typeOn } from "../options/option-values.svelte.js";
 
-type Options = Pick<MapOptions, "monitorTypes" | "inactive" | "inside">;
-
-function shown(props: MonitorFeatureProperties, options: Options): boolean {
+function shown(props: MonitorFeatureProperties, values: OptionValues): boolean {
 	return (
-		options.monitorTypes[props.type] === true &&
-		(props.isActive || options.inactive) &&
-		(props.location !== "inside" || options.inside)
+		typeOn(values, props.type) &&
+		(props.isActive || values.inactive === true) &&
+		(props.location !== "inside" || values.inside === true)
 	);
 }
 
 /**
- * `source` with only the monitors the Monitors menu shows: types that are on, inactive and
- * inside ones only when those are on. Clusters are built from these, so their averages follow.
+ * `source` with only the monitors the toolbar's Monitors rows show: types that are on, inactive
+ * and inside ones only when those are on. Clusters are built from these, so their averages follow.
  */
 export function filteredMonitors(
 	source: DataSource<MonitorFeatureProperties>,
-	options: Options
+	values: OptionValues
 ): DataSource<MonitorFeatureProperties> {
 	const features = $derived.by(() => {
 		const all = source.features;
 		if (!all) return null;
-		return { ...all, features: all.features.filter((f) => shown(f.properties, options)) };
+		return { ...all, features: all.features.filter((f) => shown(f.properties, values)) };
 	});
 	return {
 		get status() {
