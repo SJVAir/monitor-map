@@ -74,6 +74,10 @@
 		routerEscapeHatch = true
 	}: MapShellProps = $props();
 
+	// The toolbar's wide/narrow switch measures this box, not the map's, so opening the panel
+	// (which narrows the map) doesn't collapse it. `$state` so `MapView` sees it once bound.
+	let shell = $state<HTMLElement>();
+
 	// Read once, at setup: the escape hatch's listeners and their root path are installed below
 	// for the shell's lifetime, so later prop changes are deliberately ignored.
 	const escapeHatch = untrack(() => routerEscapeHatch);
@@ -117,11 +121,12 @@
 	}
 </script>
 
-<div class="relative flex h-full w-full flex-col md:flex-row">
+<div bind:this={shell} class="relative flex h-full w-full flex-col md:flex-row">
 	<LoadScreen error={loadError} />
 	<div class="relative flex-1 overflow-hidden">
 		<MapView
 			{map}
+			layoutRoot={shell}
 			label="Air quality monitor map"
 			controls="engine"
 			featureList={{ reveal: "focus" }}

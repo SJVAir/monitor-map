@@ -89,10 +89,11 @@ mobile app (`../mobile`). The SDK's dev pin is `5.0.0-beta.10` and its peer rang
   the monitor types come from map-sdk and the SDK metadata. `onOptionsChange` writes changes into
   `mapOptions`; the pollutant is bridged to `monitorsManager` and `monitorsOn`
   (`option-values.svelte.ts`, `pollutant-param.ts`), and the basemap to the map's basemap store.
-  The wide/narrow switch is map-sdk's; `isWideLayout()` in `src/lib/map/layout.ts` is read only
-  at event time, for behavior that follows the page layout (Tailwind `md`). The legend is an
-  overlay (`src/lib/legend/LegendOverlay.svelte`) placed below `--mapsdk-toolbar-height`, with
-  no z-index so map-sdk's toolbar, list and card stack above it.
+  The wide/narrow switch is map-sdk's, measured on `MapShell`'s outer box (`MapView`'s
+  `layoutRoot`) so the open panel doesn't collapse the toolbar; `isWideLayout()` in
+  `src/lib/map/layout.ts` is read only at event time, for behavior that follows the page layout
+  (Tailwind `md`). The legend is an overlay (`src/lib/legend/LegendOverlay.svelte`) placed below
+  `--mapsdk-toolbar-height`, with no z-index so map-sdk's toolbar, list and card stack above it.
 - `MonitorDetailPanel` owns a `MonitorDetailsState` (`monitors/monitor-details.svelte.ts`) that
   fetches its monitor with `getMonitorDetails(id)`. `choosePanelPollutant`
   (`monitors/panel-pollutant.ts`) picks the pollutant shown. Only an active monitor's readings
@@ -109,7 +110,7 @@ hosts supply their own tokens.
 
 ### map-sdk
 
-`@sjvair/map-sdk` is the published npm version, pinned exactly (`0.1.0-beta.13`). To try an
+`@sjvair/map-sdk` is the published npm version, pinned exactly (`0.1.0-beta.14`). To try an
 unreleased map-sdk locally, `npm run map-sdk:pack` packs `../map-sdk` into `vendor/` (git-ignored)
 and prints the tarball path to `npm install`; never commit that. `@maptiler/sdk` is pinned
 `~4.2.0` (map-sdk's pin); `npm ls @maptiler/sdk svelte @sjvair/sdk` must show one copy of each. A
