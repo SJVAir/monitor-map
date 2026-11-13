@@ -73,7 +73,7 @@ below are the ones the user has decided.
 
 ## Constraints
 
-- `@sjvair/map-sdk` `0.1.0-beta.13`, pinned exactly; `npm ls @maptiler/sdk svelte @sjvair/sdk`
+- `@sjvair/map-sdk` `0.1.0-beta.14`, pinned exactly; `npm ls @maptiler/sdk svelte @sjvair/sdk`
   shows one copy of each.
 - `@sjvair/sdk` dev pin `npm:@jsr/sjvair__sdk@5.0.0-beta.10` (jsr's `latest` is 4.7.0, so the pin
   is exact). Its `getMonitorsMeta()` throws against a server without `monitor_groups`
@@ -118,20 +118,14 @@ default top-left, where map-sdk stacks it under the toolbar.
 `MapShell`, so it can't read `--mapsdk-toolbar-height` (set on the map's box), and it wouldn't go
 inert with the rest of the map while the narrow options panel is open.
 
-### Layout root (needs a map-sdk beta)
+### Layout root
 
-A map-sdk gap, reported to the coordinator for a map-sdk session (2026-11-13). What monitor-map
-needs: a way for the host to mark an ancestor element (proposed: a `mapLayoutRoot` attachment,
-found by `MapView` through context) whose width decides the toolbar's wide/narrow layout, with
-today's measure (a frame later, against 48rem) applied to that box. Without the mark, `MapView`
-measures its own box, as in `0.1.0-beta.13`, so the dashboard is unaffected. Only the wide/narrow
+From `@sjvair/map-sdk` `0.1.0-beta.14` (map-sdk #30), `MapView` takes `layoutRoot?: HTMLElement |
+null`: the element whose width decides the toolbar's wide/narrow layout (a frame later, against
+48rem). Unset, `MapView` measures its own box, so the dashboard is unaffected. Only the wide/narrow
 decision moves: dropdowns and the panel still stay inside the map's box, and
-`--mapsdk-toolbar-height` is unchanged. The final API is map-sdk's to name.
-
-Sequencing: everything else builds on `@sjvair/map-sdk` `0.1.0-beta.13`. The last step re-pins to
-the map-sdk beta that has the layout root and puts it on `MapShell`'s outer box; it lands before
-this PR merges. If map-sdk isn't ready by then, it's recorded in data-dashboard `DEFERRED.md` as a
-miss to finish before monitor-map's next npm beta, not merged as an open question.
+`--mapsdk-toolbar-height` and `--mapsdk-map-width` are unchanged. `MapShell` holds its outer box in
+`$state` (`bind:this`) and passes it as `layoutRoot`.
 
 ### The values
 
@@ -238,9 +232,8 @@ still has a caller). `row-icons.ts` keeps the EV level icons. Their tests go or 
 
 ### Packages and exports
 
-- `@sjvair/map-sdk` `0.1.0-beta.6` → `0.1.0-beta.13`, exact, then → the beta with the layout
-  root (above), exact. Read map-sdk's README "Changes" for
-  `0.1.0-beta.7` to `0.1.0-beta.13` and apply every breaking change that touches monitor-map (the
+- `@sjvair/map-sdk` `0.1.0-beta.6` → `0.1.0-beta.14` (the layout root), exact. Read map-sdk's README "Changes" for
+  `0.1.0-beta.7` to `0.1.0-beta.14` and apply every breaking change that touches monitor-map (the
   `Scale` fields, `defaultBasemaps`, `map.basemap.select`'s fallback, the extra `role="status"`
   element in tests).
 - `@sjvair/sdk` dev `5.0.0-beta.3` → `5.0.0-beta.10`, exact; peer `^5.0.0-beta.10`.
