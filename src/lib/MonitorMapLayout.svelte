@@ -3,10 +3,30 @@
 	import { onDestroy, onMount, untrack } from "svelte";
 	import { searchParams } from "sv-router";
 	import {
+		BanIcon,
+		ContrastIcon,
+		CrosshairIcon,
+		EvChargerIcon,
+		FlameIcon,
+		LayersIcon,
+		MapIcon,
+		NetworkIcon,
+		RadioTowerIcon,
+		RotateCcwIcon,
+		SettingsIcon,
+		SquareStackIcon,
+		WindIcon
+	} from "@lucide/svelte";
+	import {
 		collocationSitesPlugin,
 		hmsFirePlugin,
+		hmsOptions,
 		hmsSmokePlugin,
-		monitorsPlugin
+		monitorsOptions,
+		monitorsPlugin,
+		OptionsToolbar,
+		settingsGroup,
+		type OptionValues
 	} from "@sjvair/map-sdk";
 	import { windPlugin } from "$lib/wind/wind-plugin.js";
 	import { evPlugin } from "$lib/ev-stations/ev-plugin.svelte.js";
@@ -26,18 +46,18 @@
 		hmsSmokeStore,
 		monitorsStore
 	} from "$lib/stores.svelte.js";
-	import OptionsGroup from "$lib/options/OptionsGroup.svelte";
-	import PollutantMenu from "$lib/options/menus/PollutantMenu.svelte";
-	import MonitorsMenu from "$lib/options/menus/MonitorsMenu.svelte";
-	import LayersMenu from "$lib/options/menus/LayersMenu.svelte";
-	import OverlaysMenu from "$lib/options/menus/OverlaysMenu.svelte";
-	import SettingsMenu from "$lib/options/menus/SettingsMenu.svelte";
 	import {
+		applyOptionChange,
+		bindBasemap,
 		initMapOptions,
 		mapOptions,
-		MONITOR_MAP_DEFAULTS,
-		monitorsDisplay
+		monitorsDisplay,
+		toolbarValues
 	} from "$lib/options/option-values.svelte.js";
+	import { buildToolbar, type ToolbarIcons } from "$lib/options/toolbar-groups";
+	import { ROW_ICONS } from "$lib/options/row-icons";
+	import pm25Icon from "$lib/assets/icons/pm25/pm25-02-particle-field.svg";
+	import ozoneIcon from "$lib/assets/icons/ozone/ozone-08-sunrise-haze.svg";
 	import { wantedPlugins } from "$lib/options/plugin-order";
 	import {
 		applyPollutantSelection,
@@ -53,12 +73,69 @@
 
 	let { children }: Props = $props();
 
-	initMapOptions(MONITOR_MAP_DEFAULTS);
-
 	const { route, navigate, basePath } = useMonitorMapRouter();
 
 	// The map's state lives as long as this layout; MapView attaches the GL map when it mounts.
 	const map = createLiveMap();
+
+	// The toolbar's icons: the snippets below, and the EV level markers' SVG.
+	const icons: ToolbarIcons = {
+		monitors: monitorsIcon,
+		pm25: pm25Image,
+		o3: ozoneImage,
+		none: noneIcon,
+		collocation: collocationIcon,
+		layers: layersIcon,
+		fireAndSmoke: fireAndSmokeIcon,
+		evStations: evStationsIcon,
+		overlays: overlaysIcon,
+		wind: windIcon,
+		settings: settingsIcon,
+		clusters: clustersIcon,
+		basemap: basemapIcon,
+		theme: themeIcon,
+		reset: resetIcon,
+		evLevel2: { svg: ROW_ICONS.evLevel2 },
+		evLevel3: { svg: ROW_ICONS.evLevel3 }
+	};
+
+	// Once per map: it keeps what the metadata answers. The groups follow the metadata, the
+	// pollutant and the basemap the map draws, so they're rebuilt in a $derived.
+	const monitorsPreset = monitorsOptions(map);
+	const toolbarPreset = $derived(
+		buildToolbar({
+			monitors: monitorsPreset,
+			settings: settingsGroup(map, {
+				icon: icons.settings,
+				clusters: { icon: icons.clusters },
+				basemap: { icons: { basemap: icons.basemap, theme: icons.theme } },
+				reset: { icon: icons.reset }
+			}),
+			hms: hmsOptions(map, { icon: icons.fireAndSmoke }),
+			meta: monitorsManager.meta,
+			selection: currentSelection(monitorsManager.pollutant, monitorsDisplay.monitorsOn),
+			layersLabel: map.messages("mapsdk_options_layers"),
+			overlaysLabel: map.messages("mapsdk_options_overlays"),
+			icons
+		})
+	);
+
+	// Defaults that arrive later (a type key once the metadata loads) fill in; a value the user
+	// already has, including one from before a remount, stays.
+	$effect.pre(() => initMapOptions(toolbarPreset.defaults));
+
+	// The pollutant shows the manager's; before it has one, the default's key.
+	const toolbarOptionValues = $derived(
+		toolbarValues(
+			monitorsManager.pollutant,
+			monitorsDisplay.monitorsOn,
+			String(toolbarPreset.defaults.pollutant ?? "pm25")
+		)
+	);
+
+	function onOptionsChange(next: OptionValues, changed: string[]) {
+		applyOptionChange(next, changed, { manager: monitorsManager, basemap: map.basemap });
+	}
 
 	// "?pollutant=none" must turn monitors off before the effects below first run, so the
 	// state->URL effect never sees monitors on and overwrites the param.
@@ -79,7 +156,7 @@
 	const panelOpen = $derived(route.pathname.startsWith(`${basePath}/monitor/`));
 	const selectedId = $derived(panelOpen ? route.params.id : undefined);
 
-	// The monitors the Monitors menu's filters let through; clusters are built from these.
+	// The monitors the toolbar's Monitors rows let through; clusters are built from these.
 	const monitorsSource = filteredMonitors(monitorsStore.dataSource, mapOptions);
 
 	// EV chargers: each level is fetched the first time it is wanted. A failure shows in the legend
@@ -156,7 +233,7 @@
 		}
 	);
 
-	// Keep the Pollutant menu's selection (pm25 / o3 / none) and the "pollutant" URL param in
+	// Keep the toolbar's pollutant (pm25 / o3 / none) and the "pollutant" URL param in
 	// sync, both directions. init() only seeds the pollutant on the store's first-ever
 	// initialization; this effect applies a later "?pollutant=" change (e.g. navigating in from
 	// elsewhere, or back/forward) to an already-running map.
@@ -182,13 +259,15 @@
 	});
 
 	onMount(() => {
+		// Each mount opens on the default basemap; a basemap that fails to load reverts the value.
+		const unbindBasemap = bindBasemap(map.basemap);
 		// A failed load leaves its layer empty (map-sdk's legend shows the status); log it once.
 		for (const store of [hmsSmokeStore, hmsFireStore, collocationSitesStore]) {
 			store.init().catch(console.error);
 		}
 		// A previous instance of this layout paused polling in onDestroy; init() is a no-op by now.
 		monitorsManager.resumeAutoUpdate();
-		return map.on("featureclick", ({ pluginId, ref, lngLat }) => {
+		const offFeatureClick = map.on("featureclick", ({ pluginId, ref, lngLat }) => {
 			// A station clicked on the map or picked from the list: its popup.
 			if ((pluginId === "ev-l2" || pluginId === "ev-l3") && ref.kind === "feature") {
 				const station = evStore.station(ref.id);
@@ -199,6 +278,10 @@
 			navigate(`${basePath}/monitor/:id`, { params: { id: ref.id } }).catch(console.error);
 			map.easeTo({ center: lngLat, minZoom: 12 });
 		});
+		return () => {
+			offFeatureClick();
+			unbindBasemap();
+		};
 	});
 
 	// The selected monitor follows the route: the open panel's monitor, none once it closes.
@@ -228,16 +311,19 @@
 			/>
 		{/if}
 	{/snippet}
-	{#snippet menu()}
-		<OptionsGroup>
-			<PollutantMenu />
-			<MonitorsMenu />
-		</OptionsGroup>
-		<OptionsGroup>
-			<LayersMenu />
-			<OverlaysMenu />
-			<SettingsMenu {map} />
-		</OptionsGroup>
+	{#snippet toolbar()}
+		<OptionsToolbar
+			{map}
+			groups={toolbarPreset.groups}
+			values={toolbarOptionValues}
+			onchange={onOptionsChange}
+			defaults={toolbarPreset.defaults}
+			basemapKey="basemap"
+		>
+			{#snippet search()}
+				<Search {map} />
+			{/snippet}
+		</OptionsToolbar>
 	{/snippet}
 	{#snippet overlays()}
 		<!-- From below the options toolbar to the bottom, so the legend never covers it. -->
@@ -247,8 +333,21 @@
 			<Legend {map} {panelOpen} />
 		</div>
 	{/snippet}
-	{#snippet search()}
-		<Search {map} />
-	{/snippet}
 	{@render children()}
 </MapShell>
+
+{#snippet monitorsIcon()}<RadioTowerIcon size={20} color="#4682b4" />{/snippet}
+{#snippet pm25Image()}<img src={pm25Icon} alt="" width="20" height="20" />{/snippet}
+{#snippet ozoneImage()}<img src={ozoneIcon} alt="" width="20" height="20" />{/snippet}
+{#snippet noneIcon()}<BanIcon size={18} color="#778899" />{/snippet}
+{#snippet collocationIcon()}<CrosshairIcon size={16} color="#4A5FC6" />{/snippet}
+{#snippet layersIcon()}<LayersIcon size={20} color="#708090" />{/snippet}
+{#snippet fireAndSmokeIcon()}<FlameIcon size={18} color="#ff4500" />{/snippet}
+{#snippet evStationsIcon()}<EvChargerIcon size={18} color="#708090" />{/snippet}
+{#snippet overlaysIcon()}<SquareStackIcon size={20} color="#708090" />{/snippet}
+{#snippet windIcon()}<WindIcon size={18} color="#1e90ff" />{/snippet}
+{#snippet settingsIcon()}<SettingsIcon size={20} color="#696969" />{/snippet}
+{#snippet clustersIcon()}<NetworkIcon size={18} color="#1e90ff" />{/snippet}
+{#snippet basemapIcon()}<MapIcon size={18} color="#708090" />{/snippet}
+{#snippet themeIcon()}<ContrastIcon size={18} color="#708090" />{/snippet}
+{#snippet resetIcon()}<RotateCcwIcon size={16} />{/snippet}

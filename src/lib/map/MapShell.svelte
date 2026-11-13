@@ -24,11 +24,12 @@
 		 * trigger the escape-hatch full-page navigation below.
 		 */
 		knownRoutes?: Array<string>;
-		/** Menus (OptionsGroup/OptionsMenu) rendered inside the options toolbar/panel */
-		menu?: Snippet;
-		/** Rendered last in the toolbar (wide) or beside the menu button (narrow) */
-		search?: Snippet;
-		/** Freeform absolutely-positioned content over the map (legend, search, etc.) */
+		/** The options toolbar (map-sdk's `OptionsToolbar`), passed to `MapView`'s `toolbar`. */
+		toolbar?: Snippet;
+		/**
+		 * Absolutely-positioned content over the map (the legend), rendered in `MapView`'s
+		 * `overlays`, so it can read `--mapsdk-toolbar-height` and goes inert with the map.
+		 */
 		overlays?: Snippet;
 		/** The routed detail panel content */
 		children?: Snippet;
@@ -57,7 +58,6 @@
 <script lang="ts">
 	import LoadScreen, { disable as disableLoadScreen } from "$lib/LoadScreen.svelte";
 	import { MapView } from "@sjvair/map-sdk";
-	import OptionsBar from "$lib/options/OptionsBar.svelte";
 	import { useMonitorMapRouter } from "$lib/router-context";
 
 	let {
@@ -66,8 +66,7 @@
 		loadError,
 		panelOpen,
 		knownRoutes = [],
-		menu,
-		search,
+		toolbar,
 		overlays,
 		children,
 		basePath: providedBasePath,
@@ -120,15 +119,13 @@
 			{map}
 			label="Air quality monitor map"
 			controls="engine"
-			featureList={{ position: "top-right", reveal: "focus" }}
+			featureList={{ reveal: "focus" }}
 			selectionBar={false}
 			tooltip="pointer"
 			class="h-full w-full"
+			{toolbar}
+			{overlays}
 		/>
-		{@render overlays?.()}
-		{#if menu || search}
-			<OptionsBar {search}>{@render menu?.()}</OptionsBar>
-		{/if}
 	</div>
 	<div
 		class={[

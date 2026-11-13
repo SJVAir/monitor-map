@@ -34,10 +34,13 @@ export function toolbarDefaults(presetDefaults: OptionValues): OptionValues {
 	return { ...presetDefaults, ...MONITOR_MAP_DEFAULTS };
 }
 
-/** Fills keys missing from `mapOptions`; never overwrites, so values survive a remount. */
+/**
+ * Fills keys missing from `mapOptions`; never overwrites, so values survive a remount. Skips
+ * `pollutant`, which the monitors manager owns.
+ */
 export function initMapOptions(defaults: OptionValues): void {
 	for (const [key, value] of Object.entries(defaults)) {
-		if (!(key in mapOptions)) mapOptions[key] = value;
+		if (key !== "pollutant" && !(key in mapOptions)) mapOptions[key] = value;
 	}
 }
 

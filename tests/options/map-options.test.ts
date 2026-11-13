@@ -37,6 +37,12 @@ describe("initMapOptions", () => {
 		expect(m.mapOptions.wind).toBe(true);
 		expect(m.mapOptions.clustered).toBe(true);
 	});
+
+	it("leaves the pollutant to the monitors manager", () => {
+		m.initMapOptions({ pollutant: "o3", wind: false });
+		expect("pollutant" in m.mapOptions).toBe(false);
+		expect(m.mapOptions.wind).toBe(false);
+	});
 });
 
 describe("applyOptionChange", () => {

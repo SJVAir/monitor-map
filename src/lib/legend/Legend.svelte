@@ -2,7 +2,7 @@
 	import { ChevronDownIcon, InfoIcon } from "@lucide/svelte";
 	import { untrack } from "svelte";
 	import { Legend, legendSection, type MapContext } from "@sjvair/map-sdk";
-	import { isWideLayout } from "$lib/options/layout";
+	import { isWideLayout } from "$lib/map/layout";
 
 	let { map, panelOpen = false }: { map: MapContext; panelOpen?: boolean } = $props();
 

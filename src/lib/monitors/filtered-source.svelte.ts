@@ -11,8 +11,8 @@ function shown(props: MonitorFeatureProperties, values: OptionValues): boolean {
 }
 
 /**
- * `source` with only the monitors the Monitors menu shows: types that are on, inactive and
- * inside ones only when those are on. Clusters are built from these, so their averages follow.
+ * `source` with only the monitors the toolbar's Monitors rows show: types that are on, inactive
+ * and inside ones only when those are on. Clusters are built from these, so their averages follow.
  */
 export function filteredMonitors(
 	source: DataSource<MonitorFeatureProperties>,
