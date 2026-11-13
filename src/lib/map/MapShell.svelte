@@ -57,6 +57,7 @@
 
 <script lang="ts">
 	import LoadScreen, { disable as disableLoadScreen } from "$lib/LoadScreen.svelte";
+	import { untrack } from "svelte";
 	import { MapView } from "@sjvair/map-sdk";
 	import { useMonitorMapRouter } from "$lib/router-context";
 
@@ -73,7 +74,11 @@
 		routerEscapeHatch = true
 	}: MapShellProps = $props();
 
-	const basePath = providedBasePath ?? (routerEscapeHatch ? useMonitorMapRouter().basePath : "");
+	// Read once, at setup: the escape hatch's listeners and their root path are installed below
+	// for the shell's lifetime, so later prop changes are deliberately ignored.
+	const escapeHatch = untrack(() => routerEscapeHatch);
+	const basePath =
+		untrack(() => providedBasePath) ?? (escapeHatch ? useMonitorMapRouter().basePath : "");
 
 	$effect(() => {
 		// `map.ready` is map-sdk's signal that the style loaded and the map went idle.
@@ -86,7 +91,7 @@
 	 * HACK: Fix for escaping sv-router and allowing navigation to other pages,
 	 * as well as navigating back
 	 */
-	if (routerEscapeHatch) {
+	if (escapeHatch) {
 		const rootPath = basePath || "/";
 
 		window.addEventListener("pageshow", (e) => {
