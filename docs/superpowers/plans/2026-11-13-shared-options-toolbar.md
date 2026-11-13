@@ -308,13 +308,13 @@ right-hand control column (10px margin + 29px buttons) plus an 8px gap clear: wi
 ### Task 7: The layout root (waits on map-sdk)
 
 Blocked until the coordinator reports the map-sdk beta with the layout root and its final API name
-(proposed `mapLayoutRoot`, an attachment). If it isn't published before the PR is ready, skip this
+(map-sdk-24 proposes a `MapView` prop, `layoutRoot={shell}`, with `bind:this` on the shell box; the map's own box when null; the user's pick is pending). If it isn't published before the PR is ready, skip this
 task, add a `DEFERRED.md` entry (miss to finish before the mobile beta) in Task 8, and say so in the
 PR.
 
 **Files:**
-- Modify: `package.json`, `package-lock.json`; `src/lib/map/MapShell.svelte` (the attachment on the
-  outer `relative flex h-full w-full flex-col md:flex-row` box)
+- Modify: `package.json`, `package-lock.json`; `src/lib/map/MapShell.svelte` (`bind:this` on the
+  outer `relative flex h-full w-full flex-col md:flex-row` box, passed to `MapView` as the layout root, or the final API's equivalent)
 - Test: `tests/browser/map-layout-root.test.ts`
 
 - [ ] **Step 1:** Pin `@sjvair/map-sdk` to that beta exactly; `npm install`; `npm ls` shows one copy
@@ -324,7 +324,7 @@ PR.
       the same at a 390px root → the options button. (Use the API's documented test seam if
       map-sdk gives one; otherwise a real `MapView` in the browser project.)
 - [ ] **Step 3:** Run it. Expected: FAIL at 1024px.
-- [ ] **Step 4:** Put the attachment on `MapShell`'s outer box. Run it. Expected: PASS.
+- [ ] **Step 4:** Pass `MapShell`'s outer box as the layout root. Run it. Expected: PASS.
 - [ ] **Step 5:** Run the full suite (`check`, `lint`, `test`, `build`, `test:bundle`). Commit
       `feat: the toolbar's layout follows the map's mount point`.
 
