@@ -59,8 +59,11 @@ mobile app (`../mobile`). The SDK's dev pin is `5.0.0-beta.10` and its peer rang
   can reach it without the map engine. `monitorsManager` (`src/lib/monitors/monitors.svelte.ts`)
   is a thin wrapper over the monitors store.
 - Option state is one flat `OptionValues` record, `mapOptions`
-  (`src/lib/options/option-values.svelte.ts`; its `MONITOR_MAP_DEFAULTS` win over the presets'
-  defaults). Plugins and `filteredMonitors` read it. The pollutant is `monitorsManager.pollutant`;
+  (`src/lib/options/option-values.svelte.ts`). Its defaults are map-sdk's presets' plus those of
+  monitor-map's own rows (EV Chargers and its levels, Wind), declared beside the rows in
+  `toolbar-groups.ts` (`buildToolbar`). `createMonitorMapToolbar`
+  (`options/monitor-map-toolbar.svelte.ts`) is the toolbar's wiring, used by `MonitorMapLayout`
+  and the toolbar spec's harness. Plugins and `filteredMonitors` read `mapOptions`. The pollutant is `monitorsManager.pollutant`;
   pollutant **None** is not a value of it: it turns monitors off (URL `?pollutant=none`,
   `src/lib/options/pollutant-param.ts`). The `?pollutant=` sync lives in `MonitorMapLayout`.
 - `src/lib/options/plugin-order.ts` holds `DRAW_ORDER` (bottom to top: `wind`, `hms-smoke`,

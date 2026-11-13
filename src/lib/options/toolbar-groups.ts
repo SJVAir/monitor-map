@@ -7,7 +7,6 @@ import type {
 	OptionValues
 } from "@sjvair/map-sdk";
 import type { MonitorsMeta } from "@sjvair/sdk";
-import { toolbarDefaults } from "./option-values.svelte";
 import { asPollutant } from "./pollutant-param";
 
 export interface ToolbarIcons {
@@ -77,6 +76,8 @@ export function buildToolbar(input: {
 		}
 	});
 
+	// monitor-map's own rows; the presets default theirs.
+	const layersDefaults: OptionValues = { evStations: false, "ev:lvl2": true, "ev:lvl3": true };
 	const layers: OptionGroup = {
 		id: "layers",
 		label: input.layersLabel,
@@ -96,6 +97,7 @@ export function buildToolbar(input: {
 			}
 		]
 	};
+	const overlaysDefaults: OptionValues = { wind: false };
 	const overlays: OptionGroup = {
 		id: "overlays",
 		label: input.overlaysLabel,
@@ -105,7 +107,13 @@ export function buildToolbar(input: {
 		rows: [{ kind: "checkbox", id: "wind", label: "Wind", icon: icons.wind }]
 	};
 
-	const defaults = toolbarDefaults({ ...monitors.defaults, ...hms.defaults, ...settings.defaults });
+	const defaults: OptionValues = {
+		...monitors.defaults,
+		...hms.defaults,
+		...settings.defaults,
+		...layersDefaults,
+		...overlaysDefaults
+	};
 	// Before the metadata loads, Reset leaves the pollutant as it is.
 	if (pollutants.length === 0) delete defaults.pollutant;
 

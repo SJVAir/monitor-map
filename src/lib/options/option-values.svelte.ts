@@ -12,26 +12,9 @@ export const mapOptions: OptionValues = $state({});
 /** Whether the monitors plugin is on; pollutant "none" turns it off. */
 export const monitorsDisplay: { monitorsOn: boolean } = $state({ monitorsOn: true });
 
-export const MONITOR_MAP_DEFAULTS: OptionValues = {
-	inactive: false,
-	inside: false,
-	collocationSites: false,
-	clustered: true,
-	fireAndSmoke: true,
-	evStations: false,
-	"ev:lvl2": true,
-	"ev:lvl3": true,
-	wind: false
-};
-
 /** A monitor type is on unless its value is explicitly false. */
 export function typeOn(values: OptionValues, type: string): boolean {
 	return values["type:" + type] !== false;
-}
-
-/** The preset's defaults with monitor-map's own table winning. */
-export function toolbarDefaults(presetDefaults: OptionValues): OptionValues {
-	return { ...presetDefaults, ...MONITOR_MAP_DEFAULTS };
 }
 
 /**

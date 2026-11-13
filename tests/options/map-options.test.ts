@@ -8,6 +8,8 @@ beforeEach(async () => {
 	m = await import("$lib/options/option-values.svelte");
 });
 
+const DEFAULTS = { wind: false, clustered: true, "ev:lvl2": true };
+
 function targets() {
 	return { manager: { setPollutant: vi.fn() }, basemap: { select: vi.fn() } };
 }
@@ -19,21 +21,10 @@ describe("typeOn", () => {
 	});
 });
 
-describe("toolbarDefaults", () => {
-	it("lets monitor-map's table win over the preset", () => {
-		expect(m.toolbarDefaults({ inactive: true, "type:airnow": true, pollutant: "pm25" })).toEqual({
-			"type:airnow": true,
-			pollutant: "pm25",
-			...m.MONITOR_MAP_DEFAULTS
-		});
-		expect(m.toolbarDefaults({ inactive: true }).inactive).toBe(false);
-	});
-});
-
 describe("initMapOptions", () => {
 	it("fills missing keys and keeps existing values", () => {
 		m.mapOptions.wind = true;
-		m.initMapOptions(m.MONITOR_MAP_DEFAULTS);
+		m.initMapOptions(DEFAULTS);
 		expect(m.mapOptions.wind).toBe(true);
 		expect(m.mapOptions.clustered).toBe(true);
 	});
@@ -73,9 +64,9 @@ describe("applyOptionChange", () => {
 
 	it("writes every key of a reset-shaped change", () => {
 		const t = targets();
-		const next = { ...m.MONITOR_MAP_DEFAULTS, basemap: "streets", pollutant: "pm25" };
+		const next = { ...DEFAULTS, basemap: "streets", pollutant: "pm25" };
 		m.applyOptionChange(next, Object.keys(next), t);
-		for (const [key, value] of Object.entries(m.MONITOR_MAP_DEFAULTS)) {
+		for (const [key, value] of Object.entries(DEFAULTS)) {
 			expect(m.mapOptions[key]).toBe(value);
 		}
 		expect(m.mapOptions.basemap).toBe("streets");

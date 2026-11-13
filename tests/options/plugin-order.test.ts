@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { beforeId, DRAW_ORDER, wantedPlugins } from "$lib/options/plugin-order";
 import type { OptionValues } from "@sjvair/map-sdk";
-import { MONITOR_MAP_DEFAULTS } from "$lib/options/option-values.svelte.js";
+
+// The toolbar's defaults (map-sdk's presets plus monitor-map's rows), as a fixture.
+const DEFAULTS: OptionValues = {
+	inactive: false,
+	inside: false,
+	collocationSites: false,
+	clustered: true,
+	fireAndSmoke: true,
+	evStations: false,
+	"ev:lvl2": true,
+	"ev:lvl3": true,
+	wind: false
+};
 
 function options(overrides: OptionValues = {}): OptionValues {
-	return { ...MONITOR_MAP_DEFAULTS, ...overrides };
+	return { ...DEFAULTS, ...overrides };
 }
 
 describe("DRAW_ORDER", () => {

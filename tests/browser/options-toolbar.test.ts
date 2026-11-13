@@ -3,11 +3,7 @@ import { render } from "vitest-browser-svelte";
 import { page } from "vitest/browser";
 import type { OptionValues } from "@sjvair/map-sdk";
 import "../../src/app.css";
-import {
-	mapOptions,
-	MONITOR_MAP_DEFAULTS,
-	monitorsDisplay
-} from "$lib/options/option-values.svelte.js";
+import { mapOptions, monitorsDisplay } from "$lib/options/option-values.svelte.js";
 import ToolbarHarness from "./ToolbarHarness.svelte";
 
 beforeEach(async () => {
@@ -94,7 +90,17 @@ describe("monitor-map's options toolbar", () => {
 		onchanged.mockClear();
 		await screen.getByRole("button", { name: "mapsdk_options_reset" }).click();
 		expect(onchanged).toHaveBeenCalledTimes(1);
-		expect(mapOptions).toMatchObject(MONITOR_MAP_DEFAULTS);
+		expect(mapOptions).toMatchObject({
+			inactive: false,
+			inside: false,
+			collocationSites: false,
+			clustered: true,
+			fireAndSmoke: true,
+			evStations: false,
+			"ev:lvl2": true,
+			"ev:lvl3": true,
+			wind: false
+		});
 		expect(mapOptions["type:purpleair"]).toBe(true);
 		expect(mapOptions["type:airnow"]).toBe(true);
 	});

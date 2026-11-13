@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { MonitorsOptions, MonitorsOptionsInput, OptionsPreset } from "@sjvair/map-sdk";
 import type { MonitorsMeta } from "@sjvair/sdk";
 import {
 	buildToolbar,
@@ -7,28 +6,36 @@ import {
 	monitorTypes,
 	type ToolbarIcons
 } from "$lib/options/toolbar-groups";
-import { MONITOR_MAP_DEFAULTS } from "$lib/options/option-values.svelte";
+import type {
+	MonitorsOptions,
+	MonitorsOptionsInput,
+	OptionCheckbox,
+	OptionsPreset
+} from "@sjvair/map-sdk";
 
-const icon = { svg: "<svg/>" };
-const icons: ToolbarIcons = {
-	monitors: icon,
-	pm25: icon,
-	o3: icon,
-	none: icon,
-	collocation: icon,
-	layers: icon,
-	fireAndSmoke: icon,
-	evStations: icon,
-	overlays: icon,
-	wind: icon,
-	settings: icon,
-	clusters: icon,
-	basemap: icon,
-	theme: icon,
-	reset: icon,
-	evLevel2: icon,
-	evLevel3: icon
-};
+// A distinct icon per key, so a test can tell which one landed where.
+const iconKeys = [
+	"monitors",
+	"pm25",
+	"o3",
+	"none",
+	"collocation",
+	"layers",
+	"fireAndSmoke",
+	"evStations",
+	"overlays",
+	"wind",
+	"settings",
+	"clusters",
+	"basemap",
+	"theme",
+	"reset",
+	"evLevel2",
+	"evLevel3"
+] as const;
+const icons = Object.fromEntries(
+	iconKeys.map((k) => [k, { svg: `<svg data-icon="${k}"/>` }])
+) as unknown as ToolbarIcons;
 
 const labels = {
 	purpleair: "PurpleAir",
@@ -149,16 +156,58 @@ describe("buildToolbar", () => {
 		expect(layers.rows[0]).toBe(hms.row);
 	});
 
-	it("nests the EV levels under EV Chargers", () => {
-		const layers = build(meta).toolbar.groups[2];
-		const ev = layers.rows[1];
-		expect(ev.kind === "checkbox" && ev.children?.map((c) => c.id)).toEqual(["ev:lvl2", "ev:lvl3"]);
+	it("passes the monitors icons", () => {
+		const { calls } = build(meta);
+		expect(calls[0].icons).toEqual({
+			monitors: icons.monitors,
+			pollutant: { pm25: icons.pm25, o3: icons.o3 },
+			none: icons.none,
+			collocation: icons.collocation
+		});
 	});
 
-	it("includes monitor-map's defaults and the preset's", () => {
+	it("labels the Layers and Overlays groups with the labels passed, and their icons", () => {
+		const [, , layers, overlays] = build(meta).toolbar.groups;
+		expect(layers.label).toBe("Layers");
+		expect(layers.icon).toBe(icons.layers);
+		expect(overlays.label).toBe("Overlays");
+		expect(overlays.icon).toBe(icons.overlays);
+	});
+
+	it("puts Fire & Smoke, then EV Chargers with its levels, in Layers", () => {
+		const layers = build(meta).toolbar.groups[2];
+		expect(layers.rows).toHaveLength(2);
+		const ev = layers.rows[1] as OptionCheckbox;
+		expect(ev).toMatchObject({
+			kind: "checkbox",
+			id: "evStations",
+			label: "EV Chargers",
+			icon: icons.evStations
+		});
+		expect(ev.children).toEqual([
+			{ kind: "checkbox", id: "ev:lvl2", label: "Level 2", icon: icons.evLevel2 },
+			{ kind: "checkbox", id: "ev:lvl3", label: "Level 3", icon: icons.evLevel3 }
+		]);
+	});
+
+	it("puts Wind in Overlays", () => {
+		const overlays = build(meta).toolbar.groups[3];
+		expect(overlays.rows).toEqual([
+			{ kind: "checkbox", id: "wind", label: "Wind", icon: icons.wind }
+		]);
+	});
+
+	it("adds monitor-map's rows' defaults to the presets'", () => {
 		const { defaults } = build(meta).toolbar;
-		expect(defaults).toMatchObject(MONITOR_MAP_DEFAULTS);
-		expect(defaults.pollutant).toBe("pm25");
-		expect(defaults["type:airnow"]).toBe(true);
+		expect(defaults).toEqual({
+			pollutant: "pm25",
+			"type:airnow": true,
+			fireAndSmoke: true,
+			basemap: "streets",
+			evStations: false,
+			"ev:lvl2": true,
+			"ev:lvl3": true,
+			wind: false
+		});
 	});
 });
