@@ -32,7 +32,12 @@
 	import LayersMenu from "$lib/options/menus/LayersMenu.svelte";
 	import OverlaysMenu from "$lib/options/menus/OverlaysMenu.svelte";
 	import SettingsMenu from "$lib/options/menus/SettingsMenu.svelte";
-	import { mapOptions } from "$lib/options/map-options.svelte.js";
+	import {
+		initMapOptions,
+		mapOptions,
+		MONITOR_MAP_DEFAULTS,
+		monitorsDisplay
+	} from "$lib/options/option-values.svelte.js";
 	import { wantedPlugins } from "$lib/options/plugin-order";
 	import {
 		applyPollutantSelection,
@@ -48,6 +53,8 @@
 
 	let { children }: Props = $props();
 
+	initMapOptions(MONITOR_MAP_DEFAULTS);
+
 	const { route, navigate, basePath } = useMonitorMapRouter();
 
 	// The map's state lives as long as this layout; MapView attaches the GL map when it mounts.
@@ -56,7 +63,7 @@
 	// "?pollutant=none" must turn monitors off before the effects below first run, so the
 	// state->URL effect never sees monitors on and overwrites the param.
 	if (parsePollutantParam(route.search.pollutant) === "none") {
-		mapOptions.monitorsOn = false;
+		monitorsDisplay.monitorsOn = false;
 	}
 
 	// The load screen stays up until the monitors load, so a failure has to be shown on it.
@@ -80,7 +87,7 @@
 	const evStore = createEvStore();
 	const evPopups = stationPopups(map);
 	$effect(() => {
-		const wanted = wantedPlugins(mapOptions, monitorsManager.pollutant);
+		const wanted = wantedPlugins(mapOptions, monitorsDisplay.monitorsOn, monitorsManager.pollutant);
 		for (const [key, level] of [
 			["ev-l2", "lvl2"],
 			["ev-l3", "lvl3"]
@@ -93,7 +100,7 @@
 	// plugin is built, so a change rebuilds it.
 	syncPlugins(
 		map,
-		() => wantedPlugins(mapOptions, monitorsManager.pollutant),
+		() => wantedPlugins(mapOptions, monitorsDisplay.monitorsOn, monitorsManager.pollutant),
 		{
 			monitors: () => ({
 				plugin: monitorsPlugin({
@@ -102,7 +109,7 @@
 					layerLabel: "Monitors",
 					selectable: true,
 					selectedStyle: "enlarge",
-					clustered: mapOptions.clustered
+					clustered: mapOptions.clustered === true
 				}),
 				// A removed plugin forgets its mode and selection, so each add passes them again.
 				options: {
@@ -111,39 +118,43 @@
 				}
 			}),
 			"ev-l2": () =>
-				evPlugin("lvl2", evStore.dataSource("lvl2"), { clustered: mapOptions.clustered }),
+				evPlugin("lvl2", evStore.dataSource("lvl2"), { clustered: mapOptions.clustered === true }),
 			"ev-l3": () =>
-				evPlugin("lvl3", evStore.dataSource("lvl3"), { clustered: mapOptions.clustered })
+				evPlugin("lvl3", evStore.dataSource("lvl3"), { clustered: mapOptions.clustered === true })
 		},
-		() => mapOptions.clustered
+		() => mapOptions.clustered === true
 	);
 
 	// Wind, Fire & Smoke and collocation sites take no build-time option, so they sit in their own call
 	// without `deps`: a Marker Clusters change rebuilds only the monitors above. DRAW_ORDER still
 	// holds across the two calls because `syncPlugins` reads `map.plugins` (every plugin on the
 	// map, whichever call added it) to find the plugin to add before.
-	syncPlugins(map, () => wantedPlugins(mapOptions, monitorsManager.pollutant), {
-		wind: () => windPlugin(),
-		"hms-smoke": () =>
-			hmsSmokePlugin({
-				id: "hms-smoke",
-				source: hmsSmokeStore.dataSource,
-				layerLabel: "Smoke"
-			}),
-		"hms-fire": () =>
-			hmsFirePlugin({
-				id: "hms-fire",
-				source: hmsFireStore.groups,
-				hotspots: hmsFireStore.hotspots,
-				layerLabel: "Fires"
-			}),
-		"collocation-sites": () =>
-			collocationSitesPlugin({
-				id: "collocation-sites",
-				source: collocationSitesStore.dataSource,
-				layerLabel: "Collocation sites"
-			})
-	});
+	syncPlugins(
+		map,
+		() => wantedPlugins(mapOptions, monitorsDisplay.monitorsOn, monitorsManager.pollutant),
+		{
+			wind: () => windPlugin(),
+			"hms-smoke": () =>
+				hmsSmokePlugin({
+					id: "hms-smoke",
+					source: hmsSmokeStore.dataSource,
+					layerLabel: "Smoke"
+				}),
+			"hms-fire": () =>
+				hmsFirePlugin({
+					id: "hms-fire",
+					source: hmsFireStore.groups,
+					hotspots: hmsFireStore.hotspots,
+					layerLabel: "Fires"
+				}),
+			"collocation-sites": () =>
+				collocationSitesPlugin({
+					id: "collocation-sites",
+					source: collocationSitesStore.dataSource,
+					layerLabel: "Collocation sites"
+				})
+		}
+	);
 
 	// Keep the Pollutant menu's selection (pm25 / o3 / none) and the "pollutant" URL param in
 	// sync, both directions. init() only seeds the pollutant on the store's first-ever
@@ -156,15 +167,15 @@
 		// state here would make a UI-driven change re-trigger this effect before the effect below
 		// syncs the URL, so it would see the stale URL and revert the user's change.
 		untrack(() => {
-			if (currentSelection(monitorsManager.pollutant, mapOptions.monitorsOn) !== selection) {
-				applyPollutantSelection(selection, { manager: monitorsManager, options: mapOptions });
+			if (currentSelection(monitorsManager.pollutant, monitorsDisplay.monitorsOn) !== selection) {
+				applyPollutantSelection(selection, { manager: monitorsManager, options: monitorsDisplay });
 			}
 		});
 	});
 
 	// ...and the reverse: reflect UI-driven changes back to the URL.
 	$effect(() => {
-		const selection = currentSelection(monitorsManager.pollutant, mapOptions.monitorsOn);
+		const selection = currentSelection(monitorsManager.pollutant, monitorsDisplay.monitorsOn);
 		if (selection && searchParams.get("pollutant") !== selection) {
 			searchParams.set("pollutant", selection);
 		}
