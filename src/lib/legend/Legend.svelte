@@ -49,7 +49,7 @@
 	<!-- Capped by its container (below the options toolbar) and a fixed maximum; the scales
 	     scroll while the header stays in view. -->
 	<div
-		class="pointer-events-auto flex max-h-[min(100%,28rem)] w-84 max-w-[calc(100vw-2rem)] flex-col rounded-md bg-white shadow"
+		class="pointer-events-auto flex max-h-[min(100%,28rem)] w-84 max-w-[calc(var(--mapsdk-map-width,100vw)-1rem-3rem-8px)] flex-col rounded-md bg-white shadow"
 	>
 		<button
 			type="button"

@@ -123,3 +123,25 @@ it("scrolls its scales instead of growing past its container", async () => {
 	expect(body.scrollHeight).toBeGreaterThan(body.clientHeight);
 	await expect.element(header).toBeVisible();
 });
+
+describe("card width inside the map's box", () => {
+	async function cardIn(mapWidth: number) {
+		await page.viewport(1440, 800);
+		const screen = await render(Legend, { map: fakeMap(true) });
+		const host = screen.container as HTMLElement;
+		host.style.cssText = `position: relative; width: ${mapWidth}px; padding-left: 16px; --mapsdk-map-width: ${mapWidth}px`;
+		const card = screen.getByRole("button", { name: "Legend" }).element().parentElement!;
+		return card;
+	}
+
+	it("leaves the map controls' column clear in a narrow map", async () => {
+		const card = await cardIn(390);
+		// 10px margin + 29px buttons, plus an 8px gap.
+		await expect.poll(() => card.getBoundingClientRect().right).toBeLessThanOrEqual(390 - 39 - 8);
+	});
+
+	it("keeps its 336px width in a wide map", async () => {
+		const card = await cardIn(1440);
+		await expect.poll(() => card.getBoundingClientRect().width).toBe(336);
+	});
+});

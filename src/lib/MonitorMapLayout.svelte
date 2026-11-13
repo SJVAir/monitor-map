@@ -328,7 +328,7 @@
 	{#snippet overlays()}
 		<!-- From below the options toolbar to the bottom, so the legend never covers it. -->
 		<div
-			class="pointer-events-none absolute top-18 bottom-4 left-4 z-10 flex flex-col justify-end md:top-32"
+			class="pointer-events-none absolute top-[calc(var(--mapsdk-toolbar-height,0px)+1rem)] bottom-4 left-4 z-10 flex flex-col justify-end"
 		>
 			<Legend {map} {panelOpen} />
 		</div>
