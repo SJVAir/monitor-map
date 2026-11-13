@@ -135,6 +135,7 @@ A host that sets `USER` once, before the map loads, needs nothing else. A host t
 while the map is showing (replacing the object or editing a field) calls
 `monitorMapUserChanged()` afterwards, from `@sjvair/monitor-map` or `/core`, and an open panel
 updates: the control disappears on logout, and appears or reloads on login or a user switch.
+Call it from an event handler or an effect, never inside a `$derived`: it writes `$state`.
 
 ```ts
 import { monitorMapUserChanged } from "@sjvair/monitor-map/core";
