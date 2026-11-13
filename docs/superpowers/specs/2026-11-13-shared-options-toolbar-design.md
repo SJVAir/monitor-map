@@ -31,7 +31,7 @@ below are the ones the user has decided.
 - **The toolbar's wide/narrow switch follows the map's mount point, not the map** (the user,
   2026-11-13). Today monitor-map switches on the window (Tailwind `md`); map-sdk's toolbar switches
   on the map's own box (48rem), so a monitor panel opening (the map shrinks to 2/3) would turn the
-  row into the options button on windows from about 1024 to 1150 px. The user chose a map-sdk
+  row into the options button on windows from 768 px (48rem) to about 1150 px. The user chose a map-sdk
   change over accepting that: the host marks the box that holds the whole map (for monitor-map,
   `MapShell`'s outer box: map plus detail panel), and the switch measures that box. The box doesn't
   shrink when the panel opens, so the toolbar keeps today's behaviour (a wide row, wrapping as it
@@ -135,7 +135,7 @@ miss to finish before the mobile beta, not merged as an open question.
 
 ### The values
 
-`src/lib/options/map-options.svelte.ts` holds one module-level `$state` record (`OptionValues`), so
+`src/lib/options/option-values.svelte.ts` (replacing `map-options.svelte.ts`) holds one module-level `$state` record (`OptionValues`), so
 the options survive the layout remounting as today. Its keys:
 
 | Key | Row | Default |
