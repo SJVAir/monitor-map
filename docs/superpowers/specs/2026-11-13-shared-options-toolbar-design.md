@@ -1,7 +1,7 @@
 # monitor-map 5.0 on map-sdk's shared options toolbar
 
 Date: 2026-11-13
-Target release: 5.0.0 (mobile tries it through a `5.0.0-beta.2` on npm `next`, if the user says yes)
+Target release: 5.0.0 (betas on npm `next`; each release is the user's yes)
 Base branch: `release/5.0.0` (ab4c488). Work on `feat/shared-options-toolbar`, PR into
 `release/5.0.0`. `main` is not touched until go-live day; `.worktrees/5.0-design` is never touched.
 
@@ -131,7 +131,7 @@ decision moves: dropdowns and the panel still stay inside the map's box, and
 Sequencing: everything else builds on `@sjvair/map-sdk` `0.1.0-beta.13`. The last step re-pins to
 the map-sdk beta that has the layout root and puts it on `MapShell`'s outer box; it lands before
 this PR merges. If map-sdk isn't ready by then, it's recorded in data-dashboard `DEFERRED.md` as a
-miss to finish before the mobile beta, not merged as an open question.
+miss to finish before monitor-map's next npm beta, not merged as an open question.
 
 ### The values
 
@@ -244,7 +244,7 @@ still has a caller). `row-icons.ts` keeps the EV level icons. Their tests go or 
   `Scale` fields, `defaultBasemaps`, `map.basemap.select`'s fallback, the extra `role="status"`
   element in tests).
 - `@sjvair/sdk` dev `5.0.0-beta.3` → `5.0.0-beta.10`, exact; peer `^5.0.0-beta.10`.
-- `package.json` version `5.0.0-beta.2` for the mobile beta (the release itself is the user's yes).
+- `package.json` version `5.0.0-beta.2` (the release itself is the user's yes).
 - `.`, `./core`, `./routes`: same exports. `npm run test:bundle` passes unchanged.
 
 ## Testing
@@ -262,17 +262,11 @@ still has a caller). `row-icons.ts` keeps the EV level icons. Their tests go or 
 - Scripted look at 1440, 1024 and 390 px against the local stack (headless Chrome, as in the
   comparison script): touch on the narrow panel, Esc returns focus, reduced motion has no slide.
 
-## What mobile must change (a later mobile session; mobile is read-only here)
+## For hosts
 
-- Re-pin `@sjvair/monitor-map` to the new beta and `@sjvair/sdk` to `5.0.0-beta.10` (from
-  `5.0.0-beta.7`), exactly. It needs the local stack or the deployed `develop` server
-  (`monitor_groups`).
-- Tailwind: the existing `@source "../node_modules/@sjvair/map-sdk/dist";` and
-  `@import "@sjvair/map-sdk/theme.css";` cover the toolbar; check its token CSS defines every token
-  map-sdk's toolbar reads.
-- No code change for `/core` or `/routes`. The layout root sits inside monitor-map's `MapShell`,
-  so on a phone the toolbar switches on the screen width, as today. Re-test the map tab at phone width: the options button,
-  the panel, a monitor panel opening, subscribing from the map.
+- Breaking: the `@sjvair/sdk` peer range rises to `^5.0.0-beta.10`.
+- monitor-map needs a server whose monitors metadata has `monitor_groups`.
+- `.`, `./core` and `./routes` keep their exports; hosts change no code.
 
 ## Docs and deferrals
 
