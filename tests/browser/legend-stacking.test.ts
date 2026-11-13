@@ -91,8 +91,30 @@ it("paints the narrow options panel above the legend", async () => {
 	const overlay = legend().closest<HTMLElement>("[inert]");
 	expect(overlay).not.toBeNull();
 	overlay!.inert = false;
-	const hit = hitWhereTheyOverlap(panel()!, legend());
-	overlay!.inert = true;
+	let hit: Element | null;
+	try {
+		hit = hitWhereTheyOverlap(panel()!, legend());
+	} finally {
+		overlay!.inert = true;
+	}
 	expect(legend().contains(hit)).toBe(false);
 	expect(panel()!.contains(hit)).toBe(true);
+});
+
+it("starts the legend 16px below the toolbar", async () => {
+	const { container, legend } = await setup();
+	const root = container.querySelector<HTMLElement>(".mapsdk-map")!;
+	// LegendOverlay's box: the legend card's nearest ancestor offset by the toolbar's height.
+	const overlay = () => {
+		let el = legend().parentElement;
+		while (el && !el.className.includes("--mapsdk-toolbar-height")) el = el.parentElement;
+		return el;
+	};
+	const toolbarHeight = () =>
+		parseFloat(getComputedStyle(root).getPropertyValue("--mapsdk-toolbar-height")) || 0;
+	await expect.poll(toolbarHeight).toBeGreaterThan(0);
+	expect(overlay()).not.toBeNull();
+	await expect
+		.poll(() => overlay()!.getBoundingClientRect().top - root.getBoundingClientRect().top)
+		.toBe(toolbarHeight() + 16);
 });
