@@ -64,12 +64,12 @@ const LEGEND_SAME =
 	"Level labels and outlined swatches are accessibility additions. Section titles: see the Legend pair.";
 const LABELS = {
 	load: {
-		label: "question",
-		note: `Attribution: 5.0 adds "NOAA Hazard Mapping System | SJVAir sensors, AirNow, AQview, AQLite" with underlined links, and on phones starts folded behind an (i) button (@sjvair/map-sdk 0.1.0-beta.15); 4.3 shows only MapTiler/OSM text and the MapTiler logo bottom-left.`
+		label: "same",
+		note: `Attribution: 5.0 adds "NOAA Hazard Mapping System | SJVAir sensors, AirNow, AQview, AQLite" with underlined links, and on phones starts folded behind an (i) button (@sjvair/map-sdk 0.1.0-beta.15); 4.3 shows only MapTiler/OSM text and the MapTiler logo bottom-left (decided: keep 5.0).`
 	},
 	legend: {
-		label: "question",
-		note: 'Section titles differ: 5.0 "Fires" and "Smoke", 4.3 "Fire" and "Smoke Density". Also: level labels and outlined swatches (accessibility additions).'
+		label: "same",
+		note: 'Section titles differ: 5.0 "Fires" and "Smoke", 4.3 "Fire" and "Smoke Density" (decided: keep 5.0). Also: level labels and outlined swatches (accessibility additions).'
 	},
 	"legend-pm25": {
 		label: "same",
