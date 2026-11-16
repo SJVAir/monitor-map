@@ -16,9 +16,9 @@
 		"not-data-selected:hover:bg-accent/50 not-data-selected:hover:text-accent-foreground",
 		"[&[data-today]:not([data-selected])]:bg-accent [&[data-today]:not([data-selected])]:text-accent-foreground [&[data-today][data-disabled]]:text-muted-foreground data-[range-middle]:rounded-none",
 		// range Start
-		"data-[range-start]:bg-primary data-[range-start]:text-primary-foreground data-[range-start]:hover:text-foreground",
+		"data-[range-start]:bg-brand-strong data-[range-start]:text-primary-foreground data-[range-start]:hover:text-foreground",
 		// range End
-		"data-[range-end]:bg-primary data-[range-end]:text-primary-foreground data-[range-end]:hover:text-foreground",
+		"data-[range-end]:bg-brand-strong data-[range-end]:text-primary-foreground data-[range-end]:hover:text-foreground",
 		// Outside months
 		"[&[data-outside-month]:not([data-selected])]:text-muted-foreground [&[data-outside-month]:not([data-selected])]:hover:text-accent-foreground",
 		// Disabled
