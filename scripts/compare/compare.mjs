@@ -65,15 +65,15 @@ const LEGEND_SAME =
 const LABELS = {
 	load: {
 		label: "question",
-		note: `Attribution: 5.0 adds "NOAA Hazard Mapping System | SJVAir sensors, AirNow, AQview, AQLite" with underlined links, and on phones folds it behind an (i) button; 4.3 shows only MapTiler/OSM text and the MapTiler logo bottom-left.`
+		note: `Attribution: 5.0 adds "NOAA Hazard Mapping System | SJVAir sensors, AirNow, AQview, AQLite" with underlined links, and on phones starts folded behind an (i) button (@sjvair/map-sdk 0.1.0-beta.15); 4.3 shows only MapTiler/OSM text and the MapTiler logo bottom-left.`
 	},
 	legend: {
 		label: "question",
-		note: 'Section titles differ: 5.0 "Fires" and "Smoke", 4.3 "Fire" and "Smoke Density". Also: level labels and outlined swatches (accessibility additions), and 5.0 lists "Very Hazardous" for ozone.'
+		note: 'Section titles differ: 5.0 "Fires" and "Smoke", 4.3 "Fire" and "Smoke Density". Also: level labels and outlined swatches (accessibility additions).'
 	},
 	"legend-pm25": {
 		label: "same",
-		note: `One card now (no nested box). ${LEGEND_SAME}`
+		note: `One card now (no nested box). PM2.5 is the default on both now, so this repeats the Legend pair. ${LEGEND_SAME}`
 	},
 	"legend-ev": {
 		label: "same",
@@ -84,25 +84,31 @@ const LABELS = {
 	"menu-pollutant": { label: "same", note: "" },
 	"menu-monitors": {
 		label: "same",
-		note: `Ozone hides the types that don't report it on both.`
+		note: '5.0 lists only the types that report the pollutant shown, from server metadata, so VOZbox is gone for PM2.5 (4.3 lists it). "BAM 1022" where 4.3 says "SJVAir" (decided, #134).'
 	},
-	"menu-monitors-pm25": { label: "same", note: "Collocation Sites shows for PM2.5." },
-	"menu-layers": { label: "same", note: "" },
+	"menu-monitors-pm25": {
+		label: "same",
+		note: "Collocation Sites shows for PM2.5. PM2.5 is the default on both now, so this repeats Monitors menu."
+	},
+	"menu-layers": {
+		label: "same",
+		note: "EV Chargers shows its chevron while off (@sjvair/map-sdk 0.1.0-beta.15)."
+	},
 	"menu-layers-ev": { label: "same", note: "EV Chargers expanded with Level 2 and Level 3." },
 	"menu-overlays": { label: "same", note: "" },
 	"menu-settings": { label: "same", note: "" },
 	"options-panel@phone": { label: "same", note: "" },
 	"map-pm25": {
 		label: "fix",
-		note: "Cluster averages ignore monitors without a reading, and no-reading monitors keep their shape in neutral; values differ (local vs production data)."
+		note: "Cluster averages ignore monitors without a reading, and no-reading monitors keep their shape in neutral; values differ (local vs production data). PM2.5 is the default on both now, so this repeats the load pair."
 	},
 	"tip-monitor": {
 		label: "same",
-		note: 'Date matches 4.3 minus its stray colon, in Pacific time ("12:29 pm Sunday Nov 08, 2026" vs "12:31:pm …"; map-sdk beta.4). 5.0 keeps its own style: the level name under the name, larger text (decided 2026-11-07).'
+		note: 'Date matches 4.3 minus its stray colon, in Pacific time ("h:mm pm" vs "h:mm:pm"; @sjvair/map-sdk 0.1.0-beta.4). 5.0 keeps its own style: the level name under the name, larger text (decided 2026-11-07).'
 	},
 	"tip-cluster": {
 		label: "same",
-		note: 'Area line is back (map-sdk beta.4): "3 monitors within a 22.619 mi² area", the same area as 4.3\'s "3 monitors covering 22.619mi²". 5.0 keeps the level name and larger text (decided 2026-11-07). Clusters of 4+ may show a different area (convex hull), as expected. Max/min differ on phones only because local and production readings differ.'
+		note: 'Area line is back (@sjvair/map-sdk 0.1.0-beta.4): "3 monitors within a 22.619 mi² area", the same area as 4.3\'s "3 monitors covering 22.619mi²". 5.0 keeps the level name and larger text (decided 2026-11-07). Clusters of 4+ may show a different area (convex hull), as expected. Max/min differ on phones only because local and production readings differ.'
 	},
 	collocation: {
 		label: "same",
@@ -110,33 +116,33 @@ const LABELS = {
 	},
 	"tip-collocation": {
 		label: "same",
-		note: "Both show the site tooltip over the monitor cluster (beta.2 fix). Different sites were hovered (the pointer lands on whichever site is near the same pixel), and the local stack's readings differ, so the 5.0 tooltip shows No reading / No level and so no date. Its date uses the same formatter as the monitor tooltip (map-sdk beta.4)."
+		note: "Both show the site tooltip over the monitor cluster (@sjvair/map-sdk 0.1.0-beta.2 fix). Different sites were hovered (the pointer lands on whichever site is near the same pixel), and the local stack's readings differ, so the 5.0 tooltip shows No reading / No level and so no date. Its date uses the same formatter as the monitor tooltip (@sjvair/map-sdk 0.1.0-beta.4)."
 	},
 	"tip-smoke": {
 		label: "same",
-		note: "No hover tooltip on either (map-sdk beta.4, decided 2026-11-07). Plumes stay in the keyboard list with their density."
+		note: "No hover tooltip on either (@sjvair/map-sdk 0.1.0-beta.4, decided 2026-11-07). Plumes stay in the keyboard list with their density."
 	},
 	wind: { label: "same", note: "Wind layer at 0.5 opacity, drawn lowest." },
 	"theme-default": { label: "same", note: "" },
 	"theme-dark": { label: "same", note: "" },
 	"theme-pastel": { label: "same", note: "" },
-	reset: { label: "same", note: "Back to Streets default, Ozone, defaults." },
+	reset: { label: "same", note: "Back to Streets default, PM2.5, defaults." },
 	"fire-z9": { label: "same", note: "Fire groups below zoom 10." },
 	"fire-z10": {
 		label: "same",
-		note: "Hotspot icon now drawn at zoom 10 on both (map-sdk beta.2). 4.3 shows monitor triangles here that the local stack has no data for."
+		note: "Hotspot icon now drawn at zoom 10 on both (@sjvair/map-sdk 0.1.0-beta.2)."
 	},
 	"tip-fire": {
 		label: "accessibility",
-		note: '5.0 shows the reading box on a hotspot: "Fire (MW)", the power in its level color (0.6), "1 fire detection" and "<10 MW" (map-sdk beta.4, decided 2026-11-07); 4.3 shows no fire tooltip.'
+		note: '5.0 shows the reading box on a hotspot: "Fire (MW)", the power in its level color, "1 fire detection" and "<10 MW" (@sjvair/map-sdk 0.1.0-beta.4, decided 2026-11-07); 4.3 shows no fire tooltip.'
 	},
 	ev: {
 		label: "same",
 		note: "Per-level clusters and icons. Livermore (94550) and Hollister (95023) chargers no longer show in 5.0 (ZIP list fix)."
 	},
 	"tip-ev-cluster": {
-		label: "question",
-		note: "5.0 shows the EV cluster tooltip (Level 3 Chargers, 44 stations); 4.3 shows the monitor cluster's under it. Could not be settled: the local stack has only two Ozone monitors, so 5.0 has no monitor cluster under the EV cluster to compete. The EV tooltip itself matches."
+		label: "same",
+		note: "Where an EV cluster sits over a monitor, 5.0 shows the EV cluster's tooltip and 4.3 the monitor's (decided 2026-11-15: keep 5.0). The EV tooltip itself matches."
 	},
 	"ev-popup": {
 		label: "same",
@@ -145,7 +151,7 @@ const LABELS = {
 	"ev-cluster-click": { label: "same", note: "Click eases to the expansion zoom." },
 	"search-place": {
 		label: "same",
-		note: "Geocode results (shown when no monitor name matches)."
+		note: "Geocode results (shown when no monitor name matches). On phones the field opens beside the options button on both; 5.0 stops short of the zoom controls, 4.3 runs over them (@sjvair/map-sdk 0.1.0-beta.15)."
 	},
 	"search-pin": { label: "same", note: "Pin dropped at the place." },
 	"search-monitor": { label: "same", note: "Monitor result with data-source logo." },
@@ -161,7 +167,7 @@ const LABELS = {
 	},
 	"panel-no-readings": {
 		label: "fix",
-		note: '"Get the widget!" hidden for a monitor with no current readings. The empty county badge is local data.'
+		note: '"Get the widget!" hidden for a monitor with no current readings. 5.0 only in effect: CCAC BAM - Delano is active on sjvair.com, so the 4.3 side shows readings. The empty county badge is in 4.3.0 too (deferred).'
 	},
 	"load-screen": { label: "same", note: "API held back in this browser." },
 	"load-error": { label: "same", note: "API failing in this browser." },
@@ -846,6 +852,13 @@ async function captureViewport(browser, vp) {
 			"ev-cluster-click",
 			"EV cluster clicked (zooms in)",
 			async (p, side, t) => {
+				// Close the station popup left by ev-popup: on desktop it covers the clusters the
+				// map reports, and the click lands on the popup.
+				const close = p.locator("#SJVAirMonitorMap .maplibregl-popup-close-button");
+				if (await close.count()) {
+					await close.first().click();
+					await p.waitForTimeout(400);
+				}
 				if (side === "local") {
 					t.pt = await findFeature(p, {
 						layer: "ev-l[23]:cluster-circle",
