@@ -99,7 +99,7 @@
 <div
 	class={[
 		"flex flex-col overflow-hidden bg-white shadow transition-all duration-300 select-none",
-		collapsed ? "h-10 w-10 rounded-md" : "w-[min(22.5rem,calc(100vw-5.5rem))] rounded-lg",
+		collapsed ? "h-10 w-10 rounded-md" : "w-[22.5rem] max-w-full rounded-lg",
 		!collapsed && results.length ? "max-h-90" : "max-h-10"
 	]}
 	use:clickOutside
