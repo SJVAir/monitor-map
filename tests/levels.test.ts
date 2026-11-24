@@ -13,6 +13,8 @@ const scale: Scale = {
 	averaging_hours: null,
 	daily_statistic: null,
 	daily_statistic_label: null,
+	period_statistic: null,
+	period_statistic_label: null,
 	levels: [
 		{ ...level, key: "good", label: "Good", min: 0, max: 9, color: "#00e400" },
 		{ ...level, key: "moderate", label: "Moderate", min: 9, max: null, color: "#ffff00" }

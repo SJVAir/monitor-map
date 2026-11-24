@@ -42,8 +42,14 @@ if (!OUT_ARG) {
 const OUT = resolve(OUT_ARG);
 const HTML = resolve(arg("html", "COMPARE_HTML", `${OUT}.html`));
 const ONLY = arg("only", "COMPARE_ONLY");
-// A monitor that is inactive on both sides (no current readings): CCAC BAM - Delano.
-const INACTIVE_ID = arg("inactive", "COMPARE_INACTIVE_ID", "RLRxqeEJQLKz49fzDBlt5g");
+// A monitor that is inactive on both sides (no current readings): CCAC BAM - Avenal (2026-11-24;
+// CCAC BAM - Delano, the earlier default, is active on both now).
+const INACTIVE_ID = arg("inactive", "COMPARE_INACTIVE_ID", "GgeFGbo-Tjy3YYQqY0DLyA");
+/** Names for the panel-no-readings note; any other --inactive monitor is named by its id. */
+const INACTIVE_NAMES = {
+	"GgeFGbo-Tjy3YYQqY0DLyA": "CCAC BAM - Avenal",
+	RLRxqeEJQLKz49fzDBlt5g: "CCAC BAM - Delano"
+};
 // A place no monitor name contains: places are searched only when no monitor matches.
 const SEARCH_PLACE = "Lemoore";
 const SEARCH_MONITOR = "Fresno - Garland";
@@ -120,7 +126,7 @@ const LABELS = {
 	},
 	"tip-smoke": {
 		label: "same",
-		note: "No hover tooltip on either (@sjvair/map-sdk 0.1.0-beta.4, decided 2026-11-07). Plumes stay in the keyboard list with their density."
+		note: "No hover tooltip on either (@sjvair/map-sdk 0.1.0-beta.4, decided 2026-11-07). Plumes stay in the keyboard list with their density. Not captured on 2026-11-24: no smoke could be hovered clear of other features; see the 2026-11-15 page."
 	},
 	wind: { label: "same", note: "Wind layer at 0.5 opacity, drawn lowest." },
 	"theme-default": { label: "same", note: "" },
@@ -128,13 +134,17 @@ const LABELS = {
 	"theme-pastel": { label: "same", note: "" },
 	reset: { label: "same", note: "Back to Streets default, PM2.5, defaults." },
 	"fire-z9": { label: "same", note: "Fire groups below zoom 10." },
+	"fire-z9@phone": {
+		label: "same",
+		note: "Fire groups below zoom 10. Not captured on 2026-11-24: no fire hotspot was in the phone view; see the 2026-11-15 page."
+	},
 	"fire-z10": {
 		label: "same",
 		note: "Hotspot icon now drawn at zoom 10 on both (@sjvair/map-sdk 0.1.0-beta.2)."
 	},
 	"tip-fire": {
 		label: "accessibility",
-		note: '5.0 shows the reading box on a hotspot: "Fire (MW)", the power in its level color, "1 fire detection" and "<10 MW" (@sjvair/map-sdk 0.1.0-beta.4, decided 2026-11-07); 4.3 shows no fire tooltip.'
+		note: '5.0 shows the reading box on a hotspot: "Fire (MW)", the power in its level color, "Fire detection" and the power class (e.g. "<10 MW") (@sjvair/map-sdk 0.1.0-beta.4, decided 2026-11-07); 4.3 shows no fire tooltip.'
 	},
 	ev: {
 		label: "same",
@@ -167,7 +177,7 @@ const LABELS = {
 	},
 	"panel-no-readings": {
 		label: "fix",
-		note: '"Get the widget!" hidden for a monitor with no current readings. 5.0 only in effect: CCAC BAM - Delano is active on sjvair.com, so the 4.3 side shows readings. The empty county badge is in 4.3.0 too (deferred).'
+		note: `"Get the widget!" hidden for a monitor with no current readings (${INACTIVE_NAMES[INACTIVE_ID] ?? INACTIVE_ID}, inactive on both sides); 4.3 still shows it. The chart differs because the local stack has no recent data for it ("No Data Available" in 5.0). An empty county badge in 5.0 means the local stack has no county for the monitor; the empty badge is in 4.3.0 too (deferred).`
 	},
 	"load-screen": { label: "same", note: "API held back in this browser." },
 	"load-error": { label: "same", note: "API failing in this browser." },
