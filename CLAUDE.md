@@ -32,7 +32,7 @@ A **Svelte 5 + Vite** app that shows real-time air quality monitor data on an in
 built on **`@sjvair/map-sdk`** (which drives `@maptiler/sdk`) and **`@sjvair/sdk` 5.0** for the
 data. It produces a code-split ES module widget (embedded in a Django HTML template via
 `<div id="SJVAirMonitorMap">`) and exports `src/lib/` as a component library for the Capacitor
-mobile app (`../mobile`). The SDK's dev pin is `5.0.0-beta.10` and its peer range `^5.0.0-beta.10`.
+mobile app (`../mobile`). The SDK's dev pin is `5.0.0-beta.17` and its peer range `^5.0.0-beta.10`.
 
 ### Entry, routing and keys
 
@@ -110,7 +110,7 @@ hosts supply their own tokens.
 
 ### map-sdk
 
-`@sjvair/map-sdk` is the published npm version, pinned exactly (`0.1.0-beta.15`). To try an
+`@sjvair/map-sdk` is the published npm version, pinned exactly (`0.1.0-beta.22`). To try an
 unreleased map-sdk locally, `npm run map-sdk:pack` packs `../map-sdk` into `vendor/` (git-ignored)
 and prints the tarball path to `npm install`; never commit that. `@maptiler/sdk` is pinned
 `~4.2.0` (map-sdk's pin); `npm ls @maptiler/sdk svelte @sjvair/sdk` must show one copy of each. A
