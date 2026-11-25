@@ -156,7 +156,7 @@ const LABELS = {
 	},
 	"ev-popup": {
 		label: "same",
-		note: 'Station popup contents and layout. 5.0 also gives stations a hover tooltip ("Level 2/3 charger"), an accessibility addition; 4.3 had none.'
+		note: 'Station popup contents and layout. 5.0 also gives stations a hover tooltip ("Level 2/3 charger"), an accessibility addition; 4.3 had none. 5.0 paints the popup above the legend; 4.3 draws the legend over its bottom edge.'
 	},
 	"ev-cluster-click": { label: "same", note: "Click eases to the expansion zoom." },
 	"search-place": {
@@ -226,6 +226,8 @@ async function hookMap(page) {
 	await page.mouse.move(r.x + r.width - 40, r.y + r.height / 2);
 	await page.mouse.move(r.x + r.width - 44, r.y + r.height / 2 + 4);
 	await page.waitForFunction(() => !!window.__map, null, { timeout: 10000 });
+	// Those moves can land on a monitor and open its tooltip: leave the pointer somewhere quiet.
+	await parkMouse(page);
 }
 
 /**

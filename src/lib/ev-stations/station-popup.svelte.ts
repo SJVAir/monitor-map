@@ -4,6 +4,13 @@ import { maptilerMap, type MapContext } from "@sjvair/map-sdk";
 import EvPopup from "./EvPopup.svelte";
 import type { EvStation } from "./types";
 
+/**
+ * The popup's class. maplibre appends popups to the map container (MapView's `.mapsdk-gl`), which
+ * the legend overlay follows; a z-index paints the popup above the legend (which has none) and
+ * below map-sdk's list (2), card (3) and toolbar (4).
+ */
+export const STATION_POPUP_CLASS = "z-1";
+
 export interface StationPopups {
 	/** Opens `station`'s popup at `lngLat`, closing any other; it belongs to plugin `pluginId`. */
 	open(pluginId: string, station: EvStation, lngLat: [number, number]): void;
@@ -49,7 +56,12 @@ export function stationPopups(map: MapContext): StationPopups {
 			if (!gl) return;
 			const target = document.createElement("div");
 			const instance = mount(EvPopup, { target, props: { station } });
-			const popup = new Popup({ closeButton: true, closeOnClick: false, maxWidth: "none" })
+			const popup = new Popup({
+				closeButton: true,
+				closeOnClick: false,
+				maxWidth: "none",
+				className: STATION_POPUP_CLASS
+			})
 				.setLngLat(lngLat)
 				.setDOMContent(target);
 			popup.on("close", () => {
