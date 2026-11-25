@@ -1,13 +1,16 @@
 <script lang="ts">
 	import CreditCard from "@lucide/svelte/icons/credit-card";
+	import X from "@lucide/svelte/icons/x";
 	import Zap from "@lucide/svelte/icons/zap";
 	import type { EvStation } from "./types";
 
 	interface Props {
 		station: EvStation;
+		/** The Close button was pressed. */
+		onclose: () => void;
 	}
 
-	const { station }: Props = $props();
+	const { station, onclose }: Props = $props();
 
 	// 4.x's station popup, from the station NREL returned (codes already turned into labels).
 	const computed = $derived.by(() => {
@@ -47,8 +50,17 @@
 	});
 </script>
 
-<div class="flex max-w-xs flex-col gap-2 p-1">
-	<p class="text-center text-lg font-bold">{computed.p.station_name}</p>
+<div class="relative flex max-w-xs flex-col gap-2 p-1">
+	<!-- 24×24 px (WCAG 2.5.8), inset from the edge; the title's side padding keeps it clear. -->
+	<button
+		type="button"
+		class="text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-ring absolute top-1 right-1 flex size-6 items-center justify-center rounded-[var(--radius-control,var(--radius))] focus-visible:outline-2"
+		aria-label="Close"
+		onclick={onclose}
+	>
+		<X class="size-4" aria-hidden="true" />
+	</button>
+	<p class="px-7 text-center text-lg font-bold">{computed.p.station_name}</p>
 
 	{#if computed.p.facility_type || computed.p.ev_network}
 		<div class="flex flex-wrap justify-center gap-2">
