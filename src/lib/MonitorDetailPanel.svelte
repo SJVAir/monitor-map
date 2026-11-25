@@ -168,7 +168,10 @@
 
 				{@render badge("rss-feed", monitor.data_source.name, { href: monitor.data_source.url })}
 				{@render badge("router", monitor.device)}
-				{@render badge("location-on", monitor.county)}
+				<!-- Many monitors (most PurpleAirs) have no county: no empty pill for them. -->
+				{#if monitor.county}
+					{@render badge("location-on", monitor.county)}
+				{/if}
 				{@render badge("location-searching", monitor.location)}
 			</div>
 			{#if pollutantNote}

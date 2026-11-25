@@ -29,3 +29,18 @@ it("shows the options button at 390px", async () => {
 	const { container } = await render(MapShellHarness);
 	await expect.poll(() => openButton(container)).toBeTruthy();
 });
+
+it("keeps the search button on the toolbar's row when the panel narrows the map at 1024px", async () => {
+	await page.viewport(1024, 700);
+	const { container } = await render(MapShellHarness, { withSearch: true });
+	await expect.poll(() => wideTrigger(container)).toBeTruthy();
+	for (let i = 0; i < 4; i++) await new Promise((r) => requestAnimationFrame(r));
+	// The real labels and a 40×40 search button, as in the app: the row must fit the 683px map.
+	const search = container.querySelector<HTMLElement>("[data-search-stand-in]")!;
+	const triggers = [...container.querySelectorAll<HTMLElement>(".mapsdk-options-trigger")];
+	// On the triggers' row, not wrapped below it (the triggers sit 1px lower, inside their cluster's
+	// border).
+	expect(search.getBoundingClientRect().top).toBeLessThan(
+		triggers[0].getBoundingClientRect().bottom
+	);
+});

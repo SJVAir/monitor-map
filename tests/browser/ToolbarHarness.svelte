@@ -6,15 +6,21 @@
 		type OptionValues
 	} from "@sjvair/map-sdk";
 	import type { MonitorsMeta } from "@sjvair/sdk";
+	import en from "@sjvair/map-sdk/messages/en.json";
 	import { createMonitorMapToolbar } from "$lib/options/monitor-map-toolbar.svelte.js";
 	import type { ToolbarIcons } from "$lib/options/toolbar-groups";
 
 	interface Props {
 		/** Called after each change is applied, with what the toolbar passed. */
 		onchanged?: (next: OptionValues, changed: string[]) => void;
+		/** Put a stand-in for monitor-map's collapsed search button (40×40) in the search slot. */
+		withSearch?: boolean;
+		/** map-sdk's English labels, for real widths; without it, labels are the message keys. */
+		english?: boolean;
 	}
 
-	let { onchanged }: Props = $props();
+	let { onchanged, withSearch = false, english = false }: Props = $props();
+	const messages: Record<string, string> = en;
 
 	const icon: OptionIcon = { svg: "<svg></svg>" };
 	const icons = Object.fromEntries(
@@ -54,7 +60,7 @@
 
 	let current = $state("streets");
 	const map = {
-		messages: (key: string) => key,
+		messages: (key: string) => (english ? (messages[key] ?? key) : key),
 		metadata: {
 			scale: () => answer("unavailable"),
 			attribution: () => answer("unavailable"),
@@ -114,4 +120,9 @@
 	{onchange}
 	defaults={toolbar.preset.defaults}
 	basemapKey="basemap"
+	search={withSearch ? searchStandIn : undefined}
 />
+
+{#snippet searchStandIn()}
+	<button type="button" class="size-10" aria-label="Open search" data-search-stand-in></button>
+{/snippet}
