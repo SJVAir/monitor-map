@@ -94,6 +94,8 @@ mobile app (`../mobile`). The SDK's dev pin is `5.0.0-beta.17` and its peer rang
   `src/lib/map/layout.ts` is read only at event time, for behavior that follows the page layout
   (Tailwind `md`). The legend is an overlay (`src/lib/legend/LegendOverlay.svelte`) placed below
   `--mapsdk-toolbar-height`, with no z-index so map-sdk's toolbar, list and card stack above it.
+  The EV station popup (a MapTiler `Popup` in the map container) takes `z-1`
+  (`STATION_POPUP_CLASS`) to paint above the legend and below map-sdk's list, card and toolbar.
 - `MonitorDetailPanel` owns a `MonitorDetailsState` (`monitors/monitor-details.svelte.ts`) that
   fetches its monitor with `getMonitorDetails(id)`. `choosePanelPollutant`
   (`monitors/panel-pollutant.ts`) picks the pollutant shown. Only an active monitor's readings

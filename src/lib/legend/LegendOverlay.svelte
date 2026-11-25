@@ -6,7 +6,8 @@
 </script>
 
 <!-- For MapView's overlays: from below the options toolbar to the bottom, so the legend never
-     covers the bar. No z-index, so map-sdk's toolbar, list and card stack above it. -->
+     covers the bar. No z-index, so map-sdk's toolbar, list and card, and the EV station
+     popup (`STATION_POPUP_CLASS`), stack above it. -->
 <div
 	data-testid="legend-overlay"
 	class="pointer-events-none absolute top-[calc(var(--mapsdk-toolbar-height,0px)+1rem)] bottom-4 left-4 flex flex-col justify-end"

@@ -2,6 +2,7 @@ import { beforeEach, expect, it } from "vitest";
 import { render } from "vitest-browser-svelte";
 import { page } from "vitest/browser";
 import "../../src/app.css";
+import { STATION_POPUP_CLASS } from "../../src/lib/ev-stations/station-popup.svelte.js";
 import LegendStackingHarness from "./LegendStackingHarness.svelte";
 
 // The legend sits in MapView's overlays, which render after map-sdk's toolbar and list. These
@@ -112,4 +113,63 @@ it("starts the legend 16px below the toolbar", async () => {
 	await expect
 		.poll(() => overlay()!.getBoundingClientRect().top - root.getBoundingClientRect().top)
 		.toBeCloseTo(toolbarHeight() + 16, 0);
+});
+
+/**
+ * An EV station popup over the legend, built as maplibre builds one (the real `Popup` needs
+ * WebGL): appended to the map container (MapView's `.mapsdk-gl`), the pointer passing through
+ * `.maplibregl-popup` to its `.maplibregl-popup-content`.
+ */
+function stationPopupOverLegend(container: HTMLElement, legend: HTMLElement): HTMLElement {
+	const gl = container.querySelector<HTMLElement>(".mapsdk-gl");
+	if (!gl) throw new Error("no .mapsdk-gl");
+	const box = legend.getBoundingClientRect();
+	const at = gl.getBoundingClientRect();
+	const popup = document.createElement("div");
+	popup.className = `maplibregl-popup ${STATION_POPUP_CLASS}`;
+	Object.assign(popup.style, {
+		position: "absolute",
+		left: `${box.left - at.left + 20}px`,
+		top: `${box.top - at.top - 40}px`,
+		width: "200px",
+		height: "160px"
+	});
+	const content = document.createElement("div");
+	content.className = "maplibregl-popup-content";
+	Object.assign(content.style, { width: "100%", height: "100%", background: "white" });
+	popup.append(content);
+	gl.append(popup);
+	return popup;
+}
+
+it("paints an EV station popup above the legend", async () => {
+	await page.viewport(390, 700);
+	const { container, legend } = await setup();
+	const popup = stationPopupOverLegend(container, legend());
+
+	const hit = hitWhereTheyOverlap(popup, legend());
+	expect(hit).not.toBeNull();
+	expect(legend().contains(hit)).toBe(false);
+	expect(popup.contains(hit)).toBe(true);
+});
+
+it("keeps an open toolbar dropdown above an EV station popup", async () => {
+	const { container, legend } = await setup();
+	const trigger = () =>
+		Array.from(container.querySelectorAll<HTMLButtonElement>(".mapsdk-options-trigger")).find(
+			(b) => b.textContent?.trim() === "First"
+		);
+	await expect.poll(trigger).toBeTruthy();
+	trigger()!.click();
+	const dropdown = () =>
+		container.querySelector<HTMLElement>(".mapsdk-options-dropdown:not([hidden])");
+	await expect.poll(dropdown).toBeTruthy();
+	const popup = stationPopupOverLegend(container, legend());
+	const d = dropdown()!.getBoundingClientRect();
+	const gl = container.querySelector<HTMLElement>(".mapsdk-gl")!.getBoundingClientRect();
+	Object.assign(popup.style, { left: `${d.left - gl.left}px`, top: `${d.top - gl.top}px` });
+
+	const hit = hitWhereTheyOverlap(dropdown()!, popup);
+	expect(hit).not.toBeNull();
+	expect(dropdown()!.contains(hit)).toBe(true);
 });
