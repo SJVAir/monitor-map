@@ -28,16 +28,25 @@ function freeArea(container: HTMLElement): Edges {
 }
 
 export interface StationPopups {
-	/** Opens `station`'s popup at `lngLat`, closing any other; it belongs to plugin `pluginId`. */
-	open(pluginId: string, station: EvStation, lngLat: [number, number]): void;
+	/**
+	 * Opens `station`'s popup at `lngLat`, closing any other; it belongs to plugin `pluginId`. One a
+	 * tap opened (`touch`) closes on a tap elsewhere; one a click opened stays open, so it can be
+	 * read and used.
+	 */
+	open(
+		pluginId: string,
+		station: EvStation,
+		lngLat: [number, number],
+		gesture: { touch: boolean }
+	): void;
 	close(): void;
 }
 
 /**
- * The EV station popup, 4.x's (a MapTiler `Popup` that a map click leaves open, with its own
- * Close button). One is open at a time; it closes on a basemap switch, when its plugin leaves the map,
- * and when the GL map is replaced. Call it during component setup: its effects live as long as
- * the component.
+ * The EV station popup, 4.x's (a MapTiler `Popup` with its own Close button, which a map click
+ * leaves open; on touch, a tap elsewhere closes it). One is open at a time; it closes on a basemap
+ * switch, when its plugin leaves the map, and when the GL map is replaced. Call it during component
+ * setup: its effects live as long as the component.
  */
 export function stationPopups(map: MapContext): StationPopups {
 	let current: { popup: Popup; pluginId: string } | null = $state.raw(null);
@@ -66,7 +75,7 @@ export function stationPopups(map: MapContext): StationPopups {
 	$effect(() => () => untrack(close));
 
 	return {
-		open(pluginId, station, lngLat) {
+		open(pluginId, station, lngLat, { touch }) {
 			close();
 			const gl = maptilerMap(map);
 			if (!gl) return;
@@ -76,7 +85,7 @@ export function stationPopups(map: MapContext): StationPopups {
 			// no wider than the map, then the map pans just enough to show all of it.
 			const popup = new Popup({
 				closeButton: false,
-				closeOnClick: false,
+				closeOnClick: touch,
 				// Focus moves below, once the popup is measured: maplibre's focus would scroll the map's
 				// container (overflow: hidden) to a Close button out of view.
 				focusAfterOpen: false,
@@ -90,7 +99,8 @@ export function stationPopups(map: MapContext): StationPopups {
 				props: { station, onclose: () => popup.remove() }
 			});
 			popup.setLngLat(lngLat).setDOMContent(target);
-			popup.on("close", () => {
+			// Once: a tap on another station removes this popup, then maplibre's click closes it again.
+			popup.once("close", () => {
 				unmount(instance);
 				if (current?.popup === popup) current = null;
 			});

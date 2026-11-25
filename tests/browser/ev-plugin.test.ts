@@ -36,4 +36,9 @@ describe("evPlugin", () => {
 		const items = evPlugin("lvl3", source("lvl3"), { clustered: false }).features?.() ?? [];
 		expect(items[0].detail).toBe("Level 3 charger");
 	});
+
+	it("leaves no tooltip on a tapped station, whose popup opens instead", () => {
+		expect(evPlugin("lvl2", source("lvl2"), { clustered: true }).tooltipOnTouch).toBe(false);
+		expect(evPlugin("lvl3", source("lvl3"), { clustered: false }).tooltipOnTouch).toBe(false);
+	});
 });
