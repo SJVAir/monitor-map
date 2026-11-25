@@ -119,6 +119,19 @@ describe("MonitorDetailPanel", () => {
 		expect(screen.getByText("This monitor has no current readings.").query()).toBeNull();
 	});
 
+	it("shows the county badge only for a monitor with a county", async () => {
+		detailsMock.mockResolvedValue(monitor({ county: "" }));
+		const screen = await renderPanel();
+		await expect.element(screen.getByText("PA-II")).toBeVisible();
+		expect(screen.container.querySelector(".location-on")).toBeNull();
+		screen.unmount();
+
+		detailsMock.mockResolvedValue(monitor({ county: "Fresno" }));
+		const withCounty = await renderPanel();
+		await expect.element(withCounty.getByText("Fresno")).toBeVisible();
+		expect(withCounty.container.querySelector(".location-on")).not.toBeNull();
+	});
+
 	it("hides the widget link on a short viewport", async () => {
 		await page.viewport(1000, 500);
 		detailsMock.mockResolvedValue(monitor());
