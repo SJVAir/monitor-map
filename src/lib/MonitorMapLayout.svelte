@@ -21,11 +21,11 @@
 		collocationSitesPlugin,
 		hmsFirePlugin,
 		hmsSmokePlugin,
-		monitorsPlugin,
 		OptionsToolbar
 	} from "@sjvair/map-sdk";
 	import { windPlugin } from "$lib/wind/wind-plugin.js";
 	import { evPlugin } from "$lib/ev-stations/ev-plugin.svelte.js";
+	import { mapMonitorsPlugin } from "$lib/monitors/monitors-plugin.js";
 	import { createEvStore } from "$lib/ev-stations/ev-store.svelte.js";
 	import { stationPopups } from "$lib/ev-stations/station-popup.svelte.js";
 	import MapShell from "$lib/map/MapShell.svelte";
@@ -135,14 +135,7 @@
 		() => wantedPlugins(mapOptions, monitorsDisplay.monitorsOn, monitorsManager.pollutant),
 		{
 			monitors: () => ({
-				plugin: monitorsPlugin({
-					id: "monitors",
-					source: monitorsSource,
-					layerLabel: "Monitors",
-					selectable: true,
-					selectedStyle: "enlarge",
-					clustered: mapOptions.clustered === true
-				}),
+				plugin: mapMonitorsPlugin(monitorsSource, { clustered: mapOptions.clustered === true }),
 				// A removed plugin forgets its mode and selection, so each add passes them again.
 				options: {
 					selectionMode: "single",
@@ -222,11 +215,11 @@
 		}
 		// A previous instance of this layout paused polling in onDestroy; init() is a no-op by now.
 		monitorsManager.resumeAutoUpdate();
-		const offFeatureClick = map.on("featureclick", ({ pluginId, ref, lngLat }) => {
+		const offFeatureClick = map.on("featureclick", ({ pluginId, ref, lngLat, touch }) => {
 			// A station clicked on the map or picked from the list: its popup.
 			if ((pluginId === "ev-l2" || pluginId === "ev-l3") && ref.kind === "feature") {
 				const station = evStore.station(ref.id);
-				if (station) evPopups.open(pluginId, station, lngLat);
+				if (station) evPopups.open(pluginId, station, lngLat, { touch });
 				return;
 			}
 			if (pluginId !== "monitors" || ref.kind !== "monitor") return;

@@ -44,6 +44,8 @@ export function evPlugin(
 		source,
 		layerLabel: `${LEVEL_LABELS[level]} Chargers`,
 		selectable: false,
+		// A tapped station opens its popup; a hover tooltip left by the tap would cover it.
+		tooltipOnTouch: false,
 		icon: { category: () => level, draw: () => icon, size: ICON_SIZE },
 		detail: () => `${LEVEL_LABELS[level]} charger`,
 		...(options.clustered && {
