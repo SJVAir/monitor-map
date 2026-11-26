@@ -21,3 +21,20 @@ jobs:
       # The specs mock the network, so no keys are needed.
       - run: npm test
       - run: npm run test:bundle
+  # The component specs again in WebKit, the engine of iOS and Safari, which lacks some
+  # Chromium DOM APIs (Element.moveBefore broke the monitor chart there).
+  webkit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26.x"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps webkit
+      - run: npx vitest run --project browser
+        env:
+          VITEST_BROWSER: webkit
