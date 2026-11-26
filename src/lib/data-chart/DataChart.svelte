@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { untrack } from "svelte";
+	import type { Action } from "svelte/action";
 	import type { Attachment } from "svelte/attachments";
 	import type { DateRange as CalendarRange } from "bits-ui";
 	import { parseAbsolute } from "@internationalized/date";
@@ -223,35 +224,39 @@
 		link.click();
 	}
 
-	function myAction(node: HTMLElement, expanded: boolean) {
+	type MovableParent = Element & { moveBefore?(node: Node, child: Node | null): void };
+
+	// Element.moveBefore keeps the node's state (focus included) through the move, but WebKit
+	// lacks it: there insertBefore moves the node, and focus is put back by hand.
+	function moveNode(parent: MovableParent, node: HTMLElement, child: Node | null) {
+		if (parent.moveBefore) {
+			parent.moveBefore(node, child);
+			return;
+		}
+		const focused = document.activeElement;
+		parent.insertBefore(node, child);
+		if (focused instanceof HTMLElement && node.contains(focused)) focused.focus();
+	}
+
+	// Expanded, the chart moves to the top of the mountpoint, out of the panel's containing
+	// block, so `position: fixed` covers the page; collapsed, it moves back into its place.
+	const expandable: Action<HTMLElement, boolean> = (node) => {
 		const parent = node.parentElement;
 		const sibling = node.nextElementSibling;
 		const mountpoint = document.getElementById("SJVAirMonitorMap");
 
 		function update(expanded: boolean) {
-			if (parent && mountpoint) {
-				if (expanded) {
-					// Start action logic (e.g., add event listeners)
-					mountpoint.moveBefore(node, mountpoint.firstElementChild);
-				} else {
-					// Stop action logic (e.g., remove event listeners)
-					parent.moveBefore(node, sibling);
-				}
-			}
+			if (!parent || !mountpoint) return;
+			if (expanded) moveNode(mountpoint, node, mountpoint.firstElementChild);
+			else moveNode(parent, node, sibling);
 		}
 
-		update(expanded);
-
-		return {
-			update,
-			destroy() {
-				/* Clean up everything */
-			}
-		};
-	}
+		// It mounts collapsed, already in its place: nothing moves until it expands.
+		return { update };
+	};
 </script>
 
-<div use:myAction={expanded} class="backdrop" class:expanded>
+<div use:expandable={expanded} class="backdrop" class:expanded>
 	<div class="chart-panel" class:expanded>
 		<div class="flex items-center justify-between gap-2 p-1">
 			<div class={["relative", { "flex-1": expanded }]} bind:this={dateRangeContainer}>
