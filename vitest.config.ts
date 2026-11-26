@@ -50,7 +50,10 @@ export default defineConfig({
 						enabled: true,
 						headless: true,
 						provider: playwright(),
-						instances: [{ browser: "chromium" }]
+						// CI also runs them in WebKit (iOS, Safari): VITEST_BROWSER=webkit.
+						instances: [
+							{ browser: process.env.VITEST_BROWSER === "webkit" ? "webkit" : "chromium" }
+						]
 					}
 				}
 			}
