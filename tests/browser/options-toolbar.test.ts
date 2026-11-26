@@ -5,11 +5,13 @@ import type { OptionValues } from "@sjvair/map-sdk";
 import "../../src/app.css";
 import { mapOptions, monitorsDisplay } from "$lib/options/option-values.svelte.js";
 import ToolbarHarness from "./ToolbarHarness.svelte";
+import { parkPointer } from "./park-pointer";
 
 beforeEach(async () => {
 	for (const key of Object.keys(mapOptions)) delete mapOptions[key];
 	monitorsDisplay.monitorsOn = true;
 	await page.viewport(1280, 800);
+	await parkPointer();
 });
 
 async function setup() {
