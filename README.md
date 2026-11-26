@@ -11,15 +11,13 @@ SJVAir's interactive air quality monitor map, built with Svelte 5, Vite and
 ## Installation
 
 ```bash
-npm install @sjvair/monitor-map "@sjvair/sdk@npm:@jsr/sjvair__sdk@^5.0.0-beta.10"
+npm install @sjvair/monitor-map "@sjvair/sdk@npm:@jsr/sjvair__sdk@^5.0.0"
 ```
 
 `@sjvair/sdk` (5.x) is a peer dependency, so the host and the map share one copy and the host's
 `setOrigin` covers both. It is published on JSR, so the host's `.npmrc` needs
 `@jsr:registry=https://npm.jsr.io` (and `allow-remote=root` on npm 12). `@sjvair/map-sdk` and
 `@maptiler/sdk` are ordinary dependencies.
-
-The 5.0 betas are on the `next` dist-tag: `npm install @sjvair/monitor-map@next`.
 
 ## Keys
 
@@ -158,7 +156,7 @@ subscription status cancel their own superseded requests; that work resolves qui
 - **Keys:** pass the MapTiler and NREL keys with `configureMonitorMap({ maptilerKey, nrelKey })`
   (from `@sjvair/monitor-map` or `/core`). The library no longer reads them from the build
   environment.
-- **`@sjvair/sdk` is a peer dependency** (`^5.0.0-beta.10` for the betas): install it in the host.
+- **`@sjvair/sdk` is a peer dependency** (`^5.0.0`): install it in the host.
   `@sjvair/map-sdk` and `@maptiler/sdk` are ordinary dependencies; add neither.
 - **Svelte `^5.57.0`:** the `svelte` peer range was `^5.0.0`.
 - **`meta` is SDK 5.0's:** `meta.levels` is gone; read `meta.scale`.
