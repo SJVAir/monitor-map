@@ -5,3 +5,6 @@ yarn.lock
 
 # Specs and plans (hand-written docs; not formatted)
 docs/
+
+# Controller workspace (not formatted)
+.superpowers/

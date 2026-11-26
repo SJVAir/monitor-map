@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { darken, readableColor } from "color2k";
+	import { NEUTRAL_LEVEL_COLOR } from "$lib/levels";
 
 	interface DataBoxProps {
 		color: string;
@@ -8,7 +9,9 @@
 		value: string;
 	}
 
-	const { color, header, subheading, value }: DataBoxProps = $props();
+	const { color: givenColor, header, subheading, value }: DataBoxProps = $props();
+	// An empty color (a level without one) would make color2k throw.
+	const color = $derived(givenColor || NEUTRAL_LEVEL_COLOR);
 	const borderColor = $derived(darken(color, 0.1));
 	const textColor = $derived(readableColor(color));
 </script>

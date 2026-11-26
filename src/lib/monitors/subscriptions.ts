@@ -1,10 +1,9 @@
 import { getSubscriptions } from "@sjvair/sdk/account";
 import type { SignalOptions } from "$lib/abort";
+import { currentUser } from "$lib/user.svelte.js";
 
 export function getApiToken(): string | undefined {
-	const token = (globalThis as unknown as Record<string, Record<string, unknown> | undefined>)[
-		"USER"
-	]?.api_token;
+	const token = currentUser()?.api_token;
 	return typeof token === "string" && token !== "" ? token : undefined;
 }
 

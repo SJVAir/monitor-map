@@ -4,6 +4,7 @@ import { enhancedImages } from "@sveltejs/enhanced-img";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { fileURLToPath, URL } from "node:url";
 import postcss from "postcss";
+import pkg from "./package.json" with { type: "json" };
 
 export default defineConfig(({ mode }) => {
 	const { base, build, experimental, plugins } = getConfig(mode);
@@ -17,7 +18,10 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		build,
-		experimental
+		experimental,
+		define: {
+			__SJVAIR_MAP_VERSION__: JSON.stringify(pkg.version)
+		}
 	};
 });
 

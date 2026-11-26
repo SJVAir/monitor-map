@@ -1,13 +1,13 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
-	import type { SomeMapIntegration } from "$lib/map/integrations/types";
+	import type { MapContext } from "@sjvair/map-sdk";
 
 	export interface MapShellProps {
-		/** Map integrations to register, e.g. [monitorsMapIntegration] */
-		integrations: Array<SomeMapIntegration>;
+		/** The map to show, from `createMap()` (the monitor map uses `createLiveMap()`). */
+		map: MapContext;
 		/**
 		 * True once the caller's own data managers have finished their initial
-		 * load. The shell hides the load screen once the map is idle AND this
+		 * load. The shell hides the load screen once the map is ready AND this
 		 * is true.
 		 */
 		ready: boolean;
@@ -24,11 +24,12 @@
 		 * trigger the escape-hatch full-page navigation below.
 		 */
 		knownRoutes?: Array<string>;
-		/** Menus (OptionsGroup/OptionsMenu) rendered inside the options toolbar/panel */
-		menu?: Snippet;
-		/** Rendered last in the toolbar (wide) or beside the menu button (narrow) */
-		search?: Snippet;
-		/** Freeform absolutely-positioned content over the map (legend, search, etc.) */
+		/** The options toolbar (map-sdk's `OptionsToolbar`), passed to `MapView`'s `toolbar`. */
+		toolbar?: Snippet;
+		/**
+		 * Absolutely-positioned content over the map (the legend), rendered in `MapView`'s
+		 * `overlays`, so it can read `--mapsdk-toolbar-height` and goes inert with the map.
+		 */
 		overlays?: Snippet;
 		/** The routed detail panel content */
 		children?: Snippet;
@@ -56,45 +57,37 @@
 
 <script lang="ts">
 	import LoadScreen, { disable as disableLoadScreen } from "$lib/LoadScreen.svelte";
-	import Map from "$lib/map/Map.svelte";
-	import OptionsBar from "$lib/options/OptionsBar.svelte";
-	import { mapManager } from "$lib/map/map-manager.svelte.js";
+	import { untrack } from "svelte";
+	import { MapView } from "@sjvair/map-sdk";
 	import { useMonitorMapRouter } from "$lib/router-context";
 
 	let {
-		integrations,
+		map,
 		ready,
 		loadError,
 		panelOpen,
 		knownRoutes = [],
-		menu,
-		search,
+		toolbar,
 		overlays,
 		children,
 		basePath: providedBasePath,
 		routerEscapeHatch = true
 	}: MapShellProps = $props();
 
-	const basePath = providedBasePath ?? (routerEscapeHatch ? useMonitorMapRouter().basePath : "");
-	const TRANSITION_MS = 300;
+	// The toolbar's wide/narrow switch measures this box, not the map's, so opening the panel
+	// (which narrows the map) doesn't collapse it. `$state` so `MapView` sees it once bound.
+	let shell = $state<HTMLElement>();
+
+	// Read once, at setup: the escape hatch's listeners and their root path are installed below
+	// for the shell's lifetime, so later prop changes are deliberately ignored.
+	const escapeHatch = untrack(() => routerEscapeHatch);
+	const basePath =
+		untrack(() => providedBasePath) ?? (escapeHatch ? useMonitorMapRouter().basePath : "");
 
 	$effect(() => {
-		// mapManager.map is only ever assigned once its own initial "load" has
-		// already fired (see initializeMap in map-manager.svelte.ts), so by the time this
-		// effect sees a non-null map, it's already safe to reveal — waiting for a
-		// further "idle" event here is unreliable since one may never fire again.
-		if (mapManager.map && ready) {
+		// `map.ready` is map-sdk's signal that the style loaded and the map went idle.
+		if (map.ready && ready) {
 			disableLoadScreen();
-		}
-	});
-
-	$effect(() => {
-		if (panelOpen) {
-			// Container width snapped to open; resize after layout settles
-			requestAnimationFrame(() => mapManager.map?.resize());
-		} else {
-			// Container width snaps back after the transform transition ends
-			setTimeout(() => mapManager.map?.resize(), TRANSITION_MS);
 		}
 	});
 
@@ -102,7 +95,7 @@
 	 * HACK: Fix for escaping sv-router and allowing navigation to other pages,
 	 * as well as navigating back
 	 */
-	if (routerEscapeHatch) {
+	if (escapeHatch) {
 		const rootPath = basePath || "/";
 
 		window.addEventListener("pageshow", (e) => {
@@ -128,14 +121,21 @@
 	}
 </script>
 
-<div class="relative flex h-full w-full flex-col md:flex-row">
+<div bind:this={shell} class="relative flex h-full w-full flex-col md:flex-row">
 	<LoadScreen error={loadError} />
 	<div class="relative flex-1 overflow-hidden">
-		<Map {integrations} />
-		{@render overlays?.()}
-		{#if menu || search}
-			<OptionsBar {search}>{@render menu?.()}</OptionsBar>
-		{/if}
+		<MapView
+			{map}
+			layoutRoot={shell}
+			label="Air quality monitor map"
+			controls="engine"
+			featureList={{ reveal: "focus" }}
+			selectionBar={false}
+			tooltip="pointer"
+			class="h-full w-full"
+			{toolbar}
+			{overlays}
+		/>
 	</div>
 	<div
 		class={[
